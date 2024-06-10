@@ -31,11 +31,11 @@ client = Client()
 tree = app_commands.CommandTree(client)
 
 
-
-#@client.event
-#async def on_message(message):
-    #print(message.content) 
-
+'''
+@client.event
+async def on_message(message):
+    print(message.content) 
+'''
 
 
 @tree.command(name = "searchtrack", description = "Search for a track") 
