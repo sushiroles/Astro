@@ -1,2 +1,2 @@
-# MusicLinks
-A Discord bot that finds your music EVERYWHERE.
+# Astro
+A Discord app that finds your music EVERYWHERE.
