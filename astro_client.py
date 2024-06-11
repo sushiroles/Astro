@@ -42,7 +42,7 @@ async def on_message(message):
 async def self(interaction: discord.Interaction, artist: str, track: str):
     search_result = search_track(artist,track)
 
-    if search_result['artist_name'] == '' and search_result['track_name'] == '':
+    if search_result['service_anchor'] == '':
         embed = discord.Embed(
                             title=f'Oh no!',
                             colour=0xf5c000,
@@ -85,7 +85,7 @@ async def self(interaction: discord.Interaction, artist: str, track: str):
 async def self(interaction: discord.Interaction, artist: str, album: str):
     search_result = search_album(artist,album)
 
-    if search_result['artist_name'] == '' and search_result['album_name'] == '':
+    if search_result['service_anchor'] == '':
         embed = discord.Embed(
                             title=f'Oh no!',
                             colour=0xf5c000,
