@@ -42,5 +42,3 @@ def search_youtube_music_album(artist, album):
             'album_name': '',
             'cover_art': '',
         }
-
-print(search_youtube_music_track('', 'igor'))
