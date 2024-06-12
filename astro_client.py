@@ -9,8 +9,6 @@ from astroapi.nebula import *
 config = configparser.ConfigParser()
 config.read('tokens.ini')
 
-discord_token = config['discord']['token']
-
 
 
 class Client(discord.Client): 
@@ -114,4 +112,4 @@ async def self(interaction: discord.Interaction, artist: str, album: str):
 
 
 
-client.run(discord_token)
+client.run(config['discord']['token'])

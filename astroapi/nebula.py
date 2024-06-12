@@ -2,8 +2,7 @@ from astroapi.spotify_api import *
 #from astroapi.apple_music_api import *
 from astroapi.youtube_music_api import *
 from astroapi.deezer_api import *
-#from astroapi.tidal_api import *
-#from astroapi.amazon_music_api import *
+from astroapi.tidal_api import *
 #from astroapi.soundcloud_api import *
 #from astroapi.bandcamp_api import *
 
@@ -102,11 +101,12 @@ def search_track(artist: str, track: str):
     #    track_name = apple_music_track
 
     # Search on YouTube Music
-    youtube_music_data = get_track_data(search_youtube_music_track(artist.replace("'",''),track.replace("'",'')),False)
+    youtube_music_data = get_track_data(search_youtube_music_track(artist.replace("'",''),track.replace("'",'')),True)
     youtube_music_url = youtube_music_data['url']
     youtube_music_id = youtube_music_data['id']
     youtube_music_artist = youtube_music_data['artist']
     youtube_music_track = youtube_music_data['track']
+    youtube_music_cover_art = youtube_music_data['cover_art']
     if youtube_music_url != '':
         youtube_music_anchor = f'<:youtubemusic:1247554947696955464> [YouTube Music]({youtube_music_url})\n'
     else:
@@ -130,8 +130,23 @@ def search_track(artist: str, track: str):
         artist_name = deezer_artist
         track_name = deezer_track
 
+    # Search on TIDAL
+    tidal_data = get_track_data(search_tidal_track(spotify_artist,spotify_track),True)
+    tidal_url = tidal_data['url']
+    tidal_id = tidal_data['id']
+    tidal_artist = tidal_data['artist']
+    tidal_track = tidal_data['track']
+    tidal_cover_art = tidal_data['cover_art']
+    if tidal_url != '':
+        tidal_anchor = f'<:tidal:1247554946123960362> [TIDAL]({tidal_url})\n'
+    else:
+        tidal_anchor = ''
+    if artist_name == '' and track_name == '': 
+        artist_name = tidal_artist
+        track_name = tidal_track
+
     cover_art = deezer_cover_art
-    service_anchor = f'{spotify_anchor}{youtube_music_anchor}{deezer_anchor}'
+    service_anchor = f'{spotify_anchor}{youtube_music_anchor}{deezer_anchor}{tidal_anchor}'
 
     return{
         'cover_art': cover_art,
@@ -153,6 +168,9 @@ def search_track(artist: str, track: str):
 
         'deezer_url': deezer_url,
         'deezer_id': deezer_id,
+
+        'tidal_url': tidal_url,
+        'tidal_id': tidal_id,
     }
 
 def search_album(artist: str, album: str):
@@ -196,6 +214,7 @@ def search_album(artist: str, album: str):
     youtube_music_id = youtube_music_data['id']
     youtube_music_artist = youtube_music_data['artist']
     youtube_music_album = youtube_music_data['album']
+    youtube_music_cover_art = youtube_music_data['cover_art']
     if youtube_music_url != '':
         youtube_music_anchor = f'<:youtubemusic:1247554947696955464> [YouTube Music]({youtube_music_url})\n'
     else:
@@ -218,9 +237,24 @@ def search_album(artist: str, album: str):
     if artist_name == '' and album_name == '': 
         artist_name = deezer_artist
         album_name = deezer_album
+    
+    # Search on TIDAL
+    tidal_data = get_album_data(search_tidal_album(spotify_artist,spotify_album),True)
+    tidal_url = tidal_data['url']
+    tidal_id = tidal_data['id']
+    tidal_artist = tidal_data['artist']
+    tidal_album = tidal_data['album']
+    tidal_cover_art = tidal_data['cover_art']
+    if tidal_url != '':
+        tidal_anchor = f'<:tidal:1247554946123960362> [TIDAL]({tidal_url})\n'
+    else:
+        tidal_anchor = ''
+    if artist_name == '' and album_name == '': 
+        artist_name = tidal_artist
+        album_name = tidal_album
 
     cover_art = deezer_cover_art
-    service_anchor = f'{spotify_anchor}{youtube_music_anchor}{deezer_anchor}'
+    service_anchor = f'{spotify_anchor}{youtube_music_anchor}{deezer_anchor}{tidal_anchor}'
 
     return{
         'cover_art': cover_art,
@@ -242,4 +276,7 @@ def search_album(artist: str, album: str):
 
         'deezer_url': deezer_url,
         'deezer_id': deezer_id,
+
+        'tidal_url': tidal_url,
+        'tidal_id': tidal_id,
     }

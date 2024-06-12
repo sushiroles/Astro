@@ -13,13 +13,7 @@ def search_deezer_track(artist: str, track: str):
 			'cover_art': search.album.cover_xl,
 		}
 	except:
-		return {
-			'url': '',
-			'id': '',
-			'artist_name': '',
-			'track_name': '',
-			'cover_art': '',
-		}
+		return None
 
 def search_deezer_album(artist: str, album: str):
 	try:
@@ -32,10 +26,4 @@ def search_deezer_album(artist: str, album: str):
 			'cover_art': search.album.cover_xl,
 		}
 	except:
-		return {
-			'url': '',
-			'id': '',
-			'artist_name': '',
-			'album_name': '',
-			'cover_art': '',
-		}
+		return None

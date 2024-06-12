@@ -1,7 +1,6 @@
 import configparser
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-import json
 
 config = configparser.ConfigParser()
 config.read('tokens.ini')
