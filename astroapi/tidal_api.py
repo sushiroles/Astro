@@ -6,7 +6,7 @@ import json
 config = configparser.ConfigParser()
 config.read('tokens.ini')
 
-def get_tidal_access_token(client_id, client_secret):
+def get_access_token(client_id, client_secret):
     credentials = f'{client_id}:{client_secret}'
 
     encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
@@ -20,21 +20,19 @@ def get_tidal_access_token(client_id, client_secret):
         data=data,
     )
     return response.json()['access_token']
-\
+
 
 def search_tidal_track(artist, track):
     url = f"https://openapi.tidal.com/search?query={f'{artist}-{track}'}&type=TRACKS&offset=0&limit=1&countryCode=US&popularity=WORLDWIDE"
 
     headers = {
         "accept": "application/vnd.tidal.v1+json",
-        "Authorization": f"Bearer {get_tidal_access_token(config['tidal']['id'], config['tidal']['secret'] + '=')}",
+        "Authorization": f"Bearer {get_access_token(config['tidal']['id'], config['tidal']['secret'] + '=')}",
         "Content-Type": "application/vnd.tidal.v1+json"
     }
     response = requests.get(url, headers=headers)
     track_data = response.json()["tracks"][0]['resource']
 
-    with open('haha.json', 'w', encoding='utf-8') as outfile: 
-        json.dump(response.json(), outfile, indent=4)
     if response.status_code == 207:
         try:
             return {
@@ -52,7 +50,7 @@ def search_tidal_album(artist, album):
 
     headers = {
         "accept": "application/vnd.tidal.v1+json",
-        "Authorization": f"Bearer {get_tidal_access_token(config['tidal']['id'], config['tidal']['secret'] + '=')}",
+        "Authorization": f"Bearer {get_access_token(config['tidal']['id'], config['tidal']['secret'] + '=')}",
         "Content-Type": "application/vnd.tidal.v1+json"
     }
     response = requests.get(url, headers=headers)

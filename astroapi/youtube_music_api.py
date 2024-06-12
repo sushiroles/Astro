@@ -16,13 +16,7 @@ def search_youtube_music_track(artist, track):
             'cover_art': search_results['thumbnails'][1]['url'],
         }
     except:
-        return {
-            'url': '',
-            'id': '',
-            'artist_name': '',
-            'track_name': '',
-            'cover_art': '',
-        }
+        return None
 
 def search_youtube_music_album(artist, album):
     try:
@@ -35,10 +29,4 @@ def search_youtube_music_album(artist, album):
             'cover_art': search_results['thumbnails'][1]['url'],
         }
     except:
-        return {
-            'url': '',
-            'id': '',
-            'artist_name': '',
-            'album_name': '',
-            'cover_art': '',
-        }
+        return None
