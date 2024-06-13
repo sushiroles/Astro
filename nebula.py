@@ -1,13 +1,9 @@
-from astroapi.spotify_api import *
-#from astroapi.apple_music_api import *
-from astroapi.youtube_music_api import *
-from astroapi.deezer_api import *
-from astroapi.tidal_api import *
-#from astroapi.soundcloud_api import *
-#from astroapi.bandcamp_api import *
-
-# ignore this :3
-#value=f'<:spotify:1247554944916000839> [Spotify]({search_result['spotify_url']})\n<:applemusic:1247554938733854761> Apple Music\n<:youtubemusic:1247554947696955464> YouTube Music\n<:deezer:1247554941724397649> [Deezer]({search_result['deezer_url']})\n<:tidal:1247554946123960362> Tidal\n<:amazonmusic:1247554937320112239> Amazon Music\n<:soundcloud:1247554943347327036> SoundCloud\n<:bandcamp:1247554940071841803> BandCamp',
+from nebula_api.spotify_nebula import *
+#from nebula_api.apple_music_api import *
+from nebula_api.youtube_music_nebula import *
+from nebula_api.deezer_nebula import *
+from nebula_api.tidal_nebula import *
+from nebula_api.bandcamp_nebula import *
 
 def get_track_data(service: str, api_call: callable, contains_cover_art: bool):
     cover_art = ''
@@ -17,6 +13,7 @@ def get_track_data(service: str, api_call: callable, contains_cover_art: bool):
         'YouTube Music': '<:youtubemusic:1247554947696955464>',
         'Deezer': '<:deezer:1247554941724397649>',
         'TIDAL': '<:tidal:1247554946123960362>',
+        'Bandcamp': '<:bandcamp:1247554940071841803>',
     }
     try:
         call_results = api_call
@@ -51,6 +48,7 @@ def get_album_data(service: str, api_call: callable, contains_cover_art: bool):
         'YouTube Music': '<:youtubemusic:1247554947696955464>',
         'Deezer': '<:deezer:1247554941724397649>',
         'TIDAL': '<:tidal:1247554946123960362>',
+        'Bandcamp': '<:bandcamp:1247554940071841803>',
     }
     try:
         call_results = api_call
@@ -89,10 +87,6 @@ def search_track(artist: str, track: str):
 
     # Search on Spotify
     spotify = get_track_data('Spotify',search_spotify_track(artist.replace("'",''),track.replace("'",'')),True)
-    #if spotify['url'] != '':
-    #    spotify_anchor = f'<:spotify:1247554944916000839> [Spotify]({spotify['url']})\n'
-    #else:
-    #    spotify_anchor = ''
     if artist_name == '' and track_name == '': 
         artist_name = spotify['artist']
         track_name = spotify['track']
@@ -121,8 +115,14 @@ def search_track(artist: str, track: str):
         artist_name = tidal['artist']
         track_name = tidal['track']
 
+    # Bandcamp
+    bandcamp = get_track_data('Bandcamp', search_bandcamp_track(spotify['artist'], spotify['track']), False)
+    if artist_name == '' and track_name == '': 
+        artist_name = bandcamp['artist']
+        track_name = bandcamp['track']
+
     cover_art = deezer['cover_art']
-    service_anchor = f'{spotify['anchor']}{youtube_music['anchor']}{deezer['anchor']}{tidal['anchor']}'
+    service_anchor = f'{spotify['anchor']}{youtube_music['anchor']}{deezer['anchor']}{tidal['anchor']}{bandcamp['anchor']}'
 
     return{
         'cover_art': cover_art,
@@ -147,6 +147,9 @@ def search_track(artist: str, track: str):
 
         'tidal_url': tidal['url'],
         'tidal_id': tidal['id'],
+        
+        'bandcamp_url': bandcamp['url'],
+        'bandcamp_id': bandcamp['id'],
     }
 
 def search_album(artist: str, album: str):
@@ -187,8 +190,14 @@ def search_album(artist: str, album: str):
         artist_name = tidal['artist']
         album_name = tidal['album']
 
+    # Bandcamp
+    bandcamp = get_album_data('Bandcamp', search_bandcamp_album(spotify['artist'], spotify['album']), False)
+    if artist_name == '' and album_name == '': 
+        artist_name = bandcamp['artist']
+        album_name = bandcamp['album']
+
     cover_art = deezer['cover_art']
-    service_anchor = f'{spotify['anchor']}{youtube_music['anchor']}{deezer['anchor']}{tidal['anchor']}'
+    service_anchor = f'{spotify['anchor']}{youtube_music['anchor']}{deezer['anchor']}{tidal['anchor']}{bandcamp['anchor']}'
 
     return{
         'cover_art': cover_art,
@@ -198,7 +207,6 @@ def search_album(artist: str, album: str):
 
         'requested_artist': requested_artist,
         'requested_album': requested_album,
-
 
         'spotify_url': spotify['url'],
         'spotify_id': spotify['id'],
@@ -214,4 +222,7 @@ def search_album(artist: str, album: str):
 
         'tidal_url': tidal['url'],
         'tidal_id': tidal['id'],
+
+        'bandcamp_url': bandcamp['url'],
+        'bandcamp_id': bandcamp['id'],
     }

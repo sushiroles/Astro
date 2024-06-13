@@ -4,8 +4,6 @@ import json
 ytmusic = YTMusic()
 
 def search_youtube_music_track(artist, track):
-    #with open('haha.json', 'w', encoding='utf-8') as outfile: 
-    #    json.dump(search_results, outfile, indent=4)
     try:
         search_results = ytmusic.search(f'{artist} {track}',filter='songs')[0]
         return {

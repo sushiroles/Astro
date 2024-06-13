@@ -4,7 +4,7 @@ from discord import app_commands
 from discord.ext import tasks
 import json
 
-from astroapi.nebula import *
+from nebula import *
 
 config = configparser.ConfigParser()
 config.read('tokens.ini')
