@@ -2,6 +2,7 @@ import configparser
 import base64
 import requests
 import json
+from nebula_api.milkyway import *
 
 config = configparser.ConfigParser()
 config.read('tokens.ini')
@@ -42,7 +43,9 @@ def search_tidal_track(artist, track):
 			    'track_name': track_data['title'],
 			    'cover_art': track_data['album']['imageCover'][1],
 		    }
-        except:
+        except Exception as error:
+            log('ERROR', f'Inside search_tidal_track(): "{error}" --- artist: {artist} / track: {track}')
+
             return None
 
 def search_tidal_album(artist, album):
@@ -66,5 +69,7 @@ def search_tidal_album(artist, album):
 			    'album_name': album_data['title'],
 			    'cover_art': album_data['imageCover'][1],
 		    }
-        except:
+        except Exception as error:
+            log('ERROR', f'Inside search_tidal_album(): "{error}" --- artist: {artist} / album: {album}')
+
             return None

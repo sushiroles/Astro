@@ -1,4 +1,5 @@
 import deezer
+from nebula_api.milkyway import *
 
 client = deezer.Client()
 
@@ -12,7 +13,8 @@ def search_deezer_track(artist: str, track: str):
 			'track_name': search.title,
 			'cover_art': search.album.cover_xl,
 		}
-	except:
+	except Exception as error:
+		log('ERROR', f'Inside search_deezer_track(): "{error}" --- artist: {artist} / track: {track}')
 		return None
 
 def search_deezer_album(artist: str, album: str):
@@ -25,5 +27,6 @@ def search_deezer_album(artist: str, album: str):
 			'album_name': search.album.title,
 			'cover_art': search.album.cover_xl,
 		}
-	except:
+	except Exception as error:
+		log('ERROR', f'Inside search_deezer_album(): "{error}" --- artist: {artist} / album: {album}')
 		return None

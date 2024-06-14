@@ -1,5 +1,6 @@
 from ytmusicapi import YTMusic
 import json
+from nebula_api.milkyway import *
 
 ytmusic = YTMusic()
 
@@ -13,7 +14,8 @@ def search_youtube_music_track(artist, track):
             'track_name': search_results['title'],
             'cover_art': search_results['thumbnails'][1]['url'],
         }
-    except:
+    except Exception as error:
+        log('ERROR', f'Inside search_youtube_music_track(): "{error}" --- artist: {artist} / track: {track}')
         return None
 
 def search_youtube_music_album(artist, album):
@@ -26,5 +28,6 @@ def search_youtube_music_album(artist, album):
             'album_name': search_results['title'],
             'cover_art': search_results['thumbnails'][1]['url'],
         }
-    except:
+    except Exception as error:
+        log('ERROR', f'Inside search_youtube_music_album(): "{error}" --- artist: {artist} / album: {album}')
         return None

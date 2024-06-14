@@ -1,9 +1,11 @@
-from nebula_api.spotify_nebula import *
-#from nebula_api.apple_music_api import *
-from nebula_api.youtube_music_nebula import *
-from nebula_api.deezer_nebula import *
-from nebula_api.tidal_nebula import *
-from nebula_api.bandcamp_nebula import *
+from spotify_nebula import *
+#from apple_music_api import *
+from youtube_music_nebula import *
+from deezer_nebula import *
+from tidal_nebula import *
+from bandcamp_nebula import *
+
+from nebula_api.milkyway import *
 
 def get_track_data(service: str, api_call: callable, contains_cover_art: bool):
     cover_art = ''
@@ -24,13 +26,14 @@ def get_track_data(service: str, api_call: callable, contains_cover_art: bool):
         if contains_cover_art:
             cover_art = call_results['cover_art']
         anchor = f'{emojis[service]} [{service}]({url})\n'
-    except:
+    except Exception as error:
         url = ''
         identifier = ''
         artist = ''
         track = ''
         cover_art = ''
         anchor = ''
+        log('ERROR', f'Inside get_track_data(): "{error}" --- service: {service} / api_call: {api_call} / contains_cover_art: {contains_cover_art}')
     return {
         'url': url,
         'id': identifier,
@@ -59,13 +62,14 @@ def get_album_data(service: str, api_call: callable, contains_cover_art: bool):
         if contains_cover_art:
             cover_art = call_results['cover_art']
         anchor = f'{emojis[service]} [{service}]({url})\n'
-    except:
+    except Exception as error:
         url = ''
         identifier = ''
         artist = ''
         album = ''
         cover_art = ''
-        anchor = '',
+        anchor = ''
+        log('ERROR', f'Inside get_album_data(): "{error}" --- service: {service} / api_call: {api_call} / contains_cover_art: {contains_cover_art}')
     return {
         'url': url,
         'id': identifier,
@@ -124,7 +128,7 @@ def search_track(artist: str, track: str):
     cover_art = deezer['cover_art']
     service_anchor = f'{spotify['anchor']}{youtube_music['anchor']}{deezer['anchor']}{tidal['anchor']}{bandcamp['anchor']}'
 
-    return{
+    return {
         'cover_art': cover_art,
         'artist_name': artist_name,
         'track_name': track_name,

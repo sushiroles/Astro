@@ -1,4 +1,6 @@
 from bandcamp_api import Bandcamp
+from nebula_api.milkyway import *
+
 bc = Bandcamp()
 
 def search_bandcamp_track(artist: str, track: str):
@@ -14,8 +16,9 @@ def search_bandcamp_track(artist: str, track: str):
 			'track_name': search[counter].track_title,
 			'cover_art': '',
         }
-    except Exception as e:
-        return e
+    except Exception as error:
+        log('ERROR', f'Inside search_bandcamp_track(): "{error}" --- artist: {artist} / track: {track}')
+        return None
 
 def search_bandcamp_album(artist: str, album: str):
     try:
@@ -30,5 +33,6 @@ def search_bandcamp_album(artist: str, album: str):
 			'album_name': search[counter].album_title,
 			'cover_art': '',
         }
-    except:
+    except Exception as error:
+        log('ERROR', f'Inside search_bandcamp_album(): "{error}" --- artist: {artist} / album: {album}')
         return None
