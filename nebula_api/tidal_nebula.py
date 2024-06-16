@@ -2,7 +2,7 @@ import configparser
 import base64
 import requests
 import json
-from nebula_api.milkyway import *
+from nebula_api.log import *
 
 config = configparser.ConfigParser()
 config.read('tokens.ini')

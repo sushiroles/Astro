@@ -1,11 +1,11 @@
-from spotify_nebula import *
-#from apple_music_api import *
-from youtube_music_nebula import *
-from deezer_nebula import *
-from tidal_nebula import *
-from bandcamp_nebula import *
+from nebula_api.spotify_nebula import *
+#from nebula_api.apple_music_api import *
+from nebula_api.youtube_music_nebula import *
+from nebula_api.deezer_nebula import *
+from nebula_api.tidal_nebula import *
+from nebula_api.bandcamp_nebula import *
 
-from nebula_api.milkyway import *
+from nebula_api.log import *
 
 def get_track_data(service: str, api_call: callable, contains_cover_art: bool):
     cover_art = ''

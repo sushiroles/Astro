@@ -1,5 +1,5 @@
 from bandcamp_api import Bandcamp
-from nebula_api.milkyway import *
+from nebula_api.log import *
 
 bc = Bandcamp()
 

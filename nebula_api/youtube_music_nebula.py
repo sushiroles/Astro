@@ -1,6 +1,6 @@
 from ytmusicapi import YTMusic
 import json
-from nebula_api.milkyway import *
+from nebula_api.log import *
 
 ytmusic = YTMusic()
 
