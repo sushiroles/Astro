@@ -2,7 +2,7 @@ import configparser
 import base64
 import requests
 import json
-from nebula_api.log import *
+from etc import *
 
 config = configparser.ConfigParser()
 config.read('tokens.ini')
@@ -24,7 +24,9 @@ def get_access_token(client_id, client_secret):
 
 
 def search_tidal_track(artist, track):
-    url = f"https://openapi.tidal.com/search?query={f'{artist}-{track}'}&type=TRACKS&offset=0&limit=1&countryCode=US&popularity=WORLDWIDE"
+    tracks_data = []
+
+    url = f"https://openapi.tidal.com/search?query={f'{artist}-{track}'}&type=TRACKS&offset=0&limit=5&countryCode=US&popularity=WORLDWIDE"
 
     headers = {
         "accept": "application/vnd.tidal.v1+json",
@@ -32,24 +34,27 @@ def search_tidal_track(artist, track):
         "Content-Type": "application/vnd.tidal.v1+json"
     }
     response = requests.get(url, headers=headers)
-    track_data = response.json()["tracks"][0]['resource']
+    search_results = response.json()["tracks"]
 
     if response.status_code == 207:
-        try:
-            return {
-			    'url': track_data['tidalUrl'],
-			    'id': track_data['id'],
-			    'artist_name': track_data['artists'][0]['name'],
-			    'track_name': track_data['title'],
-			    'cover_art': track_data['album']['imageCover'][1],
-		    }
-        except Exception as error:
-            log('ERROR', f'Inside search_tidal_track(): "{error}" --- artist: {artist} / track: {track}')
+        for search_results_num in range(len(search_results)):
+            tracks_data.append({
+                'url': search_results[search_results_num]['resource']['tidalUrl'],
+                'id': search_results[search_results_num]['resource']['id'],
+                'artist_name': search_results[search_results_num]['resource']['artists'][0]['name'],
+                'track_name': search_results[search_results_num]['resource']['title'],
+                'cover_art': search_results[search_results_num]['resource']['album']['imageCover'][1]['url'],
+            })
+        return tracks_data
+    else:
+        return None
+    
 
-            return None
 
 def search_tidal_album(artist, album):
-    url = f"https://openapi.tidal.com/search?query={f'{artist}-{album}'}&type=ALBUMS&offset=0&limit=1&countryCode=US&popularity=WORLDWIDE"
+    albums_data = []
+
+    url = f"https://openapi.tidal.com/search?query={f'{artist}-{album}'}&type=ALBUMS&offset=0&limit=5&countryCode=US&popularity=WORLDWIDE"
 
     headers = {
         "accept": "application/vnd.tidal.v1+json",
@@ -57,19 +62,21 @@ def search_tidal_album(artist, album):
         "Content-Type": "application/vnd.tidal.v1+json"
     }
     response = requests.get(url, headers=headers)
-    album_data = response.json()["albums"][0]['resource']
+    search_results = response.json()["albums"]
+    
+    #with open('data.json', 'w', encoding='utf-8') as f:
+    #    json.dump(search_results, f, ensure_ascii=False, indent=4)
 
-
+    #return None
     if response.status_code == 207:
-        try:
-            return {
-			    'url': album_data['tidalUrl'],
-			    'id': album_data['id'],
-			    'artist_name': album_data['artists'][0]['name'],
-			    'album_name': album_data['title'],
-			    'cover_art': album_data['imageCover'][1],
-		    }
-        except Exception as error:
-            log('ERROR', f'Inside search_tidal_album(): "{error}" --- artist: {artist} / album: {album}')
-
-            return None
+        for search_results_num in range(len(search_results)):
+            albums_data.append({
+			    'url': search_results[search_results_num]['resource']['tidalUrl'],
+			    'id': search_results[search_results_num]['resource']['id'],
+			    'artist_name': search_results[search_results_num]['resource']['artists'][0]['name'],
+			    'album_name': search_results[search_results_num]['resource']['title'],
+			    'cover_art': search_results[search_results_num]['resource']['imageCover'][1]['url'],
+		    })
+        return albums_data
+    else:
+        return None

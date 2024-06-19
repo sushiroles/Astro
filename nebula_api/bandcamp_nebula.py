@@ -1,38 +1,42 @@
 from bandcamp_api import Bandcamp
-from nebula_api.log import *
+from etc import *
 
 bc = Bandcamp()
 
 def search_bandcamp_track(artist: str, track: str):
     try:
-        search = bc.search(f'{artist} {track}')
-        counter = 0
-        while search[counter].artist_title != artist:
-            counter += 1
-        return {
-            'url': search[counter].track_url,
-			'id': '',
-			'artist_name': search[counter].artist_title,
-			'track_name': search[counter].track_title,
-			'cover_art': '',
-        }
-    except Exception as error:
-        log('ERROR', f'Inside search_bandcamp_track(): "{error}" --- artist: {artist} / track: {track}')
+        tracks_data = []
+        search_results = bc.search(f'{artist} {track}')[:5]
+        for search_results_num in range(len(search_results)):
+            try:
+                tracks_data.append({
+                    'url': search_results[search_results_num].track_url,
+                    'id': '',
+                    'artist_name': search_results[search_results_num].artist_title,
+                    'track_name': search_results[search_results_num].track_title,
+                    'cover_art': '',
+                })
+            except:
+                pass
+        return tracks_data
+    except:
         return None
 
 def search_bandcamp_album(artist: str, album: str):
     try:
-        search = bc.search(f'{artist} {album}')
-        counter = 0
-        while search[counter].artist_title != artist:
-            counter += 1
-        return {
-            'url': search[counter].album_url,
-			'id':  '',
-			'artist_name': search[counter].artist_title,
-			'album_name': search[counter].album_title,
-			'cover_art': '',
-        }
-    except Exception as error:
-        log('ERROR', f'Inside search_bandcamp_album(): "{error}" --- artist: {artist} / album: {album}')
-        return None
+        albums_data = []
+        search_results = bc.search(f'{artist} {album}')[:5]
+        for search_results_num in range(len(search_results)):
+            try:
+                albums_data.append({
+                    'url': search_results[search_results_num].album_url,
+                    'id': '',
+                    'artist_name': search_results[search_results_num].artist_title,
+                    'album_name': search_results[search_results_num].album_title,
+                    'cover_art': '',
+                })
+            except:
+                pass
+        return albums_data
+    except Exception as e:
+        return e

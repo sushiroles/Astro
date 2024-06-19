@@ -5,7 +5,7 @@ from nebula_api.deezer_nebula import *
 from nebula_api.tidal_nebula import *
 from nebula_api.bandcamp_nebula import *
 
-from nebula_api.log import *
+from nebula_api.etc import *
 
 def get_track_data(service: str, api_call: callable, contains_cover_art: bool):
     cover_art = ''
