@@ -1,54 +1,55 @@
 from ytmusicapi import YTMusic
 import configparser
 import json
-from etc import *
+try:
+	from nebula_api.etc import *
+	from nebula_api.filter import *
+except:
+	from etc import *
+	from filter import *
 
-config = configparser.ConfigParser()
-config.read('tokens.ini')
+ytmusic = YTMusic()
 
 
-ytmusic = YTMusic({
-    "scope": config['youtube_music']['scope'],
-    "token_type": config['youtube_music']['token_type'],
-    "access_token": config['youtube_music']['access_token'],
-    "refresh_token": config['youtube_music']['refresh_token'],
-    "expires_at": int(config['youtube_music']['expires_at']),
-    "expires_in": int(config['youtube_music']['expires_in']),
-})
 
 def search_youtube_music_track(artist, track):
     try:
         tracks_data = []
-        search_results = ytmusic.search(f'{artist} {track}', filter = 'songs', limit = 3)[:3]
-        for search_results_num in range(len(search_results)):
+        search_results = ytmusic.search(f'{artist} {track}', filter = 'songs')[:10]
+        for result in search_results:
             tracks_data.append({
-                'url': f'https://music.youtube.com/watch?v={search_results[search_results_num]['videoId']}',
-                'id': search_results[search_results_num]['videoId'],
-                'artist_name': search_results[search_results_num]['artists'][0]['name'],
-                'track_name': search_results[search_results_num]['title'],
-                'cover_art': search_results[search_results_num]['thumbnails'][1]['url'],
+                'url': str(f'https://music.youtube.com/watch?v={result['videoId']}'),
+                'id': str(result['videoId']),
+                'artist_name': str(result['artists'][0]['name']),
+                'track_name': str(result['title']),
+                'cover_art': str(result['thumbnails'][1]['url']),
             })
-        return tracks_data
+        return filter_track(artist, track, tracks_data)
     except:
         return None
+
+
 
 def search_youtube_music_album(artist, album):
     try:
         albums_data = []
-        search = ytmusic.search(f'{artist} {album}', filter = 'albums', limit = 3)[:3]
-        return search
-        for search_results_num in range(len(search)):
-            search_results = ytmusic.get_album(search[search_results_num]['browseId'])
+        search = ytmusic.search(f'{artist} {album}', filter = 'albums')[:10]
+        for data in search:
             albums_data.append({
-                'url': f'https://music.youtube.com/playlist?list={search_results['audioPlaylistId']}',
-                'id': search_results['audioPlaylistId'],
-                'artist_name': search_results['artists'][0]['name'],
-                'album_name': search_results['title'],
-                'cover_art': search_results['thumbnails'][1]['url'],
+                'artist_name': str(data['artists'][0]['name']),
+                'album_name': str(data['title']),
+                'browse_id': str(data['browseId'])
             })
-        return albums_data
+        browse_id = filter_album(artist, album, albums_data)['browse_id']
+        album_search_data = ytmusic.get_album(browse_id)
+        album_data = {
+            'url': str(f'https://music.youtube.com/playlist?list={album_search_data['audioPlaylistId']}'),
+			'id': str(album_search_data['audioPlaylistId']),
+			'artist_name': str(album_search_data['artists'][0]['name']),
+			'album_name': str(album_search_data['title']),
+			'release_year': str(album_search_data['year']),
+			'cover_art': str(album_search_data['thumbnails'][3]['url']),
+        }
+        return album_data
     except:
         return None
-
-with open('data.json', 'w', encoding='utf-8') as f:
-    json.dump(search_youtube_music_album('tyler the creator','call me if you get lost'), f, ensure_ascii=False, indent=4)

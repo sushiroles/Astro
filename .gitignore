@@ -3,3 +3,4 @@
 *.cache
 *.pyc
 logs.txt
+test.py

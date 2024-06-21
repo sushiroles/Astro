@@ -28,7 +28,7 @@ class Client(discord.Client):
 client = Client() 
 tree = app_commands.CommandTree(client)
 
-
+'''
 @client.event
 async def on_message(message):
     if message.content.find('https://open.spotify.com/track/') >= 0:
@@ -126,7 +126,7 @@ async def on_message(message):
         embed.set_footer(text = 'Thank you for using Astro!')
         await message.reply(embed = embed)
         log('SUCCESS', f'Successfully passively searched a Spotify album in {current_time_ms() - start_time}ms --- spotify_id: "{spotify_id}"')
-    
+    '''
 
 
 
@@ -134,6 +134,7 @@ async def on_message(message):
 @tree.command(name = 'searchtrack', description = 'Search for a track') 
 async def self(interaction: discord.Interaction, artist: str, track: str):
     start_time = current_time_ms()
+    await interaction.response.defer()
     search_result = search_track(artist, track)
 
     if search_result['service_anchor'] == '':
@@ -149,7 +150,7 @@ async def self(interaction: discord.Interaction, artist: str, track: str):
         )
     
         embed.set_footer(text = 'Thank you for using Astro!')
-        await interaction.response.send_message(embed = embed, ephemeral = True)
+        await interaction.followup.send(embed = embed, ephemeral = True)
         log('FAILURE', f'Unsuccessfully executed command /searchtrack --- artist: "{artist}" / track: "{track}"')
 
 
@@ -168,13 +169,14 @@ async def self(interaction: discord.Interaction, artist: str, track: str):
     
         embed.set_thumbnail(url = search_result['cover_art'])
         embed.set_footer(text = 'Thank you for using Astro!')
-        await interaction.response.send_message(embed = embed)
+        await interaction.followup.send(embed = embed)
         log('SUCCESS', f'Successfully executed command /searchtrack in {current_time_ms() - start_time}ms --- artist: "{artist}" / track: "{track}"')
 
 
 @tree.command(name = 'searchalbum', description = 'Search for an album') 
 async def self(interaction: discord.Interaction, artist: str, album: str):
     start_time = current_time_ms()
+    await interaction.response.defer()
     search_result = search_album(artist, album)
 
     if search_result['service_anchor'] == '':
@@ -191,7 +193,7 @@ async def self(interaction: discord.Interaction, artist: str, album: str):
     
         embed.set_footer(text = 'Thank you for using Astro!')
 
-        await interaction.response.send_message(embed = embed, ephemeral = True)
+        await interaction.followup.send(embed = embed, ephemeral = True)
         log('FAILURE', f'Unsuccessfully executed command /searchalbum --- artist: "{artist}" / album: "{album}"')
 
 
@@ -210,7 +212,7 @@ async def self(interaction: discord.Interaction, artist: str, album: str):
     
         embed.set_thumbnail(url = search_result['cover_art'])
         embed.set_footer(text = 'Thank you for using Astro!')
-        await interaction.response.send_message(embed = embed)
+        await interaction.followup.send(embed = embed)
         log('SUCCESS', f'Successfully executed command /searchalbum in {current_time_ms() - start_time}ms --- artist: "{artist}" / album: "{album}"')
 
 

@@ -1,41 +1,24 @@
+try:
+	from nebula_api.etc import *
+except:
+	from etc import *
 
-from spotify_nebula import *
-#from apple_music_api import *
-from youtube_music_nebula import *
-from deezer_nebula import *
-from tidal_nebula import *
-from bandcamp_nebula import *
+def filter_track(artist: str, track: str, tracks_data: list):
+    artist = remove_punctuation(artist).lower()
+    track = remove_punctuation(track).lower()
+    for data in tracks_data:
+        data_artist = remove_punctuation(data['artist_name']).lower()
+        data_track = remove_punctuation(data['track_name']).lower()
+        if data_artist.find(artist) >= 0 and data_track.find(track) >= 0:
+            return data
+    return None
 
-from etc import *
-
-
-artist = 'beyonce'
-album = 'cowboy carter'
-
-start_time = current_time_ms()
-print(search_spotify_album(artist,album))
-print('\n')
-print(search_youtube_music_album(artist,album))
-print('\n')
-print(search_deezer_album(artist,album))
-print('\n')
-print(search_tidal_album(artist,album))
-print('\n')
-print(search_bandcamp_album(artist,album))
-print(f'this took {current_time_ms()-start_time}ms to run\n')
-
-
-artist = 'beyonce'
-track = 'im that girl'
-
-start_time = current_time_ms()
-print(search_spotify_track(artist,track))
-print('\n')
-print(search_youtube_music_track(artist,track))
-print('\n')
-print(search_deezer_track(artist,track))
-print('\n')
-print(search_tidal_track(artist,track))
-print('\n')
-print(search_bandcamp_track(artist,track))
-print(f'this took {current_time_ms()-start_time}ms to run')
+def filter_album(artist: str, album: str, albums_data: list):
+    artist = remove_punctuation(artist).lower()
+    album = remove_punctuation(album).lower()
+    for data in albums_data:
+        data_artist = remove_punctuation(data['artist_name']).lower()
+        data_album = remove_punctuation(data['album_name']).lower()
+        if data_artist.find(artist) >= 0 and data_album.find(album) >= 0:
+            return data
+    return None
