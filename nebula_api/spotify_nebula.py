@@ -23,17 +23,25 @@ def search_spotify_track(artist: str, track: str):
 	sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
 	search_query = f'artist:{artist} track:{track}'
-	search_results = sp.search(q = search_query, type = 'track', limit = 10)
+	search_results = sp.search(q = search_query, type = 'track')
 
 	if search_results['tracks']['items']:
 		for result in search_results['tracks']['items']:
+			url = str(result['external_urls']['spotify'])
+			identifier = str(result['id'])
+			artists = []
+			for names in result['artists']:
+				artists.append(str(names['name']))
+			title = str(result['name'])
+			year = str(result['album']['release_date'][:4])
+			cover = str(result['album']['images'][0]['url'])
 			tracks_data.append({
-				'url': str(result['external_urls']['spotify']),
-				'id': str(result['id']),
-				'id': str(result['id']),
-				'artist_name': str(result['artists'][0]['name']),
-				'track_name': str(result['name']),
-				'cover_art': str(result['album']['images'][0]['url']),
+				'url': url,
+				'id': identifier,
+				'artists': artists,
+				'track': title,
+				'year': year,
+				'cover': cover,
 			})
 		return filter_track(artist, track, tracks_data)
 	else:
@@ -50,17 +58,25 @@ def search_spotify_album(artist: str, album: str):
 	sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
 	search_query = f'artist:{artist} album:{album}'
-	search_results = sp.search(q=search_query, type='album', limit = 10)
+	search_results = sp.search(q=search_query, type='album')
 
 	if search_results['albums']['items']:
 		for result in search_results['albums']['items']:
+			url = str(result['external_urls']['spotify'])
+			identifier = str(result['id'])
+			artists = []
+			for names in result['artists']:
+				artists.append(str(names['name']))
+			title = str(result['name'])
+			year = str(result['release_date'][:4])
+			cover = str(result['images'][0]['url'])
 			albums_data.append({
-				'url': str(result['external_urls']['spotify']),
-				'id': str(result['id']),
-				'artist_name': str(result['artists'][0]['name']),
-				'album_name': str(result['name']),
-				'release_year': str(result['release_date'][:4]),
-				'cover_art': str(result['images'][0]['url']),
+				'url': url,
+				'id': identifier,
+				'artists': artists,
+				'album': title,
+				'year': year,
+				'cover': cover,
 			})
 		return filter_album(artist, album, albums_data)
 	else:
