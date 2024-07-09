@@ -29,105 +29,81 @@ class Client(discord.Client):
 
 client = Client() 
 tree = app_commands.CommandTree(client)
-'''
+
 @client.event
 async def on_message(message):
-	if message.content.find('https://open.spotify.com/track/') >= 0:
-		start_time = current_time_ms()
-		spotify_id = message.content[message.content.index('https://open.spotify.com/track/') : message.content.index('?')].replace('https://open.spotify.com/track/','')
-		spotify_data = get_spotify_track(spotify_id)
-		print(spotify_data)
-		search_result = search_track(spotify_data['artist_name'].replace("'",''), spotify_data['track_name'].replace("'",''))
+	urls = find_urls(message.content)
+	if urls != []:
+		for url in urls:
+			start_time = current_time_ms()
+			url_type = ''
+			data = {}
+			if is_spotify_track(url):
+				start_time = current_time_ms()
+				identifier = get_spotify_id(url)
+				data = get_spotify_track(identifier)
+				url_type = 'track'
+			elif is_spotify_album(url):
+				start_time = current_time_ms()
+				identifier = get_spotify_id(url)
+				data = get_spotify_album(identifier)
+				url_type = 'album'
+			elif is_apple_music_track(url):
+				start_time = current_time_ms()
+				identifier = get_apple_music_track_id(url)
+				data = get_apple_music_track(identifier)
+				url_type = 'track'
+			elif is_apple_music_album(url):
+				start_time = current_time_ms()
+				identifier = get_apple_music_album_id(url)
+				data = get_apple_music_album(identifier)
+				url_type = 'album'
+			#elif is_youtube_music_track(url):
+			#elif is_youtube_music_album(url):
+			#elif is_deezer_track(url):
+			#elif is_deezer_album(url):
+			#elif is_tidal_track(url):
+			#elif is_tidal_album(url):
+			#elif is_bandcamp_track(url):
+			#elif is_bandcamp_album(url):
+			try:
+				if url_type == 'track':
+					search_result = search_track(bare_bones(data['artists'][0]), bare_bones(data['track']))[0]
+				elif url_type == 'album':
+					search_result = search_album(bare_bones(data['artists'][0]), bare_bones(data['album']))[0]
+			except Exception as e:
+				print(e)
+				return None
+			if url_type == 'track':
+				embed = discord.Embed(
+					title = f'{search_result['track']}',
+					description = f'by {', '.join(search_result['artists'])}',
+					colour = 0xf5c000,
+				)
+			elif url_type == 'album':
+				embed = discord.Embed(
+					title = f'{search_result['album']}',
+					description = f'by {', '.join(search_result['artists'])}',
+					colour = 0xf5c000,
+				)
+			if url_type == 'track':
+				embed.add_field(
+					name = 'You can find this track on:',
+					value = search_result['anchor'],
+					inline = False
+				)
+			elif url_type == 'album':
+				embed.add_field(
+					name = 'You can find this album on:',
+					value = search_result['anchor'],
+					inline = False
+				)
+			embed.set_thumbnail(url = search_result['cover'])
+			embed.set_footer(text = 'Thank you for using Astro!')
+			await message.reply(embed = embed)
+			log('SUCCESS', f'Successfully passively searched a link in {current_time_ms() - start_time}ms --- url: "{url}"')
 
-		embed = discord.Embed(
-			title = f'{search_result['track_name']}',
-			description = f'by {search_result['artist_name']}',
-			colour = 0xf5c000,
-		)
-		
-		embed.add_field(
-			name = 'You can find this track on:',
-			value = search_result['service_anchor'],
-			inline = False
-		)
-	
-		embed.set_thumbnail(url = search_result['cover_art'])
-		embed.set_footer(text = 'Thank you for using Astro!')
-		await message.reply(embed = embed)
-		log('SUCCESS', f'Successfully passively searched a Spotify track in {current_time_ms() - start_time}ms --- spotify_id: "{spotify_id}"')
-	
-	if message.content.find('https://open.spotify.com/album/') >= 0:
-		start_time = current_time_ms()
-		spotify_id = message.content[message.content.index('https://open.spotify.com/album/') : message.content.index('?')].replace('https://open.spotify.com/album/','')
-		spotify_data = get_spotify_album(spotify_id)
-		print(spotify_data)
-		search_result = search_album(spotify_data['artist_name'].replace("'",''), spotify_data['album_name'].replace("'",''))
 
-		embed = discord.Embed(
-			title = f'{search_result['album_name']}',
-			description = f'by {search_result['artist_name']}',
-			colour = 0xf5c000,
-		)
-		
-		embed.add_field(
-			name = 'You can find this album on:',
-			value = search_result['service_anchor'],
-			inline = False
-		)
-	
-		embed.set_thumbnail(url = search_result['cover_art'])
-		embed.set_footer(text = 'Thank you for using Astro!')
-		await message.reply(embed = embed)
-		log('SUCCESS', f'Successfully passively searched a Spotify album in {current_time_ms() - start_time}ms --- spotify_id: "{spotify_id}"')
-	
-	if message.content.find('https://open.spotify.com/track/') >= 0:
-		start_time = current_time_ms()
-		spotify_id = message.content[message.content.index('https://open.spotify.com/track/') : message.content.index('?')].replace('https://open.spotify.com/track/','')
-		spotify_data = get_spotify_track(spotify_id)
-		print(spotify_data)
-		search_result = search_track(spotify_data['artist_name'].replace("'",''), spotify_data['track_name'].replace("'",''))
-
-		embed = discord.Embed(
-			title = f'{search_result['track_name']}',
-			description = f'by {search_result['artist_name']}',
-			colour = 0xf5c000,
-		)
-		
-		embed.add_field(
-			name = 'You can find this track on:',
-			value = search_result['service_anchor'],
-			inline = False
-		)
-	
-		embed.set_thumbnail(url = search_result['cover_art'])
-		embed.set_footer(text = 'Thank you for using Astro!')
-		await message.reply(embed = embed)
-		log('SUCCESS', f'Successfully passively searched a Spotify track in {current_time_ms() - start_time}ms --- spotify_id: "{spotify_id}"')
-	
-	if message.content.find('https://open.spotify.com/album/') >= 0:
-		start_time = current_time_ms()
-		spotify_id = message.content[message.content.index('https://open.spotify.com/album/') : message.content.index('?')].replace('https://open.spotify.com/album/','')
-		spotify_data = get_spotify_album(spotify_id)
-		print(spotify_data)
-		search_result = search_album(spotify_data['artist_name'].replace("'",''), spotify_data['album_name'].replace("'",''))
-
-		embed = discord.Embed(
-			title = f'{search_result['album_name']}',
-			description = f'by {search_result['artist_name']}',
-			colour = 0xf5c000,
-		)
-		
-		embed.add_field(
-			name = 'You can find this album on:',
-			value = search_result['service_anchor'],
-			inline = False
-		)
-	
-		embed.set_thumbnail(url = search_result['cover_art'])
-		embed.set_footer(text = 'Thank you for using Astro!')
-		await message.reply(embed = embed)
-		log('SUCCESS', f'Successfully passively searched a Spotify album in {current_time_ms() - start_time}ms --- spotify_id: "{spotify_id}"')
-'''
 
 @tree.command(name = 'searchtrack', description = 'Search for a track') 
 async def self(interaction: discord.Interaction, artist: str, track: str):
@@ -153,7 +129,7 @@ async def self(interaction: discord.Interaction, artist: str, track: str):
 		return None
 		
 
-	if search_result['service_anchor'] == '':
+	if search_result['track'] == '':
 		embed = discord.Embed(
 			title = f'Oh no!',
 			colour = 0xf5c000,
@@ -172,18 +148,18 @@ async def self(interaction: discord.Interaction, artist: str, track: str):
 
 	else:
 		embed = discord.Embed(
-			title = f'{search_result['track_name']}',
-			description = f'by {', '.join(search_result['artist_name'])}',
+			title = f'{search_result['track']}',
+			description = f'by {', '.join(search_result['artists'])}',
 			colour = 0xf5c000,
 		)
 		
 		embed.add_field(
 			name = 'You can find this track on:',
-			value = search_result['service_anchor'],
+			value = search_result['anchor'],
 			inline = False
 		)
 	
-		embed.set_thumbnail(url = search_result['cover_art'])
+		embed.set_thumbnail(url = search_result['cover'])
 		embed.set_footer(text = 'Thank you for using Astro!')
 		await interaction.followup.send(embed = embed)
 		log('SUCCESS', f'Successfully executed command /searchtrack in {current_time_ms() - start_time}ms --- artist: "{artist}" / track: "{track}"')
@@ -211,9 +187,9 @@ async def self(interaction: discord.Interaction, artist: str, album: str):
 		await interaction.followup.send(embed = embed, ephemeral = True)
 		log('CATASTROPHE', f'A catastrophic error occured running command /searchalbum --- error: "{error}" / artist: "{artist}" / album: "{album}"')
 		return None
-		
 
-	if search_result['service_anchor'] == '':
+
+	if search_result['album'] == '':
 		embed = discord.Embed(
 			title = f'Oh no!',
 			colour = 0xf5c000,
@@ -233,18 +209,18 @@ async def self(interaction: discord.Interaction, artist: str, album: str):
 
 	else:
 		embed = discord.Embed(
-			title = f'{search_result['album_name']}',
-			description = f'by {', '.join(search_result['artist_name'])}',
+			title = f'{search_result['album']}',
+			description = f'by {', '.join(search_result['artists'])}',
 			colour = 0xf5c000,
 		)
 		
 		embed.add_field(
 			name = 'You can find this album on:',
-			value = search_result['service_anchor'],
+			value = search_result['anchor'],
 			inline = False
 		)
 	
-		embed.set_thumbnail(url = search_result['cover_art'])
+		embed.set_thumbnail(url = search_result['cover'])
 		embed.set_footer(text = 'Thank you for using Astro!')
 		await interaction.followup.send(embed = embed)
 		log('SUCCESS', f'Successfully executed command /searchalbum in {current_time_ms() - start_time}ms --- artist: "{artist}" / album: "{album}"')
