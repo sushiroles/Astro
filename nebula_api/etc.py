@@ -1,6 +1,7 @@
 from datetime import *
 from time import time
 from unidecode import *
+from urllib.parse import urlparse
 import json
 import re
 
@@ -14,12 +15,12 @@ def log(type: str, message: str):
 def current_time_ms():
 	return int(time() * 1000)
 
-def save_json(json_data):
+def save_json(json_data: dict):
 	with open('save_json_data.json', 'w', encoding = 'utf-8') as f:
 		json.dump(json_data, f, ensure_ascii = False, indent = 4)
 
 def remove_punctuation(string: str):
-	punc = f'''!()-[];:'",<>./?@#$%^&*_~'''
+	punc = f'''!()[];:'",<>./?@#$%^&*_~'''
 	for element in string:
 		if element in punc:
 			string = string.replace(element, '')
@@ -52,3 +53,12 @@ def get_common_data(data: list):
 	max_count = max(element_counts.values())
 	most_common = {key: value for key, value in element_counts.items() if value == max_count}
 	return list(most_common.items())
+
+def find_urls(string: str):
+	words = string.split()
+	urls = []
+	for word in words:
+		parsed = urlparse(word)
+		if parsed.scheme and parsed.netloc:
+			urls.append(word)
+	return urls
