@@ -5,6 +5,8 @@ from discord.ext import tasks
 
 from nebula import *
 
+is_internal = True
+
 config = configparser.ConfigParser()
 config.read('tokens.ini')
 
@@ -248,5 +250,7 @@ async def self(interaction: discord.Interaction, artist: str, album: str):
 		log('SUCCESS', f'Successfully executed command /searchalbum in {current_time_ms() - start_time}ms --- artist: "{artist}" / album: "{album}"')
 
 
-
-client.run(config['discord']['token'])
+if is_internal:
+	client.run(config['discord']['internal_token'])
+else:
+	client.run(config['discord']['token'])
