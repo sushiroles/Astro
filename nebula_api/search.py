@@ -35,7 +35,7 @@ def get_track_data(service: str, api_call: callable, results: list):
 		year = ''
 		cover = ''
 		anchor = ''
-		log('ERROR', f'Inside get_track_data(): "{error}" --- service: {service} / api_call: {str(api_call)}')
+		log('ERROR', f'Inside get_track_data(): "{error}" --- service: {service}')
 	results.append({
 		'url': url,
 		'id': identifier,
@@ -45,6 +45,8 @@ def get_track_data(service: str, api_call: callable, results: list):
 		'cover': cover,
 		'anchor': anchor,
 	})
+
+
 
 def get_album_data(service: str, api_call: callable, results: list):
 	emojis = {
@@ -86,11 +88,11 @@ def get_album_data(service: str, api_call: callable, results: list):
 
 @functools.cache
 def search_track(artist: str, track: str):
-	artist_name = ''
-	track_name = ''
-	cover_art = ''
+	artists = []
+	title = ''
+	cover = ''
 	requested_artist = artist
-	requested_album = track
+	requested_track = track
 
 	service_data = [
 		('Spotify', search_spotify_track(bare_bones(artist), bare_bones(track))),
@@ -115,27 +117,37 @@ def search_track(artist: str, track: str):
 	for result in results:
 		search_results.append(result)
 
-	artist_name = search_results[0]['artists']
-	track_name = search_results[0]['track']
-	cover_art = search_results[0]['cover']
-	service_anchor = ''.join(result['anchor'] for result in search_results)	
+	counter = 0
+	while title == '':
+		try:
+			artists = search_results[counter]['artists']
+			title = search_results[counter]['track']
+			cover = search_results[counter]['cover']
+			counter += 1
+		except:
+			pass
+
+	anchor = ''.join(result['anchor'] for result in search_results)	
+
 
 
 	return [{
-		'cover_art': cover_art,
-		'artist_name': artist_name,
-		'track_name': track_name,
-		'service_anchor': service_anchor,
+		'cover': cover,
+		'artists': artists,
+		'track': title,
+		'anchor': anchor,
 
 		'requested_artist': requested_artist,
-		'requested_album': requested_album,
+		'requested_track': requested_track,
 	}]
+
+
 
 @functools.cache
 def search_album(artist: str, album: str):
-	artist_name = ''
-	album_name = ''
-	cover_art = ''
+	artists = []
+	title = ''
+	cover = ''
 	requested_artist = artist
 	requested_album = album
 
@@ -162,21 +174,26 @@ def search_album(artist: str, album: str):
 	for result in results:
 		search_results.append(result)
 
-	artist_name = search_results[0]['artists']
-	album_name = search_results[0]['album']
-	cover_art = search_results[0]['cover']
-	service_anchor = ''.join(result['anchor'] for result in search_results)
+	counter = 0
+	while title == '':
+		try:
+			artists = search_results[counter]['artists']
+			title = search_results[counter]['album']
+			cover = search_results[counter]['cover']
+			print(title)
+			counter += 1
+		except:
+			pass
+	
+	anchor = ''.join(result['anchor'] for result in search_results)	
 
-	
-	#service_anchor = album_honesty_filter(spotify,apple_music,youtube_music,deezer,tidal,bandcamp)
-	
 
 
 	return [{
-		'cover_art': cover_art,
-		'artist_name': artist_name,
-		'album_name': album_name,
-		'service_anchor': service_anchor,
+		'cover': cover,
+		'artists': artists,
+		'album': title,
+		'anchor': anchor,
 
 		'requested_artist': requested_artist,
 		'requested_album': requested_album,
