@@ -7,8 +7,9 @@ from nebula_api.bandcamp_nebula import *
 from nebula_api.etc import *
 
 import functools
+import threading
 
-def get_track_data(service: str, api_call: callable):
+def get_track_data(service: str, api_call: callable, results: list):
 	emojis = {
 		'Spotify': '<:spotify:1247554944916000839>',
 		'Apple Music': '<:applemusic:1247554938733854761>',
@@ -35,7 +36,7 @@ def get_track_data(service: str, api_call: callable):
 		cover = ''
 		anchor = ''
 		log('ERROR', f'Inside get_track_data(): "{error}" --- service: {service} / api_call: {str(api_call)}')
-	return {
+	results.append({
 		'url': url,
 		'id': identifier,
 		'artists': artists,
@@ -43,9 +44,9 @@ def get_track_data(service: str, api_call: callable):
 		'year': year,
 		'cover': cover,
 		'anchor': anchor,
-	}
+	})
 
-def get_album_data(service: str, api_call: callable):
+def get_album_data(service: str, api_call: callable, results: list):
 	emojis = {
 		'Spotify': '<:spotify:1247554944916000839>',
 		'Apple Music': '<:applemusic:1247554938733854761>',
@@ -72,7 +73,7 @@ def get_album_data(service: str, api_call: callable):
 		cover = ''
 		anchor = ''
 		log('ERROR', f'Inside get_album_data(): "{error}" --- service: {service} / api_call: {str(api_call)}')
-	return {
+	results.append({
 		'url': url,
 		'id': identifier,
 		'artists': artists,
@@ -80,7 +81,7 @@ def get_album_data(service: str, api_call: callable):
 		'year': year,
 		'cover': cover,
 		'anchor': anchor,
-	}
+	})
 
 
 @functools.cache
@@ -89,47 +90,36 @@ def search_track(artist: str, track: str):
 	track_name = ''
 	cover_art = ''
 	requested_artist = artist
-	requested_track = track
+	requested_album = track
 
+	service_data = [
+		('Spotify', search_spotify_track(bare_bones(artist), bare_bones(track))),
+		('Apple Music', search_apple_music_track(bare_bones(artist), bare_bones(track))),
+		('YouTube Music', search_youtube_music_track(bare_bones(artist), bare_bones(track))),
+		('Deezer', search_deezer_track(bare_bones(artist), bare_bones(track))),
+		('TIDAL', search_tidal_track(bare_bones(artist), bare_bones(track))),
+		('Bandcamp', search_bandcamp_track(bare_bones(artist), bare_bones(track))),
+	]
 
-	# Search on Spotify
-	spotify = get_track_data('Spotify', search_spotify_track(bare_bones(artist),bare_bones(track)))
-	if artist_name == '' and track_name == '': 
-		artist_name = spotify['artists']
-		track_name = spotify['track']
+	threads = []
+	results = []
+	for service, function in service_data:
+		thread = threading.Thread(target=get_track_data, args=(service, function, results))
+		threads.append(thread)
+		thread.start()
 
-	# Search on Apple Music
-	apple_music = get_track_data('Apple Music', search_apple_music_track(bare_bones(artist),bare_bones(track)))
-	if artist_name == '' and track_name == '': 
-		artist_name = apple_music['artists']
-		track_name = apple_music['track']
+	for thread in threads:
+		thread.join()
 
-	# Search on YouTube Music
-	youtube_music = get_track_data('YouTube Music', search_youtube_music_track(bare_bones(artist),bare_bones(track)))
-	if artist_name == '' and track_name == '': 
-		artist_name = youtube_music['artists']
-		track_name = youtube_music['track']
+	search_results = []
+	for result in results:
+		search_results.append(result)
 
-	# Search on Deezer
-	deezer = get_track_data('Deezer', search_deezer_track(bare_bones(artist),bare_bones(track)))
-	if artist_name == '' and track_name == '': 
-		artist_name = deezer['artists']
-		track_name = deezer['track']
+	artist_name = search_results[0]['artists']
+	track_name = search_results[0]['track']
+	cover_art = search_results[0]['cover']
+	service_anchor = ''.join(result['anchor'] for result in search_results)	
 
-	# Search on TIDAL
-	tidal = get_track_data('TIDAL', search_tidal_track(bare_bones(artist),bare_bones(track)))
-	if artist_name == '' and track_name == '': 
-		artist_name = tidal['artists']
-		track_name = tidal['track']
-
-	# Bandcamp
-	bandcamp = get_track_data('Bandcamp', search_bandcamp_track(bare_bones(artist),bare_bones(track)))
-	if artist_name == '' and track_name == '': 
-		artist_name = bandcamp['artists']
-		track_name = bandcamp['track']
-
-	cover_art = spotify['cover']
-	service_anchor = f'{spotify['anchor']}{apple_music['anchor']}{youtube_music['anchor']}{deezer['anchor']}{tidal['anchor']}{bandcamp['anchor']}'
 
 	return [{
 		'cover_art': cover_art,
@@ -138,25 +128,7 @@ def search_track(artist: str, track: str):
 		'service_anchor': service_anchor,
 
 		'requested_artist': requested_artist,
-		'requested_track': requested_track,
-
-		'spotify_url': spotify['url'],
-		'spotify_id': spotify['id'],
-
-		'apple_music_url': apple_music['url'],
-		'apple_music_id': apple_music['id'],
-
-		'youtube_music_url': youtube_music['url'],
-		'youtube_music_id': youtube_music['id'],
-
-		'deezer_url': deezer['url'],
-		'deezer_id': deezer['id'],
-
-		'tidal_url': tidal['url'],
-		'tidal_id': tidal['id'],
-		
-		'bandcamp_url': bandcamp['url'],
-		'bandcamp_id': bandcamp['id'],
+		'requested_album': requested_album,
 	}]
 
 @functools.cache
@@ -167,45 +139,38 @@ def search_album(artist: str, album: str):
 	requested_artist = artist
 	requested_album = album
 
+	service_data = [
+		('Spotify', search_spotify_album(bare_bones(artist), bare_bones(album))),
+		('Apple Music', search_apple_music_album(bare_bones(artist), bare_bones(album))),
+		('YouTube Music', search_youtube_music_album(bare_bones(artist), bare_bones(album))),
+		('Deezer', search_deezer_album(bare_bones(artist), bare_bones(album))),
+		('TIDAL', search_tidal_album(bare_bones(artist), bare_bones(album))),
+		('Bandcamp', search_bandcamp_album(bare_bones(artist), bare_bones(album))),
+	]
 
-	# Search on Spotify
-	spotify = get_album_data('Spotify', search_spotify_album(bare_bones(artist),bare_bones(album)))
-	if artist_name == '' and album_name == '': 
-		artist_name = spotify['artists']
-		album_name = spotify['album']
+	threads = []
+	results = []
+	for service, function in service_data:
+		thread = threading.Thread(target=get_album_data, args=(service, function, results))
+		threads.append(thread)
+		thread.start()
 
-	# Search on Apple Music
-	apple_music = get_album_data('Apple Music', search_apple_music_album(bare_bones(artist),bare_bones(album)))
-	if artist_name == '' and album_name == '': 
-		artist_name = apple_music['artists']
-		album_name = apple_music['album']
+	for thread in threads:
+		thread.join()
 
-	# Search on YouTube Music
-	youtube_music = get_album_data('YouTube Music', search_youtube_music_album(bare_bones(artist),bare_bones(album)))
-	if artist_name == '' and album_name == '': 
-		artist_name = youtube_music['artists']
-		album_name = youtube_music['album']
+	search_results = []
+	for result in results:
+		search_results.append(result)
 
-	# Search on Deezer
-	deezer = get_album_data('Deezer', search_deezer_album(bare_bones(artist),bare_bones(album)))
-	if artist_name == '' and album_name == '': 
-		artist_name = deezer['artists']
-		album_name = deezer['album']
+	artist_name = search_results[0]['artists']
+	album_name = search_results[0]['album']
+	cover_art = search_results[0]['cover']
+	service_anchor = ''.join(result['anchor'] for result in search_results)
+
 	
-	# Search on TIDAL
-	tidal = get_album_data('TIDAL', search_tidal_album(bare_bones(artist),bare_bones(album)))
-	if artist_name == '' and album_name == '': 
-		artist_name = tidal['artists']
-		album_name = tidal['album']
+	#service_anchor = album_honesty_filter(spotify,apple_music,youtube_music,deezer,tidal,bandcamp)
+	
 
-	# Bandcamp
-	bandcamp = get_album_data('Bandcamp', search_bandcamp_album(bare_bones(artist),bare_bones(album)))
-	if artist_name == '' and album_name == '': 
-		artist_name = bandcamp['artists']
-		album_name = bandcamp['album']
-
-	cover_art = spotify['cover']
-	service_anchor = f'{spotify['anchor']}{apple_music['anchor']}{youtube_music['anchor']}{deezer['anchor']}{tidal['anchor']}{bandcamp['anchor']}'
 
 	return [{
 		'cover_art': cover_art,
@@ -215,22 +180,4 @@ def search_album(artist: str, album: str):
 
 		'requested_artist': requested_artist,
 		'requested_album': requested_album,
-
-		'spotify_url': spotify['url'],
-		'spotify_id': spotify['id'],
-
-		'apple_music_url': apple_music['url'],
-		'apple_music_id': apple_music['id'],
-
-		'youtube_music_url': youtube_music['url'],
-		'youtube_music_id': youtube_music['id'],
-
-		'deezer_url': deezer['url'],
-		'deezer_id': deezer['id'],
-
-		'tidal_url': tidal['url'],
-		'tidal_id': tidal['id'],
-
-		'bandcamp_url': bandcamp['url'],
-		'bandcamp_id': bandcamp['id'],
 	}]
