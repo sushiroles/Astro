@@ -27,7 +27,6 @@ class Client(discord.Client):
 
 client = Client() 
 tree = app_commands.CommandTree(client)
-
 '''
 @client.event
 async def on_message(message):
@@ -126,16 +125,31 @@ async def on_message(message):
 		embed.set_footer(text = 'Thank you for using Astro!')
 		await message.reply(embed = embed)
 		log('SUCCESS', f'Successfully passively searched a Spotify album in {current_time_ms() - start_time}ms --- spotify_id: "{spotify_id}"')
-	'''
-
-
-
+'''
 
 @tree.command(name = 'searchtrack', description = 'Search for a track') 
 async def self(interaction: discord.Interaction, artist: str, track: str):
 	start_time = current_time_ms()
 	await interaction.response.defer()
-	search_result = search_track(artist, track)[0]
+	try:
+		search_result = search_track(artist, track)[0]
+	except Exception as error:
+		embed = discord.Embed(
+			title = f'Oh no!',
+			colour = 0xf5c000,
+		)
+		
+		embed.add_field(
+			name = '',
+			value = "An error has occured while running your command. Please try again!",
+			inline = False
+		)
+	
+		embed.set_footer(text = 'Thank you for using Astro!')
+		await interaction.followup.send(embed = embed, ephemeral = True)
+		log('CATASTROPHE', f'A catastrophic error occured running command /searchtrack --- error: "{error}" / artist: "{artist}" / track: "{track}"')
+		return None
+		
 
 	if search_result['service_anchor'] == '':
 		embed = discord.Embed(
@@ -173,11 +187,29 @@ async def self(interaction: discord.Interaction, artist: str, track: str):
 		log('SUCCESS', f'Successfully executed command /searchtrack in {current_time_ms() - start_time}ms --- artist: "{artist}" / track: "{track}"')
 
 
-@tree.command(name = 'searchalbum', description = 'Search for an album') 
+@tree.command(name = 'searchalbum', description = 'Search for an album')
 async def self(interaction: discord.Interaction, artist: str, album: str):
 	start_time = current_time_ms()
 	await interaction.response.defer()
-	search_result = search_album(artist, album)[0]
+	try:
+		search_result = search_album(artist, album)[0]
+	except Exception as error:
+		embed = discord.Embed(
+			title = f'Oh no!',
+			colour = 0xf5c000,
+		)
+		
+		embed.add_field(
+			name = '',
+			value = "An error has occured while running your command. Please try again!",
+			inline = False
+		)
+	
+		embed.set_footer(text = 'Thank you for using Astro!')
+		await interaction.followup.send(embed = embed, ephemeral = True)
+		log('CATASTROPHE', f'A catastrophic error occured running command /searchalbum --- error: "{error}" / artist: "{artist}" / album: "{album}"')
+		return None
+		
 
 	if search_result['service_anchor'] == '':
 		embed = discord.Embed(
