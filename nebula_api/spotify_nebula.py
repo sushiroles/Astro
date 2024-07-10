@@ -15,16 +15,10 @@ config.read('tokens.ini')
 
 
 def is_spotify_track(url: str):
-	if url.find('https://open.spotify.com/track/') >= 0:
-		return True
-	else:
-		return False
+	return bool(url.find('https://open.spotify.com/track/') >= 0)
 	
 def is_spotify_album(url: str):
-	if url.find('https://open.spotify.com/album/') >= 0:
-		return True
-	else:
-		return False
+	return bool(url.find('https://open.spotify.com/album/') >= 0)
 
 def get_spotify_id(url: str):
 	return url[31:53]
