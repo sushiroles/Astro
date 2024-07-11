@@ -16,7 +16,10 @@ def is_apple_music_album(url: str):
 
 def get_apple_music_track_id(url: str):
 	index = url.index('?i=') + 3
-	return url[index:]
+	if url.find('&uo=') >= 0:
+		return url[index:url.index('&uo=')]
+	else:
+		return url[index:]
 
 def get_apple_music_album_id(url: str):
 	index = len(url) - 1
@@ -84,8 +87,6 @@ def search_apple_music_album(artist, album):
 
 
 def get_apple_music_track(identifier: str):
-	track_data = []
-
 	url = f"https://itunes.apple.com/lookup?id={identifier}"
 	response = requests.get(url)
 	result = response.json()['results'][0]
@@ -97,23 +98,20 @@ def get_apple_music_track(identifier: str):
 		title = str(result['trackName'])
 		year = str(result['releaseDate'][:4])
 		cover = str(result['artworkUrl100'])
-		track_data.append({
+		return {
 			'url': url,
 			'id': identifier,
 			'artists': artists,
 			'track': title,
 			'year': year,
 			'cover': cover,
-		})
-		return track_data[0]
+		}
 	else:
 		return None
 
 
 
 def get_apple_music_album(identifier: str):
-	object_data = []
-
 	url = f"https://itunes.apple.com/lookup?id={identifier}"
 	response = requests.get(url)
 	result = response.json()['results'][0]
@@ -125,14 +123,13 @@ def get_apple_music_album(identifier: str):
 		title = str(result['collectionName'])
 		year = str(result['releaseDate'][:4])
 		cover = str(result['artworkUrl100'])
-		object_data.append({
+		return {
 			'url': url,
 			'id': identifier,
 			'artists': artists,
 			'album': title,
 			'year': year,
 			'cover': cover,
-		})
-		return object_data[0]
+		}
 	else:
 		return None
