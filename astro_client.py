@@ -70,10 +70,24 @@ async def on_message(message):
 				url_type = 'album'
 			#elif is_deezer_track(url):
 			#elif is_deezer_album(url):
-			#elif is_tidal_track(url):
-			#elif is_tidal_album(url):
-			#elif is_bandcamp_track(url):
-			#elif is_bandcamp_album(url):
+			elif is_tidal_track(url):
+				start_time = current_time_ms()
+				identifier = get_tidal_track_id(url)
+				data = get_tidal_track(identifier)
+				url_type = 'track'
+			elif is_tidal_album(url):
+				start_time = current_time_ms()
+				identifier = get_tidal_album_id(url)
+				data = get_tidal_album(identifier)
+				url_type = 'album'
+			elif is_bandcamp_track(url):
+				start_time = current_time_ms()
+				data = get_bandcamp_track_parameters(url)
+				url_type = 'track'
+			elif is_bandcamp_album(url):
+				start_time = current_time_ms()
+				data = get_bandcamp_album_parameters(url)
+				url_type = 'album'
 			if url_type != '':
 				try:
 					if url_type == 'track':
