@@ -95,8 +95,6 @@ def search_spotify_album(artist: str, album: str):
 
 
 def get_spotify_track(identifier: str):
-	track_data = []
-
 	spotify_id = config['spotify']['id']
 	spotify_secret = config['spotify']['secret']
 	client_credentials_manager = SpotifyClientCredentials(spotify_id, spotify_secret)
@@ -111,21 +109,18 @@ def get_spotify_track(identifier: str):
 	title = str(track['name'])
 	year = str(track['album']['release_date'][:4])
 	cover = str(track['album']['images'][0]['url'])
-	track_data.append({
+	return {
 		'url': url,
 		'id': identifier,
 		'artists': artists,
 		'track': title,
 		'year': year,
 		'cover': cover,
-	})
-	return track_data[0]
+	}
 
 
 
 def get_spotify_album(identifier: str):
-	album_data = []
-
 	spotify_id = config['spotify']['id']
 	spotify_secret = config['spotify']['secret']
 	client_credentials_manager = SpotifyClientCredentials(spotify_id, spotify_secret)
@@ -140,12 +135,11 @@ def get_spotify_album(identifier: str):
 	title = str(album['name'])
 	year = str(album['release_date'][:4])
 	cover = str(album['images'][0]['url'])
-	album_data.append({
+	return {
 		'url': url,
 		'id': identifier,
 		'artists': artists,
 		'album': title,
 		'year': year,
 		'cover': cover,
-	})
-	return album_data[0]
+	}
