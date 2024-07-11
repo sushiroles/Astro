@@ -8,6 +8,8 @@ except:
 	from etc import *
 	from filter import *
 
+
+
 config = configparser.ConfigParser()
 config.read('tokens.ini')
 
@@ -27,6 +29,19 @@ def get_access_token(client_id, client_secret):
 		data=data,
 	)
 	return response.json()['access_token']
+
+def is_tidal_track(url: str):
+	return bool(url.find('https://tidal.com/browse/track/') >= 0)
+
+def is_tidal_album(url: str):
+	return bool(url.find('https://tidal.com/browse/album/') >= 0)
+
+def get_tidal_track_id(url: str):
+	return str(url.replace('https://tidal.com/browse/track/',''))
+
+def get_tidal_album_id(url: str):
+	return str(url.replace('https://tidal.com/browse/album/',''))
+
 
 
 def search_tidal_track(artist, track):
@@ -97,5 +112,69 @@ def search_tidal_album(artist, album):
 				'cover': cover,
 			})
 		return filter_album(artist, album, albums_data)
+	else:
+		return None
+
+
+
+def get_tidal_track(identifier: str):
+	url = f"https://openapi.tidal.com/tracks/{identifier}?countryCode=US"
+	headers = {
+		"accept": "application/vnd.tidal.v1+json",
+		"Authorization": f"Bearer {get_access_token(config['tidal']['id'], config['tidal']['secret'] + '=')}",
+		"Content-Type": "application/vnd.tidal.v1+json"
+	}
+	response = requests.get(url, headers=headers)
+	result = response.json()
+
+	if response.status_code == 200:
+		url = str(result['resource']['tidalUrl'])
+		identifier = str(result['resource']['id'])
+		artists = []
+		for names in result['resource']['artists']:
+			artists.append(names['name'])
+		title = str(result['resource']['title'])
+		year = '' # fuck you
+		cover = str(result['resource']['album']['imageCover'][1]['url'])
+		return {
+			'url': url,
+			'id': identifier,
+			'artists': artists,
+			'track': title,
+			'year': year,
+			'cover': cover,
+		}
+	else:
+		return None
+
+
+
+def get_tidal_album(identifier: str):
+	url = f"https://openapi.tidal.com/albums/{identifier}?countryCode=US"
+	headers = {
+		"accept": "application/vnd.tidal.v1+json",
+		"Authorization": f"Bearer {get_access_token(config['tidal']['id'], config['tidal']['secret'] + '=')}",
+		"Content-Type": "application/vnd.tidal.v1+json"
+	}
+	response = requests.get(url, headers=headers)
+	result = response.json()
+
+	if response.status_code == 200:
+		url = str(result['resource']['tidalUrl'])
+		identifier = str(result['resource']['id'])
+		artists = []
+		for names in result['resource']['artists']:
+			artists.append(names['name'])
+		title = str(result['resource']['title'])
+		year = str(result['resource']['releaseDate'][:4])
+		cover = str(result['resource']['imageCover'][1]['url'])
+		return {
+			'url': url,
+			'id': identifier,
+			'artists': artists,
+			'album': title,
+			'year': year,
+			'cover': cover,
+		}
 	else:
 		return None
