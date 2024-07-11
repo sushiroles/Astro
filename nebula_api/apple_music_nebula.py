@@ -27,6 +27,7 @@ def get_apple_music_album_id(url: str):
 		index -= 1
 	return url[index+1:]
 
+
 	
 def search_apple_music_track(artist, track):
 	tracks_data = []

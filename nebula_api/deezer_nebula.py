@@ -17,6 +17,7 @@ def get_object_year(object_id: str, object_type: str):
 	return release_year
 
 
+
 def search_deezer_track(artist: str, track: str):
 	tracks_data = []
 	url = f'https://api.deezer.com/search/track?q={artist}-{track}'

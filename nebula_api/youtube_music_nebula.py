@@ -7,8 +7,12 @@ except:
 	from etc import *
 	from filter import *
 
+
+
 config = configparser.ConfigParser()
 config.read('tokens.ini')
+
+
 
 ytmusic = YTMusic(auth = {
 	"scope": str(config['youtube_music']['scope']),
@@ -19,6 +23,8 @@ ytmusic = YTMusic(auth = {
 	"expires_in": int(config['youtube_music']['expires_in']),
 })
 
+
+
 def is_youtube_music_track(url: str):
 	return bool(url.find('https://music.youtube.com/watch?v=') >= 0)
 
@@ -28,19 +34,19 @@ def is_youtube_music_album(url: str):
 def get_youtube_music_track_id(url: str):
 	index = url.index('watch?v=') + 8
 	if url.find('&') >= 0:
-		return url[index:url.index('&')]
+		return str(url[index:url.index('&')])
 	else:
-		return url[index:]
+		return str(url[index:])
 
 def get_youtube_music_album_id(url: str):
 	index = url.index('?list=') + 6
-	return url[index:]
+	return str(url[index:])
 
 def get_extra_album_data(browse_id: str):
 	data = ytmusic.get_album(browse_id)
 	return {
 		'id': str(data['audioPlaylistId']),
-		'year': data['year'],
+		'year': str(data['year']),
 	}
 
 
