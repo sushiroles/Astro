@@ -19,7 +19,22 @@ ytmusic = YTMusic(auth = {
 	"expires_in": int(config['youtube_music']['expires_in']),
 })
 
+def is_youtube_music_track(url: str):
+	return bool(url.find('https://music.youtube.com/watch?v=') >= 0)
 
+def is_youtube_music_album(url: str):
+	return bool(url.find('https://music.youtube.com/playlist?list=') >= 0)
+
+def get_youtube_music_track_id(url: str):
+	index = url.index('watch?v=') + 8
+	if url.find('&') >= 0:
+		return url[index:url.index('&')]
+	else:
+		return url[index:]
+
+def get_youtube_music_album_id(url: str):
+	index = url.index('?list=') + 6
+	return url[index:]
 
 def get_extra_album_data(browse_id: str):
 	data = ytmusic.get_album(browse_id)
@@ -83,5 +98,54 @@ def search_youtube_music_album(artist, album):
 		filtered_album['url'] = str(f'https://music.youtube.com/playlist?list={extra_data['id']}')
 		filtered_album['year'] = extra_data['year']
 		return filtered_album
+	except:
+		return None
+
+
+
+def get_youtube_music_track(identifier: str):
+	try:
+		result = ytmusic.get_song(identifier)['videoDetails']
+		save_json(result)
+		url = str(f'https://music.youtube.com/watch?v={result['videoId']}')
+		identifier = str(result['videoId'])
+		artists = [result['author']]
+		title = str(result['title'])
+		year = '' # fuck you
+		cover = str(result['thumbnail']['thumbnails'][len(result['thumbnail']['thumbnails'])-1]['url'])
+		return {
+			'url': url,
+			'id': identifier,
+			'artists': artists,
+			'track': title,
+			'year': year,
+			'cover': cover,
+		}
+	except:
+		return None
+
+
+
+def get_youtube_music_album(identifier: str):
+	try:
+		browse_id = ytmusic.get_album_browse_id(identifier)
+		result = ytmusic.get_album(browse_id)
+
+		url = str(result['audioPlaylistId'])
+		identifier = str(result['audioPlaylistId'])
+		artists = []
+		for names in result['artists']:
+			artists.append(str(names['name']))
+		title = str(result['title'])
+		year = ''
+		cover = str(result['thumbnails'][1]['url'])
+		return {
+			'url': url,
+			'id': identifier,
+			'artists': artists,
+			'album': title,
+			'year': year,
+			'cover': cover,
+		}
 	except:
 		return None
