@@ -58,50 +58,59 @@ async def on_message(message):
 				identifier = get_apple_music_album_id(url)
 				data = get_apple_music_album(identifier)
 				url_type = 'album'
-			#elif is_youtube_music_track(url):
-			#elif is_youtube_music_album(url):
+			elif is_youtube_music_track(url):
+				start_time = current_time_ms()
+				identifier = get_youtube_music_track_id(url)
+				data = get_youtube_music_track(identifier)
+				url_type = 'track'
+			elif is_youtube_music_album(url):
+				start_time = current_time_ms()
+				identifier = get_youtube_music_album_id(url)
+				data = get_youtube_music_album(identifier)
+				url_type = 'album'
 			#elif is_deezer_track(url):
 			#elif is_deezer_album(url):
 			#elif is_tidal_track(url):
 			#elif is_tidal_album(url):
 			#elif is_bandcamp_track(url):
 			#elif is_bandcamp_album(url):
-			try:
+			if url_type != '':
+				try:
+					if url_type == 'track':
+						search_result = search_track(bare_bones(data['artists'][0]), bare_bones(data['track']))[0]
+					elif url_type == 'album':
+						search_result = search_album(bare_bones(data['artists'][0]), bare_bones(data['album']))[0]
+				except Exception as error:
+					log('CATASTROPHE', f'Error while searching media URL --- error: "{error}" / url: "{url}"')
+					return None
 				if url_type == 'track':
-					search_result = search_track(bare_bones(data['artists'][0]), bare_bones(data['track']))[0]
+					embed = discord.Embed(
+						title = f'{search_result['track']}',
+						description = f'by {', '.join(search_result['artists'])}',
+						colour = 0xf5c000,
+					)
 				elif url_type == 'album':
-					search_result = search_album(bare_bones(data['artists'][0]), bare_bones(data['album']))[0]
-			except Exception as e:
-				print(e)
-				return None
-			if url_type == 'track':
-				embed = discord.Embed(
-					title = f'{search_result['track']}',
-					description = f'by {', '.join(search_result['artists'])}',
-					colour = 0xf5c000,
-				)
-			elif url_type == 'album':
-				embed = discord.Embed(
-					title = f'{search_result['album']}',
-					description = f'by {', '.join(search_result['artists'])}',
-					colour = 0xf5c000,
-				)
-			if url_type == 'track':
-				embed.add_field(
-					name = 'You can find this track on:',
-					value = search_result['anchor'],
-					inline = False
-				)
-			elif url_type == 'album':
-				embed.add_field(
-					name = 'You can find this album on:',
-					value = search_result['anchor'],
-					inline = False
-				)
-			embed.set_thumbnail(url = search_result['cover'])
-			embed.set_footer(text = 'Thank you for using Astro!')
-			await message.reply(embed = embed)
-			log('SUCCESS', f'Successfully passively searched a link in {current_time_ms() - start_time}ms --- url: "{url}"')
+					embed = discord.Embed(
+						title = f'{search_result['album']}',
+						description = f'by {', '.join(search_result['artists'])}',
+						colour = 0xf5c000,
+					)
+				if url_type == 'track':
+					embed.add_field(
+						name = 'You can find this track on:',
+						value = search_result['anchor'],
+						inline = False
+					)
+				elif url_type == 'album':
+					embed.add_field(
+						name = 'You can find this album on:',
+						value = search_result['anchor'],
+						inline = False
+					)
+				embed.set_thumbnail(url = search_result['cover'])
+				embed.set_footer(text = 'Thank you for using Astro!')
+				await message.reply(embed = embed)
+				log('SUCCESS', f'Successfully passively searched a link in {current_time_ms() - start_time}ms --- url: "{url}"')
 
 
 
