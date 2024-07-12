@@ -197,6 +197,7 @@ async def self(interaction: discord.Interaction, artist: str, track: str):
 		await logs_channel.send(embed = log('SUCCESS', f'Successfully executed command /searchtrack in {current_time_ms() - start_time}ms', f'Artist: "{artist}"\nTrack: "{track}"'))
 
 
+
 @tree.command(name = 'searchalbum', description = 'Search for an album')
 async def self(interaction: discord.Interaction, artist: str, album: str):
 	logs_channel = client.get_channel(int(config['discord']['logs_channel']))
@@ -257,6 +258,7 @@ async def self(interaction: discord.Interaction, artist: str, album: str):
 		embed.set_footer(text = 'Thank you for using Astro!')
 		await interaction.followup.send(embed = embed)
 		await logs_channel.send(embed = log('SUCCESS', f'Successfully executed command /searchalbum in {current_time_ms() - start_time}ms', f'Artist: "{artist}"\nAlbum: "{album}"'))
+
 
 
 if is_internal:
