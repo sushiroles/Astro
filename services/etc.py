@@ -9,8 +9,6 @@ import discord as discord
 
 
 def log(type: str, message: str, parameters: str):
-	time = datetime.now()
-	log_format = time.strftime(f'(%x - %X) [{type}] {message}\n')
 	embed = discord.Embed(
 		title = f'{type}',
 		colour = 0x3f81eb,
