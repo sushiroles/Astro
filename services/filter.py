@@ -1,5 +1,5 @@
 try:
-	from nebula_api.etc import *
+	from services.etc import *
 except:
 	from etc import *
 

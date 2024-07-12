@@ -3,8 +3,8 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import json
 try:
-	from nebula_api.etc import *
-	from nebula_api.filter import *
+	from services.etc import *
+	from services.filter import *
 except:
 	from etc import *
 	from filter import *
@@ -24,6 +24,7 @@ def is_spotify_album(url: str):
 
 def get_spotify_id(url: str):
 	return url[31:53]
+
 
 
 def search_spotify_track(artist: str, track: str):

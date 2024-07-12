@@ -1,10 +1,10 @@
-from nebula_api.spotify_nebula import *
-from nebula_api.apple_music_nebula import *
-from nebula_api.youtube_music_nebula import *
-from nebula_api.deezer_nebula import *
-from nebula_api.tidal_nebula import *
-from nebula_api.bandcamp_nebula import *
-from nebula_api.etc import *
+from services.spotify import *
+from services.apple_music import *
+from services.youtube_music import *
+from services.deezer import *
+from services.tidal import *
+from services.bandcamp import *
+from services.etc import *
 
 import functools
 import threading
@@ -35,7 +35,6 @@ def get_track_data(service: str, api_call: callable, results: list):
 		year = ''
 		cover = ''
 		anchor = ''
-		log('ERROR', f'Inside get_track_data(): "{error}" --- service: {service}')
 	results.append({
 		'url': url,
 		'id': identifier,
@@ -74,7 +73,6 @@ def get_album_data(service: str, api_call: callable, results: list):
 		year = ''
 		cover = ''
 		anchor = ''
-		log('ERROR', f'Inside get_album_data(): "{error}" --- service: {service} / api_call: {str(api_call)}')
 	results.append({
 		'url': url,
 		'id': identifier,

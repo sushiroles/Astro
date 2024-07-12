@@ -2,8 +2,8 @@ import configparser
 import base64
 import requests
 try:
-	from nebula_api.etc import *
-	from nebula_api.filter import *
+	from services.etc import *
+	from services.filter import *
 except:
 	from etc import *
 	from filter import *
