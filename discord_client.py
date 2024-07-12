@@ -29,6 +29,8 @@ client = Client()
 tree = app_commands.CommandTree(client)
 is_internal = True
 
+
+
 @client.event
 async def on_message(message):
 	logs_channel = client.get_channel(int(config['discord']['logs_channel']))
