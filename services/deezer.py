@@ -120,7 +120,6 @@ def get_deezer_track(identifier: str):
 	url = f'https://api.deezer.com/track/{identifier}'
 	response = requests.get(url)
 	result = response.json()
-	save_json(result)
 
 	if 'error' not in result.keys():
 		url = str(result['link'])
