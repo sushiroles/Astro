@@ -62,13 +62,16 @@ def split_artists(string: str):
 def get_common_data(data: list):
 	element_counts = {}
 	for element in data:
-		if element in element_counts and element != '':
+		if element in element_counts:
 			element_counts[element] += 1
 		else:
 			element_counts[element] = 1
-	max_count = max(element_counts.values())
-	most_common = {key: value for key, value in element_counts.items() if value == max_count}
-	return list(most_common.items())
+ 
+	max_count = max(element_counts.values(), default=0)
+
+	most_common = [key for key, value in element_counts.items() if value == max_count]
+
+	return most_common[0] if most_common else None
 
 def find_urls(string: str):
 	words = string.split()
