@@ -1,6 +1,9 @@
 import discord as discord 
-import configparser
 from discord import app_commands
+from discord.ext import tasks
+
+import configparser
+from random import randint
 
 from app_services import *
 
@@ -22,12 +25,14 @@ class Client(discord.Client):
 		if not self.synced:					
 			await tree.sync()
 			self.synced = True
+		discord_presence.start()
 
 
 
 client = Client() 
 tree = app_commands.CommandTree(client)
 is_internal = True
+presence_statuses = open('discord_presence.txt','r').readlines()
 
 
 
@@ -260,6 +265,12 @@ async def self(interaction: discord.Interaction, artist: str, album: str):
 		embed.set_footer(text = 'Thank you for using Astro!')
 		await interaction.followup.send(embed = embed)
 		await logs_channel.send(embed = log('SUCCESS', f'Successfully executed command /searchalbum in {current_time_ms() - start_time}ms', f'Artist: "{artist}"\nAlbum: "{album}"'))
+
+
+
+@tasks.loop(seconds = 60)
+async def discord_presence():
+	await client.change_presence(activity = discord.Activity(type = discord.ActivityType.listening, name = presence_statuses[randint(0, len(presence_statuses)-1)]))
 
 
 
