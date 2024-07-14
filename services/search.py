@@ -116,16 +116,18 @@ def search_track(artist: str, track: str):
 		search_results.append(result)
 
 	counter = 0
-	while title == '':
-		try:
+	try:
+		while title == '':
 			artists = search_results[counter]['artists']
 			title = search_results[counter]['track']
 			cover = search_results[counter]['cover']
 			counter += 1
-		except:
-			pass
-
-	anchor = ''.join(result['anchor'] for result in search_results)	
+		anchor = ''.join(result['anchor'] for result in search_results)	
+	except:
+		artists = []
+		title = ''
+		cover = ''
+		anchor = ''
 
 
 
@@ -173,18 +175,19 @@ def search_album(artist: str, album: str):
 		search_results.append(result)
 
 	counter = 0
-	while title == '':
-		try:
+	try:
+		while title == '':
 			artists = search_results[counter]['artists']
 			title = search_results[counter]['album']
 			cover = search_results[counter]['cover']
-			print(title)
 			counter += 1
-		except:
-			pass
+		anchor = ''.join(result['anchor'] for result in search_results)	
+	except:
+		artists = []
+		title = ''
+		cover = ''
+		anchor = ''
 	
-	anchor = ''.join(result['anchor'] for result in search_results)	
-
 
 
 	return [{
