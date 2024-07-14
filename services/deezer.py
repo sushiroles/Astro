@@ -1,5 +1,4 @@
 import requests
-from urllib import request
 try:
 	from services.etc import *
 	from services.filter import *
@@ -59,7 +58,7 @@ def search_deezer_track(artist: str, track: str):
 			if str(result['type']) == 'track':
 				url = str(result['link'])
 				identifier = str(result['id'])
-				artists = [str(result['artist'])]
+				artists = [str(result['artist']['name'])]
 				title = str(result['title'])
 				year = ''
 				cover = str(result['album']['cover_xl'])
@@ -76,7 +75,7 @@ def search_deezer_track(artist: str, track: str):
 			filtered_track['year'] = get_object_year(filtered_track['id'],'track')
 		except:
 			return None
-		return dict(filtered_track)
+		return filtered_track
 	else:
 		return None
 
@@ -93,7 +92,7 @@ def search_deezer_album(artist: str, album: str):
 			if str(result['type']) == 'album':
 				url = str(result['link'])
 				identifier = str(result['id'])
-				artists = [str(result['artist'])]
+				artists = [str(result['artist']['name'])]
 				title = str(result['title'])
 				year = ''
 				cover = str(result['cover_xl'])
@@ -110,7 +109,7 @@ def search_deezer_album(artist: str, album: str):
 			filtered_album['year'] = get_object_year(filtered_album['id'],'album')
 		except:
 			return None
-		return dict(filtered_album)
+		return filtered_album
 	else:
 		return None
 
