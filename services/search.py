@@ -9,6 +9,74 @@ from services.etc import *
 import functools
 import threading
 
+
+
+def get_music_data(url):
+	if is_spotify_track(url):
+		identifier = get_spotify_id(url)
+		data = get_spotify_track(identifier)
+		url_type = 'track'
+	elif is_spotify_album(url):
+		start_time = current_time_ms()
+		identifier = get_spotify_id(url)
+		data = get_spotify_album(identifier)
+		url_type = 'album'
+	elif is_apple_music_track(url):
+		start_time = current_time_ms()
+		identifier = get_apple_music_track_id(url)
+		data = get_apple_music_track(identifier)
+		url_type = 'track'
+	elif is_apple_music_album(url):
+		start_time = current_time_ms()
+		identifier = get_apple_music_album_id(url)
+		data = get_apple_music_album(identifier)
+		url_type = 'album'
+	elif is_youtube_music_track(url):
+		start_time = current_time_ms()
+		identifier = get_youtube_music_track_id(url)
+		data = get_youtube_music_track(identifier)
+		url_type = 'track'
+	elif is_youtube_music_album(url):
+		start_time = current_time_ms()
+		identifier = get_youtube_music_album_id(url)
+		data = get_youtube_music_album(identifier)
+		url_type = 'album'
+	elif is_deezer_track(url):
+		start_time = current_time_ms()
+		identifier = get_deezer_track_id(url)
+		data = get_deezer_track(identifier)
+		url_type = 'track'
+	elif is_deezer_album(url):
+		start_time = current_time_ms()
+		identifier = get_deezer_album_id(url)
+		data = get_deezer_album(identifier)
+		url_type = 'album'
+	elif is_tidal_track(url):
+		start_time = current_time_ms()
+		identifier = get_tidal_track_id(url)
+		data = get_tidal_track(identifier)
+		url_type = 'track'
+	elif is_tidal_album(url):
+		start_time = current_time_ms()
+		identifier = get_tidal_album_id(url)
+		data = get_tidal_album(identifier)
+		url_type = 'album'
+	elif is_bandcamp_track(url):
+		start_time = current_time_ms()
+		data = get_bandcamp_track_parameters(url)
+		url_type = 'track'
+	elif is_bandcamp_album(url):
+		start_time = current_time_ms()
+		data = get_bandcamp_album_parameters(url)
+		url_type = 'album'
+	return {
+		'start_time': start_time,
+		'data': data,
+		'url_type': url_type,
+	}
+
+
+
 def get_track_data(service: str, api_call: callable, results: list):
 	emojis = {
 		'Spotify': '<:spotify:1247554944916000839>',
@@ -84,6 +152,7 @@ def get_album_data(service: str, api_call: callable, results: list):
 	})
 
 
+
 @functools.cache
 def search_track(artist: str, track: str):
 	artists = []
@@ -104,7 +173,7 @@ def search_track(artist: str, track: str):
 	threads = []
 	results = []
 	for service, function in service_data:
-		thread = threading.Thread(target=get_track_data, args=(service, function, results))
+		thread = threading.Thread(target = get_track_data, args = (service, function, results))
 		threads.append(thread)
 		thread.start()
 
@@ -122,7 +191,7 @@ def search_track(artist: str, track: str):
 			title = search_results[counter]['track']
 			cover = search_results[counter]['cover']
 			counter += 1
-		anchor = ''.join(result['anchor'] for result in search_results)	
+		anchor = ''.join(track_honesty_filter(search_results[0],search_results[1],search_results[2],search_results[3],search_results[4],search_results[5]))
 	except:
 		artists = []
 		title = ''
@@ -181,13 +250,14 @@ def search_album(artist: str, album: str):
 			title = search_results[counter]['album']
 			cover = search_results[counter]['cover']
 			counter += 1
-		anchor = ''.join(result['anchor'] for result in search_results)	
+		anchor = ''.join(album_honesty_filter(search_results[0],search_results[1],search_results[2],search_results[3],search_results[4],search_results[5]))
+		#anchor = ''.join(result['anchor'] for result in search_results)	
 	except:
 		artists = []
 		title = ''
 		cover = ''
 		anchor = ''
-	
+
 
 
 	return [{
