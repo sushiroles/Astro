@@ -4,6 +4,7 @@ from discord.ext import tasks
 
 import configparser
 from random import randint
+from time import sleep
 
 from app_services import *
 
@@ -42,67 +43,11 @@ async def on_message(message):
 	urls = find_urls(message.content)
 	if urls != []:
 		for url in urls:
-			start_time = current_time_ms()
-			url_type = ''
-			data = {}
-			if is_spotify_track(url):
-				start_time = current_time_ms()
-				identifier = get_spotify_id(url)
-				data = get_spotify_track(identifier)
-				url_type = 'track'
-			elif is_spotify_album(url):
-				start_time = current_time_ms()
-				identifier = get_spotify_id(url)
-				data = get_spotify_album(identifier)
-				url_type = 'album'
-			elif is_apple_music_track(url):
-				start_time = current_time_ms()
-				identifier = get_apple_music_track_id(url)
-				data = get_apple_music_track(identifier)
-				url_type = 'track'
-			elif is_apple_music_album(url):
-				start_time = current_time_ms()
-				identifier = get_apple_music_album_id(url)
-				data = get_apple_music_album(identifier)
-				url_type = 'album'
-			elif is_youtube_music_track(url):
-				start_time = current_time_ms()
-				identifier = get_youtube_music_track_id(url)
-				data = get_youtube_music_track(identifier)
-				url_type = 'track'
-			elif is_youtube_music_album(url):
-				start_time = current_time_ms()
-				identifier = get_youtube_music_album_id(url)
-				data = get_youtube_music_album(identifier)
-				url_type = 'album'
-			elif is_deezer_track(url):
-				start_time = current_time_ms()
-				identifier = get_deezer_track_id(url)
-				data = get_deezer_track(identifier)
-				url_type = 'track'
-			elif is_deezer_album(url):
-				start_time = current_time_ms()
-				identifier = get_deezer_album_id(url)
-				data = get_deezer_album(identifier)
-				url_type = 'album'
-			elif is_tidal_track(url):
-				start_time = current_time_ms()
-				identifier = get_tidal_track_id(url)
-				data = get_tidal_track(identifier)
-				url_type = 'track'
-			elif is_tidal_album(url):
-				start_time = current_time_ms()
-				identifier = get_tidal_album_id(url)
-				data = get_tidal_album(identifier)
-				url_type = 'album'
-			elif is_bandcamp_track(url):
-				start_time = current_time_ms()
-				data = get_bandcamp_track_parameters(url)
-				url_type = 'track'
-			elif is_bandcamp_album(url):
-				start_time = current_time_ms()
-				data = get_bandcamp_album_parameters(url)
-				url_type = 'album'
+			music_data = get_music_data(url)
+			start_time = music_data['start_time']
+			data = music_data['data']
+			url_type = music_data['url_type']
+
 			if url_type != '':
 				try:
 					if url_type == 'track':
@@ -110,8 +55,21 @@ async def on_message(message):
 					elif url_type == 'album':
 						search_result = search_album(bare_bones(data['artists'][0]), bare_bones(data['album']))[0]
 				except Exception as error:
-					await logs_channel.send(embed = log('ERROR', f'When searching link - "{error}"', f'URL: {url}'))
+					await logs_channel.send(embed = log('NOTICE', f'Error when searching link - "{error}", retrying in 5 seconds', f'URL: {url}'))
+					sleep(5)
+					try:
+						if url_type == 'track':
+							search_result = search_track(bare_bones(data['artists'][0]), bare_bones(data['track']))[0]
+						elif url_type == 'album':
+							search_result = search_album(bare_bones(data['artists'][0]), bare_bones(data['album']))[0]
+					except Exception as error:
+						await logs_channel.send(embed = log('ERROR', f'When searching link - "{error}"', f'URL: {url}'))
+						return None
+
+				if search_result['anchor'].count('\n') <= 1:
+					await logs_channel.send(embed = log('RETREAT', f'Insufficient results', f'URL: {url}'))
 					return None
+
 				if url_type == 'track':
 					embed = discord.Embed(
 						title = f'{search_result['track']}',
@@ -136,6 +94,7 @@ async def on_message(message):
 						value = search_result['anchor'],
 						inline = False
 					)
+				
 				embed.set_thumbnail(url = search_result['cover'])
 				embed.set_footer(text = 'Thank you for using Astro!')
 				await message.reply(embed = embed)
@@ -148,6 +107,7 @@ async def self(interaction: discord.Interaction, artist: str, track: str):
 	logs_channel = client.get_channel(int(config['discord']['logs_channel']))
 	start_time = current_time_ms()
 	await interaction.response.defer()
+
 	try:
 		search_result = search_track(artist, track)[0]
 	except Exception as error:
@@ -168,7 +128,8 @@ async def self(interaction: discord.Interaction, artist: str, track: str):
 		return None
 		
 
-	if search_result['track'] == '':
+
+	if search_result['anchor'] == '':
 		embed = discord.Embed(
 			title = f'Oh no!',
 			colour = 0xf5c000,
@@ -230,7 +191,7 @@ async def self(interaction: discord.Interaction, artist: str, album: str):
 		return None
 
 
-	if search_result['album'] == '':
+	if search_result['anchor'] == '':
 		embed = discord.Embed(
 			title = f'Oh no!',
 			colour = 0xf5c000,
