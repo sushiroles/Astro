@@ -51,17 +51,17 @@ async def on_message(message):
 			if url_type != '':
 				try:
 					if url_type == 'track':
-						search_result = search_track(bare_bones(data['artists'][0]), bare_bones(data['track']))[0]
+						search_result = search_track(data['artists'][0], data['track'])[0]
 					elif url_type == 'album':
-						search_result = search_album(bare_bones(data['artists'][0]), bare_bones(data['album']))[0]
+						search_result = search_album(data['artists'][0], data['album'])[0]
 				except Exception as error:
 					await logs_channel.send(embed = log('NOTICE', f'Error when searching link - "{error}", retrying in 5 seconds', f'URL: {url}'))
 					sleep(5)
 					try:
 						if url_type == 'track':
-							search_result = search_track(bare_bones(data['artists'][0]), bare_bones(data['track']))[0]
+							search_result = search_track(data['artists'][0], data['track'])[0]
 						elif url_type == 'album':
-							search_result = search_album(bare_bones(data['artists'][0]), bare_bones(data['album']))[0]
+							search_result = search_album(data['artists'][0], data['album'])[0]
 					except Exception as error:
 						await logs_channel.send(embed = log('ERROR', f'When searching link - "{error}"', f'URL: {url}'))
 						return None
@@ -109,7 +109,7 @@ async def self(interaction: discord.Interaction, artist: str, track: str):
 	await interaction.response.defer()
 
 	try:
-		search_result = search_track(artist, track)[0]
+		search_result = search_track(bare_bones(artist), bare_bones(track))[0]
 	except Exception as error:
 		embed = discord.Embed(
 			title = f'Oh no!',
@@ -172,7 +172,7 @@ async def self(interaction: discord.Interaction, artist: str, album: str):
 	start_time = current_time_ms()
 	await interaction.response.defer()
 	try:
-		search_result = search_album(artist, album)[0]
+		search_result = search_album(bare_bones(artist), bare_bones(album))[0]
 	except Exception as error:
 		embed = discord.Embed(
 			title = f'Oh no!',
