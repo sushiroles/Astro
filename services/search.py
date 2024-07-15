@@ -13,6 +13,7 @@ import threading
 
 def get_music_data(url):
 	if is_spotify_track(url):
+		start_time = current_time_ms()
 		identifier = get_spotify_id(url)
 		data = get_spotify_track(identifier)
 		url_type = 'track'
