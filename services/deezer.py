@@ -48,122 +48,133 @@ def get_object_year(object_id: str, object_type: str):
 
 
 def search_deezer_track(artist: str, track: str):
-	tracks_data = []
-	url = f'https://api.deezer.com/search/track?q={artist}-{track}'
-	response = requests.get(url)
-	search_results = response.json()['data']
+	try:
+		tracks_data = []
+		url = f'https://api.deezer.com/search/track?q=artist:"{str(artist)}" track:"{str(track)}"'
+		response = requests.get(url)
+		search_results = response.json()['data']
 
-	if search_results != []:
-		for result in search_results:
-			if str(result['type']) == 'track':
-				url = str(result['link'])
-				identifier = str(result['id'])
-				artists = [str(result['artist']['name'])]
-				title = str(result['title'])
-				year = ''
-				cover = str(result['album']['cover_xl'])
-				tracks_data.append({
-					'url': url,
-					'id': identifier,
-					'artists': artists,
-					'track': title,
-					'year': year,
-					'cover': cover,
-				})
-		try:
-			filtered_track = filter_track(artist, track, tracks_data)
-			filtered_track['year'] = get_object_year(filtered_track['id'],'track')
-		except:
+		if search_results != []:
+			for result in search_results:
+				if str(result['type']) == 'track':
+					url = str(result['link'])
+					identifier = str(result['id'])
+					artists = [str(result['artist']['name'])]
+					title = str(result['title'])
+					year = ''
+					cover = str(result['album']['cover_xl'])
+					tracks_data.append({
+						'url': url,
+						'id': identifier,
+						'artists': artists,
+						'track': title,
+						'year': year,
+						'cover': cover,
+					})
+			try:
+				filtered_track = filter_track(artist, track, tracks_data)
+				filtered_track['year'] = get_object_year(filtered_track['id'],'track')
+			except:
+				return None
+			return filtered_track
+		else:
 			return None
-		return filtered_track
-	else:
+	except:
 		return None
 
 
 
 def search_deezer_album(artist: str, album: str):
-	tracks_data = []
-	url = f'https://api.deezer.com/search/album?q={artist}-{album}'
-	response = requests.get(url)
-	search_results = response.json()['data']
+	try:
+		tracks_data = []
+		url = f'https://api.deezer.com/search/album?q=artist:"{str(artist)}" album:"{str(album)}"'
+		response = requests.get(url)
+		search_results = response.json()['data']
 
-	if search_results != []:
-		for result in search_results:
-			if str(result['type']) == 'album':
-				url = str(result['link'])
-				identifier = str(result['id'])
-				artists = [str(result['artist']['name'])]
-				title = str(result['title'])
-				year = ''
-				cover = str(result['cover_xl'])
-				tracks_data.append({
-					'url': url,
-					'id': identifier,
-					'artists': artists,
-					'album': title,
-					'year': year,
-					'cover': cover,
-				})
-		try:
-			filtered_album = filter_album(artist, album, tracks_data)
-			filtered_album['year'] = get_object_year(filtered_album['id'],'album')
-		except:
+		if search_results != []:
+			for result in search_results:
+				if str(result['type']) == 'album':
+					url = str(result['link'])
+					identifier = str(result['id'])
+					artists = [str(result['artist']['name'])]
+					title = str(result['title'])
+					year = ''
+					cover = str(result['cover_xl'])
+					tracks_data.append({
+						'url': url,
+						'id': identifier,
+						'artists': artists,
+						'album': title,
+						'year': year,
+						'cover': cover,
+					})
+			try:
+				filtered_album = filter_album(artist, album, tracks_data)
+				filtered_album['year'] = get_object_year(filtered_album['id'],'album')
+			except:
+				return None
+			return filtered_album
+		else:
 			return None
-		return filtered_album
-	else:
+	except:
 		return None
 
 
 
 def get_deezer_track(identifier: str):
-	url = f'https://api.deezer.com/track/{identifier}'
-	response = requests.get(url)
-	result = response.json()
+	try:
+		url = f'https://api.deezer.com/track/{identifier}'
+		response = requests.get(url)
+		result = response.json()
 
-	if 'error' not in result.keys():
-		url = str(result['link'])
-		identifier = str(result['id'])
-		artists = []
-		for names in result['contributors']:
-			artists.append(str(names['name']))
-		title = str(result['title'])
-		year = str(result['release_date'][:4])
-		cover = str(result['album']['cover_xl'])
-		return {
-			'url': url,
-			'id': identifier,
-			'artists': artists,
-			'track': title,
-			'year': year,
-			'cover': cover,
-		}
-	else:
+		if 'error' not in result.keys():
+			url = str(result['link'])
+			identifier = str(result['id'])
+			artists = []
+			for names in result['contributors']:
+				artists.append(str(names['name']))
+			title = str(result['title'])
+			year = str(result['release_date'][:4])
+			cover = str(result['album']['cover_xl'])
+			return {
+				'url': url,
+				'id': identifier,
+				'artists': artists,
+				'track': title,
+				'year': year,
+				'cover': cover,
+			}
+		else:
+			return None
+	except:
 		return None
 
 
 
 def get_deezer_album(identifier: str):
-	url = f'https://api.deezer.com/album/{identifier}'
-	response = requests.get(url)
-	result = response.json()
+	try:
+		url = f'https://api.deezer.com/album/{identifier}'
+		response = requests.get(url)
+		result = response.json()
 
-	if 'error' not in result.keys():
-		url = str(result['link'])
-		identifier = str(result['id'])
-		artists = []
-		for names in result['contributors']:
-			artists.append(str(names['name']))
-		title = str(result['title'])
-		year = str(result['release_date'][:4])
-		cover = str(result['cover_xl'])
-		return {
-			'url': url,
-			'id': identifier,
-			'artists': artists,
-			'album': title,
-			'year': year,
-			'cover': cover,
-		}
-	else:
-		print("meow")
+		if 'error' not in result.keys():
+			url = str(result['link'])
+			identifier = str(result['id'])
+			artists = []
+			for names in result['contributors']:
+				artists.append(str(names['name']))
+			title = str(result['title'])
+			year = str(result['release_date'][:4])
+			cover = str(result['cover_xl'])
+			return {
+				'url': url,
+				'id': identifier,
+				'artists': artists,
+				'album': title,
+				'year': year,
+				'cover': cover,
+			}
+		else:
+			return None
+	except:
 		return None

@@ -33,7 +33,7 @@ def search_apple_music_track(artist, track):
 	try:
 		tracks_data = []
 
-		url = f"https://itunes.apple.com/search?term={artist}+{track}&entity=song"
+		url = f"https://itunes.apple.com/search?term={bare_bones(artist).replace(' ','+')}+{bare_bones(track).replace(' ','+')}&entity=song"
 		response = requests.get(url)
 		search_results = response.json()['results']
 
@@ -65,8 +65,9 @@ def search_apple_music_album(artist, album):
 	try:
 		albums_data = []
 
-		url = f"https://itunes.apple.com/search?term={artist}+{album}&entity=album"
+		url = f"https://itunes.apple.com/search?term={bare_bones(artist).replace(' ','+')}+{bare_bones(album).replace(' ','+')}&entity=album"
 		response = requests.get(url)
+		save_json(response.json())
 		search_results = response.json()['results']
 
 		if search_results != []:
@@ -88,7 +89,8 @@ def search_apple_music_album(artist, album):
 			return filter_album(artist, album, albums_data)
 		else:
 			return None
-	except:
+	except Exception as e:
+		print(e)
 		return None
 
 
@@ -104,6 +106,8 @@ def get_apple_music_track(identifier: str):
 			identifier = str(result['trackId'])
 			artists = split_artists(str(result['artistName']))
 			title = str(result['trackName'])
+			if title.lower().find('feat. ') >= 0:
+				title = title[:title.index('feat. ')-2]
 			year = str(result['releaseDate'][:4])
 			cover = str(result['artworkUrl100'])
 			return {
@@ -132,6 +136,8 @@ def get_apple_music_album(identifier: str):
 			identifier = str(result['collectionId'])
 			artists = split_artists(str(result['artistName']))
 			title = str(result['collectionName'])
+			if title.find(' - EP') >= 0:
+				title = title.replace(' - EP', '')
 			year = str(result['releaseDate'][:4])
 			cover = str(result['artworkUrl100'])
 			return {
