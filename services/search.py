@@ -192,7 +192,7 @@ def search_track(artist: str, track: str):
 			title = search_results[counter]['track']
 			cover = search_results[counter]['cover']
 			counter += 1
-		anchor = ''.join(track_honesty_filter(search_results[0],search_results[1],search_results[2],search_results[3],search_results[4],search_results[5]))
+		anchor = ''.join(result['anchor'] for result in search_results)
 	except:
 		artists = []
 		title = ''
@@ -222,12 +222,12 @@ def search_album(artist: str, album: str):
 	requested_album = album
 
 	service_data = [
-		('Spotify', search_spotify_album(bare_bones(artist), bare_bones(album))),
-		('Apple Music', search_apple_music_album(bare_bones(artist), bare_bones(album))),
-		('YouTube Music', search_youtube_music_album(bare_bones(artist), bare_bones(album))),
-		('Deezer', search_deezer_album(bare_bones(artist), bare_bones(album))),
-		('TIDAL', search_tidal_album(bare_bones(artist), bare_bones(album))),
-		('Bandcamp', search_bandcamp_album(bare_bones(artist), bare_bones(album))),
+		('Spotify', search_spotify_album(artist, album)),
+		('Apple Music', search_apple_music_album(artist, album)),
+		('YouTube Music', search_youtube_music_album(artist, album)),
+		('Deezer', search_deezer_album(artist, album)),
+		('TIDAL', search_tidal_album(artist, album)),
+		('Bandcamp', search_bandcamp_album(artist, album)),
 	]
 
 	threads = []
@@ -251,8 +251,7 @@ def search_album(artist: str, album: str):
 			title = search_results[counter]['album']
 			cover = search_results[counter]['cover']
 			counter += 1
-		anchor = ''.join(album_honesty_filter(search_results[0],search_results[1],search_results[2],search_results[3],search_results[4],search_results[5]))
-		#anchor = ''.join(result['anchor'] for result in search_results)	
+		anchor = ''.join(result['anchor'] for result in search_results)	
 	except:
 		artists = []
 		title = ''
