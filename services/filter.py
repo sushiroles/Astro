@@ -82,13 +82,15 @@ def track_honesty_filter(spotify_data, apple_music_data, youtube_music_data, dee
 	common_artist_data = get_common_data(artist_names)
 	common_title_data = get_common_data(track_titles)
 	common_year_data = get_common_data(release_years)
+	print(common_artist_data)
+	print(common_title_data)
+	print(common_year_data)
 
 	for anchor in anchors:
 		if artist_names[honesty_counter] == common_artist_data:
 			if track_titles[honesty_counter] == common_title_data:
-				if release_years[honesty_counter] == common_year_data or release_years[honesty_counter] == '':
-					honest_anchors.append(anchor)
-					honesty_counter += 1
+				honest_anchors.append(anchor)
+				honesty_counter += 1
 
 	return honest_anchors
 
