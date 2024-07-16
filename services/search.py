@@ -24,13 +24,13 @@ def get_music_data(url):
 		url_type = 'album'
 	elif is_apple_music_track(url):
 		start_time = current_time_ms()
-		identifier = get_apple_music_track_id(url)
-		data = get_apple_music_track(identifier)
+		id_data = get_apple_music_track_id(url)
+		data = get_apple_music_track(id_data['id'], id_data['country_code'])
 		url_type = 'track'
 	elif is_apple_music_album(url):
 		start_time = current_time_ms()
-		identifier = get_apple_music_album_id(url)
-		data = get_apple_music_album(identifier)
+		id_data = get_apple_music_album_id(url)
+		data = get_apple_music_album(id_data['id'], id_data['country_code'])
 		url_type = 'album'
 	elif is_youtube_music_track(url):
 		start_time = current_time_ms()

@@ -15,25 +15,35 @@ def is_apple_music_album(url: str):
 	return bool(url.find('https://music.apple.com/') >= 0 and not url.find('?i=') >= 0)
 
 def get_apple_music_track_id(url: str):
-	index = url.index('?i=') + 3
+	country_code = url[24:26]
+	print(country_code)
 	if url.find('&uo=') >= 0:
-		return url[index:url.index('&uo=')]
+		return {
+			'id': url[url.index('?i=')+3:url.index('&uo=')],
+			'country_code': url[24:26],
+		}
 	else:
-		return url[index:]
+		return {
+			'id': url[url.index('?i=')+3:],
+			'country_code': url[24:26],
+		}
 
 def get_apple_music_album_id(url: str):
 	index = len(url) - 1
 	while url[index] != '/':
 		index -= 1
-	return url[index+1:]
+	return {
+		'id': url[index+1:],
+		'country_code': url[24:26],
+	}
 
 
-	
+
 def search_apple_music_track(artist, track):
 	try:
 		tracks_data = []
 
-		url = f"https://itunes.apple.com/search?term={bare_bones(artist).replace(' ','+')}+{bare_bones(track).replace(' ','+')}&entity=song"
+		url = f"https://itunes.apple.com/search?term={bare_bones(artist)}+{bare_bones(track)}&entity=song"
 		response = requests.get(url)
 		search_results = response.json()['results']
 
@@ -65,9 +75,8 @@ def search_apple_music_album(artist, album):
 	try:
 		albums_data = []
 
-		url = f"https://itunes.apple.com/search?term={bare_bones(artist).replace(' ','+')}+{bare_bones(album).replace(' ','+')}&entity=album"
+		url = f"https://itunes.apple.com/search?term={bare_bones(artist)}+{bare_bones(album)}&entity=album"
 		response = requests.get(url)
-		save_json(response.json())
 		search_results = response.json()['results']
 
 		if search_results != []:
@@ -89,15 +98,14 @@ def search_apple_music_album(artist, album):
 			return filter_album(artist, album, albums_data)
 		else:
 			return None
-	except Exception as e:
-		print(e)
+	except:
 		return None
 
 
 
-def get_apple_music_track(identifier: str):
+def get_apple_music_track(identifier: str, country_code: str):
 	try:
-		url = f"https://itunes.apple.com/lookup?id={identifier}"
+		url = f"https://itunes.apple.com/lookup?id={identifier}&country={country_code}"
 		response = requests.get(url)
 		result = response.json()['results'][0]
 
@@ -125,9 +133,9 @@ def get_apple_music_track(identifier: str):
 
 
 
-def get_apple_music_album(identifier: str):
+def get_apple_music_album(identifier: str, country_code: str):
 	try:
-		url = f"https://itunes.apple.com/lookup?id={identifier}"
+		url = f"https://itunes.apple.com/lookup?id={identifier}&country={country_code}"
 		response = requests.get(url)
 		result = response.json()['results'][0]
 
