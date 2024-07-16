@@ -15,8 +15,6 @@ def is_apple_music_album(url: str):
 	return bool(url.find('https://music.apple.com/') >= 0 and not url.find('?i=') >= 0)
 
 def get_apple_music_track_id(url: str):
-	country_code = url[24:26]
-	print(country_code)
 	if url.find('&uo=') >= 0:
 		return {
 			'id': url[url.index('?i=')+3:url.index('&uo=')],
