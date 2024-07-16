@@ -63,10 +63,12 @@ async def on_message(message):
 						elif url_type == 'album':
 							search_result = search_album(data['artists'][0], data['album'])[0]
 					except Exception as error:
+						await message.add_reaction('\U0001F613')
 						await logs_channel.send(embed = log('ERROR', f'When searching link - "{error}"', f'URL: {url}'))
 						return None
 
 				if search_result['anchor'].count('\n') <= 1:
+					await message.add_reaction('\U0001F937')
 					await logs_channel.send(embed = log('RETREAT', f'Insufficient results', f'URL: {url}'))
 					return None
 
