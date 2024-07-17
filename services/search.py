@@ -13,65 +13,52 @@ import threading
 
 def get_music_data(url):
 	if is_spotify_track(url):
-		start_time = current_time_ms()
 		identifier = get_spotify_id(url)
 		data = get_spotify_track(identifier)
 		url_type = 'track'
 	elif is_spotify_album(url):
-		start_time = current_time_ms()
 		identifier = get_spotify_id(url)
 		data = get_spotify_album(identifier)
 		url_type = 'album'
 	elif is_apple_music_track(url):
-		start_time = current_time_ms()
 		id_data = get_apple_music_track_id(url)
 		data = get_apple_music_track(id_data['id'], id_data['country_code'])
 		url_type = 'track'
 	elif is_apple_music_album(url):
-		start_time = current_time_ms()
 		id_data = get_apple_music_album_id(url)
 		data = get_apple_music_album(id_data['id'], id_data['country_code'])
 		url_type = 'album'
 	elif is_youtube_music_track(url):
-		start_time = current_time_ms()
 		identifier = get_youtube_music_track_id(url)
 		data = get_youtube_music_track(identifier)
 		url_type = 'track'
 	elif is_youtube_music_album(url):
-		start_time = current_time_ms()
 		identifier = get_youtube_music_album_id(url)
 		data = get_youtube_music_album(identifier)
 		url_type = 'album'
 	elif is_deezer_track(url):
-		start_time = current_time_ms()
 		identifier = get_deezer_track_id(url)
 		data = get_deezer_track(identifier)
 		url_type = 'track'
 	elif is_deezer_album(url):
-		start_time = current_time_ms()
 		identifier = get_deezer_album_id(url)
 		data = get_deezer_album(identifier)
 		url_type = 'album'
 	elif is_tidal_track(url):
-		start_time = current_time_ms()
 		identifier = get_tidal_track_id(url)
 		data = get_tidal_track(identifier)
 		url_type = 'track'
 	elif is_tidal_album(url):
-		start_time = current_time_ms()
 		identifier = get_tidal_album_id(url)
 		data = get_tidal_album(identifier)
 		url_type = 'album'
 	elif is_bandcamp_track(url):
-		start_time = current_time_ms()
 		data = get_bandcamp_track_parameters(url)
 		url_type = 'track'
 	elif is_bandcamp_album(url):
-		start_time = current_time_ms()
 		data = get_bandcamp_album_parameters(url)
 		url_type = 'album'
 	return {
-		'start_time': start_time,
 		'data': data,
 		'url_type': url_type,
 	}

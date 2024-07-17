@@ -43,14 +43,15 @@ async def on_message(message):
 	urls = find_urls(message.content)
 	if urls != []:
 		for url in urls:
+			start_time = current_time_ms()
 			music_data = get_music_data(url)
-			start_time = music_data['start_time']
 			data = music_data['data']
 			url_type = music_data['url_type']
-
 			if url_type != '':
 				try:
 					if url_type == 'track':
+						if data['track'].lower().find('feat. ') >= 0:
+							data['track'] = data['track'][:data['track'].lower().index('feat. ')-2]
 						search_result = search_track(data['artists'][0], data['track'])[0]
 					elif url_type == 'album':
 						search_result = search_album(data['artists'][0], data['album'])[0]
@@ -100,7 +101,7 @@ async def on_message(message):
 				embed.set_thumbnail(url = search_result['cover'])
 				embed.set_footer(text = 'Thank you for using Astro!')
 				await message.reply(embed = embed)
-				await logs_channel.send(embed = log('SUCCESS', f'Successfully searched a link in {current_time_ms() - start_time}ms', f'URL: {url}'))
+				await logs_channel.send(embed = log('SUCCESS', f'Successfully searched a link in {current_time_ms() - start_time}ms', f'URL: {url}', search_result['anchor']))
 
 
 
@@ -164,7 +165,7 @@ async def self(interaction: discord.Interaction, artist: str, track: str):
 		embed.set_thumbnail(url = search_result['cover'])
 		embed.set_footer(text = 'Thank you for using Astro!')
 		await interaction.followup.send(embed = embed)
-		await logs_channel.send(embed = log('SUCCESS', f'Successfully executed command /searchtrack in {current_time_ms() - start_time}ms', f'Artist: "{artist}"\nTrack: "{track}"'))
+		await logs_channel.send(embed = log('SUCCESS', f'Successfully executed command /searchtrack in {current_time_ms() - start_time}ms', f'Artist: "{artist}"\nTrack: "{track}"', search_result['anchor']))
 
 
 
@@ -227,7 +228,7 @@ async def self(interaction: discord.Interaction, artist: str, album: str):
 		embed.set_thumbnail(url = search_result['cover'])
 		embed.set_footer(text = 'Thank you for using Astro!')
 		await interaction.followup.send(embed = embed)
-		await logs_channel.send(embed = log('SUCCESS', f'Successfully executed command /searchalbum in {current_time_ms() - start_time}ms', f'Artist: "{artist}"\nAlbum: "{album}"'))
+		await logs_channel.send(embed = log('SUCCESS', f'Successfully executed command /searchalbum in {current_time_ms() - start_time}ms', f'Artist: "{artist}"\nAlbum: "{album}"', search_result['anchor']))
 
 
 

@@ -8,7 +8,7 @@ import re
 import discord as discord
 
 
-def log(type: str, message: str, parameters: str):
+def log(type: str, message: str, parameters: str, anchors: str = None):
 	embed = discord.Embed(
 		title = f'{type}',
 		colour = 0x3f81eb,
@@ -25,6 +25,13 @@ def log(type: str, message: str, parameters: str):
 		value = f'{parameters}',
 		inline = False
 	)
+
+	if anchors != None:
+		embed.add_field(
+			name = 'Anchors',
+			value = f'{anchors}',
+			inline = False
+		)
 
 	return embed
 
