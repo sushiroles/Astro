@@ -35,6 +35,12 @@ def get_apple_music_album_id(url: str):
 		'country_code': url[24:26],
 	}
 
+def get_apple_music_artist(artist_id: str):
+	url = f"https://itunes.apple.com/lookup?id={artist_id}"
+	response = requests.get(url)
+	result = response.json()['results'][0]
+	return [result['artistName']]
+
 
 
 def search_apple_music_track(artist, track):
@@ -49,7 +55,7 @@ def search_apple_music_track(artist, track):
 			for result in search_results:
 				url = str(result['trackViewUrl'])
 				identifier = str(result['trackId'])
-				artists = split_artists(str(result['artistName']))
+				artists = get_apple_music_artist(str(result['artistId']))
 				title = str(result['trackName'])
 				year = str(result['releaseDate'][:4])
 				cover = str(result['artworkUrl100'])
@@ -81,7 +87,7 @@ def search_apple_music_album(artist, album):
 			for result in search_results:
 				url = str(result['collectionViewUrl'])
 				identifier = str(result['collectionId'])
-				artists = split_artists(str(result['artistName']))
+				artists = get_apple_music_artist(str(result['artistId']))
 				title = str(result['collectionName'])
 				year = str(result['releaseDate'][:4])
 				cover = str(result['artworkUrl100'])
@@ -110,10 +116,8 @@ def get_apple_music_track(identifier: str, country_code: str):
 		if result != []:
 			url = str(result['trackViewUrl'])
 			identifier = str(result['trackId'])
-			artists = split_artists(str(result['artistName']))
+			artists = get_apple_music_artist(str(result['artistId']))
 			title = str(result['trackName'])
-			if title.lower().find('feat. ') >= 0:
-				title = title[:title.index('feat. ')-2]
 			year = str(result['releaseDate'][:4])
 			cover = str(result['artworkUrl100'])
 			return {
@@ -140,7 +144,7 @@ def get_apple_music_album(identifier: str, country_code: str):
 		if result != []:
 			url = str(result['collectionViewUrl'])
 			identifier = str(result['collectionId'])
-			artists = split_artists(str(result['artistName']))
+			artists = get_apple_music_artist(str(result['artistId']))
 			title = str(result['collectionName'])
 			if title.find(' - EP') >= 0:
 				title = title.replace(' - EP', '')
