@@ -43,11 +43,11 @@ def get_apple_music_artist(artist_id: str):
 
 
 
-def search_apple_music_track(artist, track):
+def search_apple_music_track(artist: str, track: str):
 	try:
 		tracks_data = []
 
-		url = f"https://itunes.apple.com/search?term={bare_bones(artist)}+{bare_bones(track)}&entity=song"
+		url = f"https://itunes.apple.com/search?term={bare_bones(artist)}+{bare_bones(track, False)}&entity=song"
 		response = requests.get(url)
 		search_results = response.json()['results']
 
@@ -55,16 +55,14 @@ def search_apple_music_track(artist, track):
 			for result in search_results:
 				url = str(result['trackViewUrl'])
 				identifier = str(result['trackId'])
-				artists = get_apple_music_artist(str(result['artistId']))
+				artists = split_artists(str(result['artistName']))
 				title = str(result['trackName'])
-				year = str(result['releaseDate'][:4])
 				cover = str(result['artworkUrl100'])
 				tracks_data.append({
 					'url': url,
 					'id': identifier,
 					'artists': artists,
 					'track': title,
-					'year': year,
 					'cover': cover,
 				})
 			return filter_track(artist, track, tracks_data)
@@ -75,11 +73,11 @@ def search_apple_music_track(artist, track):
 
 
 
-def search_apple_music_album(artist, album):
+def search_apple_music_album(artist: str, album: str):
 	try:
 		albums_data = []
 
-		url = f"https://itunes.apple.com/search?term={bare_bones(artist)}+{bare_bones(album)}&entity=album"
+		url = f"https://itunes.apple.com/search?term={bare_bones(artist)}+{bare_bones(album, False)}&entity=album"
 		response = requests.get(url)
 		search_results = response.json()['results']
 
@@ -87,16 +85,14 @@ def search_apple_music_album(artist, album):
 			for result in search_results:
 				url = str(result['collectionViewUrl'])
 				identifier = str(result['collectionId'])
-				artists = get_apple_music_artist(str(result['artistId']))
+				artists = split_artists(str(result['artistName']))
 				title = str(result['collectionName'])
-				year = str(result['releaseDate'][:4])
 				cover = str(result['artworkUrl100'])
 				albums_data.append({
 					'url': url,
 					'id': identifier,
 					'artists': artists,
 					'album': title,
-					'year': year,
 					'cover': cover,
 				})
 			return filter_album(artist, album, albums_data)
@@ -118,14 +114,12 @@ def get_apple_music_track(identifier: str, country_code: str):
 			identifier = str(result['trackId'])
 			artists = get_apple_music_artist(str(result['artistId']))
 			title = str(result['trackName'])
-			year = str(result['releaseDate'][:4])
 			cover = str(result['artworkUrl100'])
 			return {
 				'url': url,
 				'id': identifier,
 				'artists': artists,
 				'track': title,
-				'year': year,
 				'cover': cover,
 			}
 		else:
@@ -148,14 +142,12 @@ def get_apple_music_album(identifier: str, country_code: str):
 			title = str(result['collectionName'])
 			if title.find(' - EP') >= 0:
 				title = title.replace(' - EP', '')
-			year = str(result['releaseDate'][:4])
 			cover = str(result['artworkUrl100'])
 			return {
 				'url': url,
 				'id': identifier,
 				'artists': artists,
 				'album': title,
-				'year': year,
 				'cover': cover,
 			}
 		else:
