@@ -37,10 +37,10 @@ def is_tidal_album(url: str):
 	return bool(url.find('https://tidal.com/browse/album/') >= 0)
 
 def get_tidal_track_id(url: str):
-	return str(url.replace('https://tidal.com/browse/track/',''))
+	return str(url.replace('https://tidal.com/browse/track/','').replace('?u',''))
 
 def get_tidal_album_id(url: str):
-	return str(url.replace('https://tidal.com/browse/album/',''))
+	return str(url.replace('https://tidal.com/browse/album/','')).replace('?u','')
 
 
 
