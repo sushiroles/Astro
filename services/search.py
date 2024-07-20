@@ -3,10 +3,8 @@ from services.apple_music import *
 from services.youtube_music import *
 from services.deezer import *
 from services.tidal import *
-from services.bandcamp import *
 from services.etc import *
 
-import functools
 import threading
 
 
@@ -52,12 +50,6 @@ def get_music_data(url):
 		identifier = get_tidal_album_id(url)
 		data = get_tidal_album(identifier)
 		url_type = 'album'
-	elif is_bandcamp_track(url):
-		data = get_bandcamp_track_parameters(url)
-		url_type = 'track'
-	elif is_bandcamp_album(url):
-		data = get_bandcamp_album_parameters(url)
-		url_type = 'album'
 	return {
 		'data': data,
 		'url_type': url_type,
@@ -80,7 +72,6 @@ def get_track_data(service: str, api_call: callable, results: list):
 		identifier = call_results['id']
 		artists = call_results['artists']
 		track = call_results['track']
-		year = call_results['year']
 		cover = call_results['cover']
 		anchor = f'{emojis[service]} [{service}]({url})\n'
 	except Exception as error:
@@ -88,7 +79,6 @@ def get_track_data(service: str, api_call: callable, results: list):
 		identifier = ''
 		artists = []
 		track = ''
-		year = ''
 		cover = ''
 		anchor = ''
 	results.append({
@@ -96,7 +86,6 @@ def get_track_data(service: str, api_call: callable, results: list):
 		'id': identifier,
 		'artists': artists,
 		'track': track,
-		'year': year,
 		'cover': cover,
 		'anchor': anchor,
 	})
@@ -118,7 +107,6 @@ def get_album_data(service: str, api_call: callable, results: list):
 		identifier = call_results['id']
 		artists = call_results['artists']
 		album = call_results['album']
-		year = call_results['year']
 		cover = call_results['cover']
 		anchor = f'{emojis[service]} [{service}]({url})\n'
 	except Exception as error:
@@ -126,7 +114,6 @@ def get_album_data(service: str, api_call: callable, results: list):
 		identifier = ''
 		artists = []
 		album = ''
-		year = ''
 		cover = ''
 		anchor = ''
 	results.append({
@@ -134,14 +121,12 @@ def get_album_data(service: str, api_call: callable, results: list):
 		'id': identifier,
 		'artists': artists,
 		'album': album,
-		'year': year,
 		'cover': cover,
 		'anchor': anchor,
 	})
 
 
 
-@functools.cache
 def search_track(artist: str, track: str):
 	artists = []
 	title = ''
@@ -155,7 +140,6 @@ def search_track(artist: str, track: str):
 		('YouTube Music', search_youtube_music_track(bare_bones(artist), bare_bones(track))),
 		('Deezer', search_deezer_track(bare_bones(artist), bare_bones(track))),
 		('TIDAL', search_tidal_track(bare_bones(artist), bare_bones(track))),
-		('Bandcamp', search_bandcamp_track(bare_bones(artist), bare_bones(track))),
 	]
 
 	threads = []
@@ -200,7 +184,6 @@ def search_track(artist: str, track: str):
 
 
 
-@functools.cache
 def search_album(artist: str, album: str):
 	artists = []
 	title = ''
@@ -209,12 +192,11 @@ def search_album(artist: str, album: str):
 	requested_album = album
 
 	service_data = [
-		('Spotify', search_spotify_album(artist, album)),
+		('Spotify', search_spotify_album(bare_bones(artist), bare_bones(album))),
 		('Apple Music', search_apple_music_album(artist, album)),
 		('YouTube Music', search_youtube_music_album(artist, album)),
 		('Deezer', search_deezer_album(artist, album)),
 		('TIDAL', search_tidal_album(artist, album)),
-		('Bandcamp', search_bandcamp_album(artist, album)),
 	]
 
 	threads = []
@@ -226,6 +208,124 @@ def search_album(artist: str, album: str):
 
 	for thread in threads:
 		thread.join()
+
+	search_results = []
+	for result in results:
+		search_results.append(result)
+
+	counter = 0
+	try:
+		while title == '':
+			artists = search_results[counter]['artists']
+			title = search_results[counter]['album']
+			cover = search_results[counter]['cover']
+			counter += 1
+		anchor = ''.join(result['anchor'] for result in search_results)	
+	except:
+		artists = []
+		title = ''
+		cover = ''
+		anchor = ''
+
+
+
+	return [{
+		'cover': cover,
+		'artists': artists,
+		'album': title,
+		'anchor': anchor,
+
+		'requested_artist': requested_artist,
+		'requested_album': requested_album,
+	}]
+
+
+
+def search_track_from_url_data(artist: str, track: str):
+	artists = []
+	title = ''
+	cover = ''
+	requested_artist = artist
+	requested_track = track
+
+	service_data = [
+		('Spotify', search_spotify_track(artist.replace("'",''), track.replace("'",''))),
+		('Apple Music', search_apple_music_track(artist, track)),
+		('YouTube Music', search_youtube_music_track(artist, track)),
+		('Deezer', search_deezer_track(artist, track)),
+		('TIDAL', search_tidal_track(artist, track)),
+	]
+
+	threads = []
+	results = []
+	for service, function in service_data:
+		thread = threading.Thread(target = get_track_data, args = (service, function, results))
+		threads.append(thread)
+		thread.start()
+
+	for thread in threads:
+		thread.join()
+
+
+
+	search_results = []
+	for result in results:
+		search_results.append(result)
+
+	counter = 0
+	try:
+		while title == '':
+			artists = search_results[counter]['artists']
+			title = search_results[counter]['track']
+			cover = search_results[counter]['cover']
+			counter += 1
+		anchor = ''.join(result['anchor'] for result in search_results)
+	except:
+		artists = []
+		title = ''
+		cover = ''
+		anchor = ''
+
+
+
+	return [{
+		'cover': cover,
+		'artists': artists,
+		'track': title,
+		'anchor': anchor,
+
+		'requested_artist': requested_artist,
+		'requested_track': requested_track,
+	}]
+
+
+
+def search_album_from_url_data(artist: str, album: str):
+	artists = []
+	title = ''
+	cover = ''
+	requested_artist = artist
+	requested_album = album
+
+	service_data = [
+		('Spotify', search_spotify_album(artist.replace("'",''), album.replace("'",''))),
+		('Apple Music', search_apple_music_album(artist, album)),
+		('YouTube Music', search_youtube_music_album(artist, album)),
+		('Deezer', search_deezer_album(artist, album)),
+		('TIDAL', search_tidal_album(artist, album)),
+	]
+
+	threads = []
+	results = []
+	for service, function in service_data:
+		thread = threading.Thread(target = get_album_data, args = (service, function, results))
+		threads.append(thread)
+		thread.start()
+
+	for thread in threads:
+		thread.join()
+
+
 
 	search_results = []
 	for result in results:
