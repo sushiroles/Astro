@@ -45,8 +45,7 @@ def get_youtube_music_album_id(url: str):
 def get_extra_album_data(browse_id: str):
 	data = ytmusic.get_album(browse_id)
 	return {
-		'id': str(data['audioPlaylistId']),
-		'year': str(data['year']),
+		'id': str(data['audioPlaylistId'])
 	}
 
 
@@ -63,14 +62,12 @@ def search_youtube_music_track(artist, track):
 				for names in result['artists']:
 					artists.append(str(names['name']))
 				title = str(result['title'])
-				year = '' # fuck you
 				cover = str(result['thumbnails'][1]['url'])
 				tracks_data.append({
 					'url': url,
 					'id': identifier,
 					'artists': artists,
 					'track': title,
-					'year': year,
 					'cover': cover,
 				})
 		return filter_track(artist, track, tracks_data)
@@ -81,30 +78,24 @@ def search_youtube_music_track(artist, track):
 
 def search_youtube_music_album(artist, album):
 	try:
-		albums_data = []
-		search_results = ytmusic.search(f'{artist} {album}', filter = 'albums')
-		for result in search_results:
-			url = ''
-			identifier = str(result['browseId'])
+		result = ytmusic.search(f'{artist} {album}')[0]
+		url = str(f'https://music.youtube.com/playlist?list={result['playlistId']}')
+		if result['resultType'] == 'album':
+			identifier = str(result['playlistId'])
 			artists = []
 			for names in result['artists']:
 				artists.append(str(names['name']))
 			title = str(result['title'])
-			year = ''
 			cover = str(result['thumbnails'][1]['url'])
-			albums_data.append({
+			return {
 				'url': url,
 				'id': identifier,
 				'artists': artists,
 				'album': title,
-				'year': year,
 				'cover': cover,
-			})
-		filtered_album = filter_album(artist, album, albums_data)
-		extra_data = get_extra_album_data(filtered_album['id'])
-		filtered_album['url'] = str(f'https://music.youtube.com/playlist?list={extra_data['id']}')
-		filtered_album['year'] = extra_data['year']
-		return filtered_album
+			}
+		else:
+			return None
 	except:
 		return None
 
@@ -118,14 +109,12 @@ def get_youtube_music_track(identifier: str):
 		identifier = str(result['videoId'])
 		artists = [result['author']]
 		title = str(result['title'])
-		year = '' # fuck you
 		cover = str(result['thumbnail']['thumbnails'][len(result['thumbnail']['thumbnails'])-1]['url'])
 		return {
 			'url': url,
 			'id': identifier,
 			'artists': artists,
 			'track': title,
-			'year': year,
 			'cover': cover,
 		}
 	except:
@@ -144,14 +133,12 @@ def get_youtube_music_album(identifier: str):
 		for names in result['artists']:
 			artists.append(str(names['name']))
 		title = str(result['title'])
-		year = ''
 		cover = str(result['thumbnails'][1]['url'])
 		return {
 			'url': url,
 			'id': identifier,
 			'artists': artists,
 			'album': title,
-			'year': year,
 			'cover': cover,
 		}
 	except:
