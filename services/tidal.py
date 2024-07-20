@@ -65,14 +65,12 @@ def search_tidal_track(artist, track):
 			for names in result['resource']['artists']:
 				artists.append(names['name'])
 			title = str(result['resource']['title'])
-			year = '' # fuck you
 			cover = str(result['resource']['album']['imageCover'][1]['url'])
 			tracks_data.append({
 				'url': url,
 				'id': identifier,
 				'artists': artists,
 				'track': title,
-				'year': year,
 				'cover': cover,
 			})
 		return filter_track(artist, track, tracks_data)
@@ -101,14 +99,12 @@ def search_tidal_album(artist, album):
 			for names in result['resource']['artists']:
 				artists.append(names['name'])
 			title = str(result['resource']['title'])
-			year = str(result['resource']['releaseDate'][:4])
 			cover = str(result['resource']['imageCover'][1]['url'])
 			albums_data.append({
 				'url': url,
 				'id': identifier,
 				'artists': artists,
 				'album': title,
-				'year': year,
 				'cover': cover,
 			})
 		return filter_album(artist, album, albums_data)
@@ -134,14 +130,12 @@ def get_tidal_track(identifier: str):
 		for names in result['resource']['artists']:
 			artists.append(names['name'])
 		title = str(result['resource']['title'])
-		year = '' # fuck you
 		cover = str(result['resource']['album']['imageCover'][1]['url'])
 		return {
 			'url': url,
 			'id': identifier,
 			'artists': artists,
 			'track': title,
-			'year': year,
 			'cover': cover,
 		}
 	else:
@@ -166,14 +160,12 @@ def get_tidal_album(identifier: str):
 		for names in result['resource']['artists']:
 			artists.append(names['name'])
 		title = str(result['resource']['title'])
-		year = str(result['resource']['releaseDate'][:4])
 		cover = str(result['resource']['imageCover'][1]['url'])
 		return {
 			'url': url,
 			'id': identifier,
 			'artists': artists,
 			'album': title,
-			'year': year,
 			'cover': cover,
 		}
 	else:

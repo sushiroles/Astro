@@ -119,14 +119,12 @@ def get_deezer_track(identifier: str):
 			for names in result['contributors']:
 				artists.append(str(names['name']))
 			title = str(result['title'])
-			year = str(result['release_date'][:4])
 			cover = str(result['album']['cover_xl'])
 			return {
 				'url': url,
 				'id': identifier,
 				'artists': artists,
 				'track': title,
-				'year': year,
 				'cover': cover,
 			}
 		else:
@@ -149,14 +147,12 @@ def get_deezer_album(identifier: str):
 			for names in result['contributors']:
 				artists.append(str(names['name']))
 			title = str(result['title'])
-			year = str(result['release_date'][:4])
 			cover = str(result['cover_xl'])
 			return {
 				'url': url,
 				'id': identifier,
 				'artists': artists,
 				'album': title,
-				'year': year,
 				'cover': cover,
 			}
 		else:
