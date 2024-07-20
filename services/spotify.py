@@ -46,14 +46,12 @@ def search_spotify_track(artist: str, track: str):
 			for names in result['artists']:
 				artists.append(str(names['name']))
 			title = str(result['name'])
-			year = str(result['album']['release_date'][:4])
 			cover = str(result['album']['images'][0]['url'])
 			tracks_data.append({
 				'url': url,
 				'id': identifier,
 				'artists': artists,
 				'track': title,
-				'year': year,
 				'cover': cover,
 			})
 		return filter_track(artist, track, tracks_data)
@@ -81,14 +79,12 @@ def search_spotify_album(artist: str, album: str):
 			for names in result['artists']:
 				artists.append(str(names['name']))
 			title = str(result['name'])
-			year = str(result['release_date'][:4])
 			cover = str(result['images'][0]['url'])
 			albums_data.append({
 				'url': url,
 				'id': identifier,
 				'artists': artists,
 				'album': title,
-				'year': year,
 				'cover': cover,
 			})
 		return filter_album(artist, album, albums_data)
@@ -110,14 +106,12 @@ def get_spotify_track(identifier: str):
 	for names in track['artists']:
 		artists.append(str(names['name']))
 	title = str(track['name'])
-	year = str(track['album']['release_date'][:4])
 	cover = str(track['album']['images'][0]['url'])
 	return {
 		'url': url,
 		'id': identifier,
 		'artists': artists,
 		'track': title,
-		'year': year,
 		'cover': cover,
 	}
 
@@ -136,13 +130,11 @@ def get_spotify_album(identifier: str):
 	for names in album['artists']:
 		artists.append(str(names['name']))
 	title = str(album['name'])
-	year = str(album['release_date'][:4])
 	cover = str(album['images'][0]['url'])
 	return {
 		'url': url,
 		'id': identifier,
 		'artists': artists,
 		'album': title,
-		'year': year,
 		'cover': cover,
 	}
