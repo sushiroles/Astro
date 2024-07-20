@@ -38,12 +38,6 @@ def get_deezer_album_id(url: str):
 	else:
 		return str(url[url.index('album/')+6:])
 
-def get_object_year(object_id: str, object_type: str):
-	url = f'https://api.deezer.com/{object_type}/{object_id}'
-	response = requests.get(url)
-	result = response.json()
-	release_year = result['release_date'][:4]
-	return str(release_year)
 
 
 
@@ -55,28 +49,23 @@ def search_deezer_track(artist: str, track: str):
 		search_results = response.json()['data']
 
 		if search_results != []:
-			for result in search_results:
-				if str(result['type']) == 'track':
-					url = str(result['link'])
-					identifier = str(result['id'])
-					artists = [str(result['artist']['name'])]
-					title = str(result['title'])
-					year = ''
-					cover = str(result['album']['cover_xl'])
-					tracks_data.append({
-						'url': url,
-						'id': identifier,
-						'artists': artists,
-						'track': title,
-						'year': year,
-						'cover': cover,
-					})
-			try:
-				filtered_track = filter_track(artist, track, tracks_data)
-				filtered_track['year'] = get_object_year(filtered_track['id'],'track')
-			except:
-				return None
-			return filtered_track
+			for data in search_results:
+				result = requests.get(f'https://api.deezer.com/track/{data['id']}').json()
+				url = str(result['link'])
+				identifier = str(result['id'])
+				artists = []
+				for names in result['contributors']:
+					artists.append(str(names['name']))
+				title = str(result['title'])
+				cover = str(result['album']['cover_xl'])
+				tracks_data.append({
+					'url': url,
+					'id': identifier,
+					'artists': artists,
+					'track': title,
+					'cover': cover,
+				})
+			return filter_track(artist, track, tracks_data)
 		else:
 			return None
 	except:
@@ -92,28 +81,24 @@ def search_deezer_album(artist: str, album: str):
 		search_results = response.json()['data']
 
 		if search_results != []:
-			for result in search_results:
-				if str(result['type']) == 'album':
-					url = str(result['link'])
-					identifier = str(result['id'])
-					artists = [str(result['artist']['name'])]
-					title = str(result['title'])
-					year = ''
-					cover = str(result['cover_xl'])
-					tracks_data.append({
-						'url': url,
-						'id': identifier,
-						'artists': artists,
-						'album': title,
-						'year': year,
-						'cover': cover,
-					})
-			try:
-				filtered_album = filter_album(artist, album, tracks_data)
-				filtered_album['year'] = get_object_year(filtered_album['id'],'album')
-			except:
-				return None
-			return filtered_album
+			for data in search_results:
+				result = requests.get(f'https://api.deezer.com/album/{data['id']}').json()
+				url = str(result['link'])
+				identifier = str(result['id'])
+				artists = []
+				for names in result['contributors']:
+					artists.append(str(names['name']))
+				title = str(result['title'])
+				year = str(result['release_date'][:4])
+				cover = str(result['cover_xl'])
+				tracks_data.append({
+					'url': url,
+					'id': identifier,
+					'artists': artists,
+					'album': title,
+					'cover': cover,
+				})
+			return filter_album(artist, album, tracks_data)
 		else:
 			return None
 	except:
