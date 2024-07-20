@@ -6,9 +6,14 @@ from urllib import request
 import json
 import re
 import discord as discord
+from PIL import Image
+from PIL import ImageEnhance
+import requests
+from io import BytesIO
+import numpy as np
 
 
-def log(type: str, message: str, parameters: str, anchors: str = None):
+def log(type: str, message: str, parameters: str = None, anchors: str = None):
 	embed = discord.Embed(
 		title = f'{type}',
 		colour = 0x3f81eb,
@@ -20,11 +25,12 @@ def log(type: str, message: str, parameters: str, anchors: str = None):
 		inline = False
 	)
 
-	embed.add_field(
-		name = 'Parameters',
-		value = f'{parameters}',
-		inline = False
-	)
+	if anchors != None:
+		embed.add_field(
+			name = 'Parameters',
+			value = f'{parameters}',
+			inline = False
+		)
 
 	if anchors != None:
 		embed.add_field(
@@ -42,18 +48,23 @@ def save_json(json_data: dict):
 	with open('save_json_data.json', 'w', encoding = 'utf-8') as f:
 		json.dump(json_data, f, ensure_ascii = False, indent = 4)
 
-def remove_punctuation(string: str):
-	punc = f'''!()[];:'",<>./?@#$%^&*_~'''
+def remove_punctuation(string: str, remove_all: bool):
+	all_punc = f'''!()[];:'",<>./?@#$%^&*_~'''
+	some_punc = f'''!()[];:'",<>./?^*_~'''
 	for element in string:
-		if element in punc:
-			string = string.replace(element, '')
+		if remove_all == True:
+			if element in all_punc:
+				string = string.replace(element, '')
+		elif remove_all == False:
+			if element in some_punc:
+				string = string.replace(element, '')
 	return string
 
 def replace_with_ascii(string: str):
 	return unidecode(string)
 
-def bare_bones(string: str):
-	return replace_with_ascii(remove_punctuation(string)).lower()
+def bare_bones(string: str, remove_all_punctuation: bool = True):
+	return replace_with_ascii(remove_punctuation(string, remove_all_punctuation)).lower().replace('  ',' ')
 
 def split_artists(string: str):
 	strings = re.split(r",|\&", string)
@@ -96,3 +107,21 @@ def get_regular_url(deferred_url: str):
 		return None
 	regular_url = data.geturl()
 	return regular_url
+
+def get_average_color(image_url: str, quality: int = 5):
+	try:
+		response = requests.get(image_url)
+		image = Image.open(BytesIO(response.content))
+	except:
+		return None
+
+	width, height = image.size
+	new_width = width // quality
+	new_height = height // quality
+	image = image.resize((new_width, new_height))
+
+	pixels = image.convert('RGB').getdata()
+	average_color = np.mean(pixels, axis = 0).astype(int)
+
+	hex_color = "#{:02x}{:02x}{:02x}".format(*average_color)
+	return int(hex_color[1:], base = 16)
