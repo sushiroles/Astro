@@ -1,16 +1,16 @@
 import requests
+from datetime import *
 try:
 	from services.etc import *
 	from services.filter import *
 except:
 	from etc import *
 	from filter import *
-from datetime import *
 
 
 
 def is_deferred_url(url: str):
-	return bool(url.find('https://deezer.page.link') >= 0)
+	return bool(url.find('https://deezer.page.link/') >= 0)
 
 def is_deezer_track(url: str):
 	if is_deferred_url(url):

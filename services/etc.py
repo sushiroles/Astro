@@ -13,6 +13,7 @@ from io import BytesIO
 import numpy as np
 
 
+
 def log(type: str, message: str, parameters: str = None, anchors: str = None):
 	embed = discord.Embed(
 		title = f'{type}',

@@ -17,8 +17,8 @@ config.read('tokens.ini')
 
 class Client(discord.Client): 
 	def __init__(self):
-		discordintents = discord.Intents.default() 		
-		discordintents.message_content = True			
+		discordintents = discord.Intents.all()
+		discordintents.message_content = True
 		super().__init__(intents = discordintents)		
 		self.synced = False								
 	async def on_ready(self): 
@@ -44,7 +44,6 @@ async def on_message(message):
 	if urls != []:
 		for url in urls:
 			start_time = current_time_ms()
-
 
 			try:
 				music_data = get_music_data(url)
@@ -97,7 +96,7 @@ async def on_message(message):
 				
 			embed.set_thumbnail(url = search_result['cover'])
 			embed.set_footer(text = 'Thank you for using Astro!')
-			await message.reply(embed = embed)
+			await message.reply(embed = embed, mention_author = False)
 			await logs_channel.send(embed = log('SUCCESS', f'Successfully searched a link in {current_time_ms() - start_time}ms', f'URL: {url}', search_result['anchor']))
 
 
