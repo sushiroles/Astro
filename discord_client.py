@@ -1,5 +1,6 @@
 import discord as discord 
 from discord import app_commands
+from discord import Spotify
 from discord.ext import tasks
 
 import configparser
@@ -19,6 +20,7 @@ class Client(discord.Client):
 	def __init__(self):
 		discordintents = discord.Intents.all()
 		discordintents.message_content = True
+		discordintents.presences = True
 		super().__init__(intents = discordintents)		
 		self.synced = False								
 	async def on_ready(self): 
@@ -317,6 +319,79 @@ async def self(interaction: discord.Interaction, link: str):
 		embed.set_footer(text = 'Thank you for using Astro!')
 		await interaction.followup.send(embed = embed)
 		await logs_channel.send(embed = log('SUCCESS', f'Successfully executed command /lookup in {current_time_ms() - start_time}ms', f'URL: "{link}"', search_result['anchor']))
+
+
+
+@tree.command(name = 'snoop', description = 'Get the song a user is listening to on Spotify')
+async def self(interaction: discord.Interaction, user: discord.Member):
+	logs_channel = client.get_channel(int(config['discord']['logs_channel']))
+	start_time = current_time_ms()
+	await interaction.response.defer()
+
+	guild = client.get_guild(interaction.guild.id)
+	member = guild.get_member(user.id)
+	replied = False
+
+	for activity in member.activities:
+		if isinstance(activity, Spotify):
+			identifier = str(activity.track_id)
+			data = get_spotify_track(identifier)
+			
+			try:
+				if data['track'].lower().find('feat. ') >= 0:
+					data['track'] = data['track'][:data['track'].lower().index('feat. ')-2]
+				search_result = search_track_from_url_data(max(data['artists'], key = len), data['track'])[0]
+			except Exception as error:
+				embed = discord.Embed(
+					title = f'Oh no!',
+					colour = 0xf5c000,
+				)
+									
+				embed.add_field(
+					name = '',
+					value = "An error occured while running your command.",
+					inline = False
+				)
+								
+				embed.set_footer(text = 'Thank you for using Astro!')
+				await interaction.followup.send(embed = embed)
+				await logs_channel.send(embed = log('ERROR', f'When running command /snoop - "{error}"', f'ID: {identifier}'))
+				return None
+
+			embed = discord.Embed(
+				title = f'{search_result['track']}',
+				description = f'by {', '.join(search_result['artists'])}',
+				colour = get_average_color(search_result['cover']),
+			)
+				
+			embed.add_field(
+				name = 'You can find it on on:',
+				value = search_result['anchor'],
+				inline = False
+			)
+				
+			embed.set_thumbnail(url = search_result['cover'])
+			embed.set_footer(text = 'Thank you for using Astro!')
+			await interaction.followup.send(embed = embed)
+			await logs_channel.send(embed = log('SUCCESS', f'Successfully ran the command /snoop in {current_time_ms() - start_time}ms', f'ID: {identifier}', search_result['anchor']))
+			replied = True
+		
+	if replied == False:
+		embed = discord.Embed(
+			title = f'Oh no!',
+			colour = 0xf5c000,
+		)
+							
+		embed.add_field(
+			name = '',
+			value = "That user doesn't appear to be listening to any Spotify track.",
+			inline = False
+		)
+						
+		embed.set_footer(text = 'Thank you for using Astro!')
+		await interaction.followup.send(embed = embed)
+		await logs_channel.send(embed = log('FAILURE', f'No Spotify playback detected when executing /snoop'))
+		return None
 
 
 
