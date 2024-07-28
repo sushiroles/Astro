@@ -67,7 +67,6 @@ def get_track_data(service: str, api_call: callable, results: list):
 		'YouTube Music': '<:youtubemusic:1247554947696955464>',
 		'Deezer': '<:deezer:1247554941724397649>',
 		'TIDAL': '<:tidal:1247554946123960362>',
-		'Bandcamp': '<:bandcamp:1247554940071841803>',
 	}
 	try:
 		call_results = api_call
@@ -77,7 +76,7 @@ def get_track_data(service: str, api_call: callable, results: list):
 		track = call_results['track']
 		cover = call_results['cover']
 		anchor = f'{emojis[service]} [{service}]({url})\n'
-	except Exception as error:
+	except:
 		url = ''
 		identifier = ''
 		artists = []
@@ -102,7 +101,6 @@ def get_album_data(service: str, api_call: callable, results: list):
 		'YouTube Music': '<:youtubemusic:1247554947696955464>',
 		'Deezer': '<:deezer:1247554941724397649>',
 		'TIDAL': '<:tidal:1247554946123960362>',
-		'Bandcamp': '<:bandcamp:1247554940071841803>',
 	}
 	try:
 		call_results = api_call
@@ -112,7 +110,7 @@ def get_album_data(service: str, api_call: callable, results: list):
 		album = call_results['album']
 		cover = call_results['cover']
 		anchor = f'{emojis[service]} [{service}]({url})\n'
-	except Exception as error:
+	except:
 		url = ''
 		identifier = ''
 		artists = []
@@ -180,7 +178,6 @@ def search_track(artist: str, track: str):
 		'artists': artists,
 		'track': title,
 		'anchor': anchor,
-
 		'requested_artist': requested_artist,
 		'requested_track': requested_track,
 	}]
@@ -237,7 +234,6 @@ def search_album(artist: str, album: str):
 		'artists': artists,
 		'album': title,
 		'anchor': anchor,
-
 		'requested_artist': requested_artist,
 		'requested_album': requested_album,
 	}]
@@ -253,7 +249,7 @@ def search_track_from_url_data(artist: str, track: str):
 
 	service_data = [
 		('Spotify', search_spotify_track(artist.replace("'",''), track.replace("'",''))),
-		('Apple Music', search_apple_music_track(artist, track)),
+		('Apple Music', search_apple_music_track(replace_with_ascii(artist), replace_with_ascii(track))),
 		('YouTube Music', search_youtube_music_track(artist, track)),
 		('Deezer', search_deezer_track(artist, track)),
 		('TIDAL', search_tidal_track(artist, track)),
@@ -296,7 +292,6 @@ def search_track_from_url_data(artist: str, track: str):
 		'artists': artists,
 		'track': title,
 		'anchor': anchor,
-
 		'requested_artist': requested_artist,
 		'requested_track': requested_track,
 	}]
@@ -312,7 +307,7 @@ def search_album_from_url_data(artist: str, album: str):
 
 	service_data = [
 		('Spotify', search_spotify_album(artist.replace("'",''), album.replace("'",''))),
-		('Apple Music', search_apple_music_album(artist, album)),
+		('Apple Music', search_apple_music_album(replace_with_ascii(artist), replace_with_ascii(album))),
 		('YouTube Music', search_youtube_music_album(artist, album)),
 		('Deezer', search_deezer_album(artist, album)),
 		('TIDAL', search_tidal_album(artist, album)),
@@ -355,7 +350,6 @@ def search_album_from_url_data(artist: str, album: str):
 		'artists': artists,
 		'album': title,
 		'anchor': anchor,
-
 		'requested_artist': requested_artist,
 		'requested_album': requested_album,
 	}]
