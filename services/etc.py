@@ -26,7 +26,7 @@ def log(type: str, message: str, parameters: str = None, anchors: str = None):
 		inline = False
 	)
 
-	if anchors != None:
+	if parameters != None:
 		embed.add_field(
 			name = 'Parameters',
 			value = f'{parameters}',
