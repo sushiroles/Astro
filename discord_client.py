@@ -39,6 +39,43 @@ presence_statuses = open('discord_presence.txt','r').readlines()
 
 
 
+def success_embed(title: str, artists: list, cover: str, anchor: str):
+	embed = discord.Embed(
+		title = f'{title}',
+		description = f'by {', '.join(artists)}',
+		colour = get_average_color(cover),
+	)
+		
+	embed.add_field(
+		name = 'You can find it on:',
+		value = anchor,
+		inline = False
+	)
+	
+	embed.set_thumbnail(url = cover)
+	embed.set_footer(text = 'Thank you for using Astro!')
+
+	return embed
+
+
+def fail_embed(message: str):
+	embed = discord.Embed(
+		title = f'Oh no!',
+		colour = 0xf5c000,
+	)
+		
+	embed.add_field(
+		name = '',
+		value = message,
+		inline = False
+	)
+	
+	embed.set_footer(text = 'Thank you for using Astro!')
+
+	return embed
+
+
+
 @client.event
 async def on_message(message):
 	logs_channel = client.get_channel(int(config['discord']['logs_channel']))
@@ -83,22 +120,7 @@ async def on_message(message):
 				await logs_channel.send(embed = log('RETREAT', f'Insufficient results', f'URL: {url}'))
 				return None
 
-
-			embed = discord.Embed(
-				title = f'{title}',
-				description = f'by {', '.join(search_result['artists'])}',
-				colour = get_average_color(search_result['cover']),
-			)
-				
-			embed.add_field(
-				name = 'You can find it on on:',
-				value = search_result['anchor'],
-				inline = False
-			)
-				
-			embed.set_thumbnail(url = search_result['cover'])
-			embed.set_footer(text = 'Thank you for using Astro!')
-			await message.reply(embed = embed, mention_author = False)
+			await message.reply(embed = success_embed(title, search_result['artists'], search_result['cover'], search_result['anchor']), mention_author = False)
 			await logs_channel.send(embed = log('SUCCESS', f'Successfully searched a link in {current_time_ms() - start_time}ms', f'URL: {url}', search_result['anchor']))
 
 
@@ -112,56 +134,18 @@ async def self(interaction: discord.Interaction, artist: str, track: str):
 	try:
 		search_result = search_track(bare_bones(artist), bare_bones(track))[0]
 	except Exception as error:
-		embed = discord.Embed(
-			title = f'Oh no!',
-			colour = 0xf5c000,
-		)
-		
-		embed.add_field(
-			name = '',
-			value = "An error has occured while running your command. Please try again!",
-			inline = False
-		)
-	
-		embed.set_footer(text = 'Thank you for using Astro!')
-		await interaction.followup.send(embed = embed, ephemeral = True)
+		await interaction.followup.send(embed = fail_embed('An error has occured while running your command. Please try again!'))
 		await logs_channel.send(embed = log('ERROR', f'When executing /searchtrack - "{error}"', f'Artist: "{artist}"\nTrack: "{track}"'))
 		return None
 		
 
 	if search_result['anchor'] == '':
-		embed = discord.Embed(
-			title = f'Oh no!',
-			colour = 0xf5c000,
-		)
-		
-		embed.add_field(
-			name = '',
-			value = "I wasn't able to find your track. Please check for typos in your command and try again!",
-			inline = False
-		)
-	
-		embed.set_footer(text = 'Thank you for using Astro!')
-		await interaction.followup.send(embed = embed, ephemeral = True)
-		await logs_channel.send(embed = log('FAILURE', f'Unsuccessfully executed command /searchtrack',f'Artist: "{artist}"\nTrack: "{track}"'))
+		await interaction.followup.send(embed = fail_embed("I wasn't able to find your track. Please check for typos in your command and try again!"))
+		await logs_channel.send(embed = log('FAILURE', f'Unsuccessfully executed command /searchtrack', f'Artist: "{artist}"\nTrack: "{track}"'))
 
 
 	else:
-		embed = discord.Embed(
-			title = f'{search_result['track']}',
-			description = f'by {', '.join(search_result['artists'])}',
-			colour = get_average_color(search_result['cover']),
-		)
-		
-		embed.add_field(
-			name = 'You can find it on:',
-			value = search_result['anchor'],
-			inline = False
-		)
-	
-		embed.set_thumbnail(url = search_result['cover'])
-		embed.set_footer(text = 'Thank you for using Astro!')
-		await interaction.followup.send(embed = embed)
+		await interaction.followup.send(embed = success_embed(search_result['track'], search_result['artists'], search_result['cover'], search_result['anchor']))
 		await logs_channel.send(embed = log('SUCCESS', f'Successfully executed command /searchtrack in {current_time_ms() - start_time}ms', f'Artist: "{artist}"\nTrack: "{track}"', search_result['anchor']))
 
 
@@ -175,57 +159,18 @@ async def self(interaction: discord.Interaction, artist: str, album: str):
 	try:
 		search_result = search_album(bare_bones(artist), bare_bones(album))[0]
 	except Exception as error:
-		embed = discord.Embed(
-			title = f'Oh no!',
-			colour = 0xf5c000,
-		)
-		
-		embed.add_field(
-			name = '',
-			value = "An error has occured while running your command. Please try again!",
-			inline = False
-		)
-	
-		embed.set_footer(text = 'Thank you for using Astro!')
-		await interaction.followup.send(embed = embed, ephemeral = True)
+		await interaction.followup.send(embed = fail_embed("An error has occured while running your command. Please try again!"),)
 		await logs_channel.send(embed = log('ERROR', f'When running command /searchalbum - "{error}"', f'Artist: "{artist}"\nAlbum: "{album}"'))
 		return None
 
 
 	if search_result['anchor'] == '':
-		embed = discord.Embed(
-			title = f'Oh no!',
-			colour = 0xf5c000,
-		)
-		
-		embed.add_field(
-			name = '',
-			value = "We weren't able to find your album. Please check for typos in your command and try again!",
-			inline = False
-		)
-	
-		embed.set_footer(text = 'Thank you for using Astro!')
-
-		await interaction.followup.send(embed = embed, ephemeral = True)
+		await interaction.followup.send(embed = fail_embed("I wasn't able to find your album. Please check for typos in your command and try again!"))
 		await logs_channel.send(embed = log('FAILURE', f'Unsuccessfully executed command /searchalbum', f'Artist: "{artist}"\nAlbum: "{album}"'))
 
 
 	else:
-		embed = discord.Embed(
-			title = f'{search_result['album']}',
-			description = f'by {', '.join(search_result['artists'])}',
-			colour = get_average_color(search_result['cover']),
-		)
-		
-		embed.add_field(
-			name = 'You can find this album on:',
-			value = search_result['anchor'],
-			inline = False
-		)
-	
-		embed.set_thumbnail(url = search_result['cover'])
-		embed.set_footer(text = 'Thank you for using Astro!')
-		await interaction.followup.send(embed = embed)
+		await interaction.followup.send(embed = success_embed(search_result['album'], search_result['artists'], search_result['cover'], search_result['anchor']))
 		await logs_channel.send(embed = log('SUCCESS', f'Successfully executed command /searchalbum in {current_time_ms() - start_time}ms', f'Artist: "{artist}"\nAlbum: "{album}"', search_result['anchor']))
 
 
@@ -241,19 +186,7 @@ async def self(interaction: discord.Interaction, link: str):
 		data = music_data['data']
 		url_type = music_data['url_type']
 	except:
-		embed = discord.Embed(
-			title = f'Oh no!',
-			colour = 0xf5c000,
-		)
-					
-		embed.add_field(
-			name = '',
-			value = "The link provided isn't a valid music link.",
-			inline = False
-		)
-				
-		embed.set_footer(text = 'Thank you for using Astro!')
-		await interaction.followup.send(embed = embed)
+		await interaction.followup.send(embed = fail_embed("The link provided isn't a valid music link."))
 		await logs_channel.send(embed = log('FAILURE', 'Invalid URL', f'URL: {link}'))
 		return None
 
@@ -268,56 +201,18 @@ async def self(interaction: discord.Interaction, link: str):
 			search_result = search_album_from_url_data(max(data['artists'], key = len), data['album'])[0]
 			title = search_result['album']
 	except Exception as error:
-		embed = discord.Embed(
-		title = f'Oh no!',
-		colour = 0xf5c000,
-		)
-		
-		embed.add_field(
-			name = '',
-			value = "An error has occured while running your command. Please try again!",
-			inline = False
-		)
-		
-		embed.set_footer(text = 'Thank you for using Astro!')
-		await interaction.followup.send(embed = embed, ephemeral = True)
+		await interaction.followup.send(embed = fail_embed("An error has occured while running your command. Please try again!"))
 		await logs_channel.send(embed = log('ERROR', f'When executing /lookup - "{error}"', f'URL: "{link}"'))
 		return None
 
 
 	if search_result['anchor'] == '':
-		embed = discord.Embed(
-			title = f'Oh no!',
-			colour = 0xf5c000,
-		)
-			
-		embed.add_field(
-			name = '',
-			value = "I wasn't able to find anything regarding your link. Make sure you haven't accidentally typed anything in it and try again!",
-			inline = False
-		)
-		
-		embed.set_footer(text = 'Thank you for using Astro!')
-		await interaction.followup.send(embed = embed, ephemeral = True)
+		await interaction.followup.send(embed = fail_embed("I wasn't able to find anything regarding your link. Make sure you haven't accidentally typed anything in it and try again!"))
 		await logs_channel.send(embed = log('FAILURE', f'Unsuccessfully executed command /lookup',f'URL: "{link}"'))
 		
 
 	else:
-		embed = discord.Embed(
-			title = f'{title}',
-			description = f'by {', '.join(search_result['artists'])}',
-			colour = get_average_color(search_result['cover']),
-		)
-		
-		embed.add_field(
-			name = 'You can find it on:',
-			value = search_result['anchor'],
-			inline = False
-		)
-		
-		embed.set_thumbnail(url = search_result['cover'])
-		embed.set_footer(text = 'Thank you for using Astro!')
-		await interaction.followup.send(embed = embed)
+		await interaction.followup.send(embed = success_embed(title, search_result['artists'], search_result['cover'], search_result['anchor']))
 		await logs_channel.send(embed = log('SUCCESS', f'Successfully executed command /lookup in {current_time_ms() - start_time}ms', f'URL: "{link}"', search_result['anchor']))
 
 
@@ -342,37 +237,11 @@ async def self(interaction: discord.Interaction, user: discord.Member):
 					data['track'] = data['track'][:data['track'].lower().index('feat. ')-2]
 				search_result = search_track_from_url_data(max(data['artists'], key = len), data['track'])[0]
 			except Exception as error:
-				embed = discord.Embed(
-					title = f'Oh no!',
-					colour = 0xf5c000,
-				)
-									
-				embed.add_field(
-					name = '',
-					value = "An error occured while running your command.",
-					inline = False
-				)
-								
-				embed.set_footer(text = 'Thank you for using Astro!')
-				await interaction.followup.send(embed = embed)
+				await interaction.followup.send(embed = fail_embed("An error occured while running your command."))
 				await logs_channel.send(embed = log('ERROR', f'When running command /snoop - "{error}"', f'ID: {identifier}'))
 				return None
 
-			embed = discord.Embed(
-				title = f'{search_result['track']}',
-				description = f'by {', '.join(search_result['artists'])}',
-				colour = get_average_color(search_result['cover']),
-			)
-				
-			embed.add_field(
-				name = 'You can find it on on:',
-				value = search_result['anchor'],
-				inline = False
-			)
-				
-			embed.set_thumbnail(url = search_result['cover'])
-			embed.set_footer(text = 'Thank you for using Astro!')
-			await interaction.followup.send(embed = embed)
+			await interaction.followup.send(embed = success_embed(search_result['track'],search_result['artists'],search_result['cover'],search_result['anchor']))
 			await logs_channel.send(embed = log('SUCCESS', f'Successfully ran the command /snoop in {current_time_ms() - start_time}ms', f'ID: {identifier}', search_result['anchor']))
 			replied = True
 		
@@ -424,90 +293,28 @@ async def self(interaction: discord.Interaction, message: discord.Message):
 					search_result = search_album_from_url_data(max(data['artists'], key = len), data['album'])[0]
 					title = search_result['album']
 			except Exception as error:
-				embed = discord.Embed(
-				title = f'Oh no!',
-				colour = 0xf5c000,
-				)
-
-				embed.add_field(
-					name = '',
-					value = "An error has occured while running your command. Please try again!",
-					inline = False
-				)
-
-				embed.set_footer(text = 'Thank you for using Astro!')
-				await interaction.followup.send(embed = embed, ephemeral = True)
+				await interaction.followup.send(embed = fail_embed("An error has occured while running your command. Please try again!"))
 				await logs_channel.send(embed = log('ERROR', f'When executing "Search link(s)" - "{error}"', f'URL: "{url}"'))
 				return None
 
 
 			if search_result['anchor'] == '':
-				embed = discord.Embed(
-					title = f'Oh no!',
-					colour = 0xf5c000,
-				)
-				
-				embed.add_field(
-					name = '',
-					value = "I wasn't able to find anything regarding this link.",
-					inline = False
-				)
-				
-				embed.set_footer(text = 'Thank you for using Astro!')
-				embeds.append(embed)
+				embeds.append(fail_embed("I wasn't able to find anything regarding this link."))
 				await logs_channel.send(embed = log('FAILURE', f'Unsuccessfully searched a URL with command "Search link(s)"',f'URL: "{url}"'))
 				
 
 			else:
-				embed = discord.Embed(
-					title = f'{title}',
-					description = f'by {', '.join(search_result['artists'])}',
-					colour = get_average_color(search_result['cover']),
-				)
-				
-				embed.add_field(
-					name = 'You can find it on:',
-					value = search_result['anchor'],
-					inline = False
-				)
-
-				embed.set_thumbnail(url = search_result['cover'])
-				embed.set_footer(text = 'Thank you for using Astro!')
-				embeds.append(embed)
+				embeds.append(success_embed(title, search_result['artists'], search_result['cover'], search_result['anchor']))
 				parameters.append(f'URL: {url}')
 		if embeds != []:
 			await interaction.followup.send(embeds = embeds)
 			await logs_channel.send(embed = log('SUCCESS', f'Successfully executed command "Search link(s)" in {current_time_ms() - start_time}ms', '\n'.join(parameters)))
 		else:
-			embed = discord.Embed(
-				title = f'Oh no!',
-				colour = 0xf5c000,
-			)
-						
-			embed.add_field(
-				name = '',
-				value = "I wasn't able to find any music links in this message.",
-				inline = False
-			)
-					
-			embed.set_footer(text = 'Thank you for using Astro!')
-			await interaction.followup.send(embed = embed)
+			await interaction.followup.send(embed = fail_embed("I wasn't able to find any music links in this message."))
 			await logs_channel.send(embed = log('FAILURE', f'Found no music links when executing "Search link(s)"'))
 
 	else:
-		embed = discord.Embed(
-			title = f'Oh no!',
-			colour = 0xf5c000,
-		)
-					
-		embed.add_field(
-			name = '',
-			value = "I wasn't able to find any links in this message.",
-			inline = False
-		)
-				
-		embed.set_footer(text = 'Thank you for using Astro!')
-		await interaction.followup.send(embed = embed)
+		await interaction.followup.send(embed = fail_embed("I wasn't able to find any links in this message."))
 		await logs_channel.send(embed = log('FAILURE', f'Found no links when executing "Search link(s)"'))
 
 
