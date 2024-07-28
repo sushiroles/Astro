@@ -118,7 +118,6 @@ def get_apple_music_track(identifier: str, country_code: str):
 		response = requests.get(url)
 		result = response.json()['results'][0]
 		
-
 		if result != []:
 			url = str(result['trackViewUrl'])
 			identifier = str(result['trackId'])
