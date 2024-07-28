@@ -11,7 +11,6 @@ from PIL import ImageEnhance
 import requests
 from io import BytesIO
 import numpy as np
-from better_profanity import profanity
 
 
 
