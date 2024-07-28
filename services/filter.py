@@ -7,38 +7,47 @@ except:
 
 def filter_track(artist: str, track: str, tracks_data: list):
 	artist = bare_bones(artist)
-	track = bare_bones(track, False)
-	for scans in range(2):
-		for data in tracks_data:
-			data_artists = []
-			for name in data['artists']:
-				data_artists.append(bare_bones(name, True))
-			artists_string = ' '.join(data_artists)
-			data_track = bare_bones(data['track'], False)		
-			if scans == 0:
-				condition = artists_string.find(artist) >= 0 and data_track == track
-			else:
-				condition = artists_string.find(artist) >= 0 and data_track.find(track) >= 0
-			if condition:
-				return data
-	return None
+	track = optimize_string(track)
+	data_with_percentage = []
+	for data in tracks_data:
+		data_artists = []
+		for name in data['artists']:
+			data_artists.append(bare_bones(name))
+		artists_string = ' '.join(data_artists)
+		data_track = bare_bones(data['track'], False)
+		num_of_found_words = 0
+		if artists_string.find(artist) >= 0:
+			for word in track:
+				if data_track.find(word) >= 0:
+					num_of_found_words += 1
+			similarity_percentage = 100 / len(data_track.split()) * num_of_found_words
+			data_with_percentage.append([similarity_percentage, data])
+	data_with_percentage = sorted(data_with_percentage, key = lambda x: x[0], reverse = True)
+	if data_with_percentage != []:
+		return data_with_percentage[0][1]
+	else:
+		return None
 
-
-
+	
 def filter_album(artist: str, album: str, albums_data: list):
 	artist = bare_bones(artist)
-	album = bare_bones(album, False)
-	for scans in range(2):
-		for data in albums_data:
-			data_artists = []
-			for name in data['artists']:
-				data_artists.append(bare_bones(name))
-			artists_string = ' '.join(data_artists)
-			data_album = bare_bones(data['album'], False)
-			if scans == 0:
-				condition = artists_string.find(artist) >= 0 and data_album == album
-			else:
-				condition = artists_string.find(artist) >= 0 and data_album.find(album) >= 0
-			if condition:
-				return data
-	return None
+	album = optimize_string(album)
+	data_with_percentage = []
+	for data in albums_data:
+		data_artists = []
+		for name in data['artists']:
+			data_artists.append(bare_bones(name))
+		artists_string = ' '.join(data_artists)
+		data_album = bare_bones(data['album'], False)
+		num_of_found_words = 0
+		if artists_string.find(artist) >= 0:
+			for word in album:
+				if data_album.find(word) >= 0:
+					num_of_found_words += 1
+			similarity_percentage = 100 / len(data_album.split()) * num_of_found_words
+			data_with_percentage.append([similarity_percentage, data])
+	data_with_percentage = sorted(data_with_percentage, key = lambda x: x[0], reverse = True)
+	if data_with_percentage != []:
+		return data_with_percentage[0][1]
+	else:
+		return None
