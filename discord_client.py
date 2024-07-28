@@ -21,6 +21,7 @@ class Client(discord.Client):
 		discordintents = discord.Intents.all()
 		discordintents.message_content = True
 		discordintents.presences = True
+		discordintents.members = True
 		super().__init__(intents = discordintents)		
 		self.synced = False								
 	async def on_ready(self): 
@@ -91,34 +92,30 @@ async def on_message(message):
 			except:
 				continue
 
-
-			try:
-				if url_type == 'track':
-					if data['track'].lower().find('feat. ') >= 0:
-						data['track'] = data['track'][:data['track'].lower().index('feat. ')-2]
-					search_result = search_track_from_url_data(max(data['artists'], key = len), data['track'])[0]
-					title = search_result['track']
-				elif url_type == 'album':
-					search_result = search_album_from_url_data(max(data['artists'], key = len), data['album'])[0]
-					title = search_result['album']
-			except Exception as error:
-				await logs_channel.send(embed = log('NOTICE', f'Error when searching link - "{error}", retrying in 5 seconds', f'URL: {url}'))
-				sleep(5)
+			
+			while current_time_ms() - start_time <= 60000:
 				try:
 					if url_type == 'track':
+						data['track'] = remove_feat(data['track'])
 						search_result = search_track_from_url_data(max(data['artists'], key = len), data['track'])[0]
+						title = search_result['track']
 					elif url_type == 'album':
 						search_result = search_album_from_url_data(max(data['artists'], key = len), data['album'])[0]
+						title = search_result['album']
+					break
 				except Exception as error:
-					await message.add_reaction('\U0001F613')
-					await logs_channel.send(embed = log('ERROR', f'When searching link - "{error}"', f'URL: {url}'))
-					return None
-				
+					await logs_channel.send(embed = log('NOTICE', f'Error when searching link - "{error}", retrying...', f'URL: {url}'))
+					sleep(5)
 			
+			if current_time_ms() - start_time >= 60000:
+				await message.add_reaction('⌛')
+				await logs_channel.send(embed = log('FAILURE', f'Search timed out', f'URL: {url}'))
+				continue
+
 			if search_result['anchor'].count('\n') <= 1:
-				await message.add_reaction('\U0001F937')
+				await message.add_reaction('🤷')
 				await logs_channel.send(embed = log('RETREAT', f'Insufficient results', f'URL: {url}'))
-				return None
+				continue
 
 			await message.reply(embed = success_embed(title, search_result['artists'], search_result['cover'], search_result['anchor']), mention_author = False)
 			await logs_channel.send(embed = log('SUCCESS', f'Successfully searched a link in {current_time_ms() - start_time}ms', f'URL: {url}', search_result['anchor']))
@@ -193,8 +190,7 @@ async def self(interaction: discord.Interaction, link: str):
 
 	try:
 		if url_type == 'track':
-			if data['track'].lower().find('feat. ') >= 0:
-				data['track'] = data['track'][:data['track'].lower().index('feat. ')-2]
+			data['track'] = remove_feat(data['track'])
 			search_result = search_track_from_url_data(max(data['artists'], key = len), data['track'])[0]
 			title = search_result['track']
 		elif url_type == 'album':
@@ -233,8 +229,7 @@ async def self(interaction: discord.Interaction, user: discord.Member):
 			data = get_spotify_track(identifier)
 			
 			try:
-				if data['track'].lower().find('feat. ') >= 0:
-					data['track'] = data['track'][:data['track'].lower().index('feat. ')-2]
+				data['track'] = remove_feat(data['track'])
 				search_result = search_track_from_url_data(max(data['artists'], key = len), data['track'])[0]
 			except Exception as error:
 				await interaction.followup.send(embed = fail_embed("An error occured while running your command."))
@@ -246,19 +241,7 @@ async def self(interaction: discord.Interaction, user: discord.Member):
 			replied = True
 		
 	if replied == False:
-		embed = discord.Embed(
-			title = f'Oh no!',
-			colour = 0xf5c000,
-		)
-							
-		embed.add_field(
-			name = '',
-			value = "That user doesn't appear to be listening to any Spotify track.",
-			inline = False
-		)
-						
-		embed.set_footer(text = 'Thank you for using Astro!')
-		await interaction.followup.send(embed = embed)
+		await interaction.followup.send(embed = fail_embed("That user doesn't appear to be listening to any Spotify track."))
 		await logs_channel.send(embed = log('FAILURE', f'No Spotify playback detected when executing /snoop'))
 		return None
 
@@ -285,8 +268,7 @@ async def self(interaction: discord.Interaction, message: discord.Message):
 
 			try:
 				if url_type == 'track':
-					if data['track'].lower().find('feat. ') >= 0:
-						data['track'] = data['track'][:data['track'].lower().index('feat. ')-2]
+					data['track'] = remove_feat(data['track'])
 					search_result = search_track_from_url_data(max(data['artists'], key = len), data['track'])[0]
 					title = search_result['track']
 				elif url_type == 'album':
