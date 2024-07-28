@@ -116,7 +116,9 @@ def get_apple_music_track(identifier: str, country_code: str):
 	try:
 		url = f"https://itunes.apple.com/lookup?id={identifier}&country={country_code}"
 		response = requests.get(url)
+		save_json(response.json())
 		result = response.json()['results'][0]
+		
 
 		if result != []:
 			url = str(result['trackViewUrl'])
@@ -158,6 +160,8 @@ def get_apple_music_album(identifier: str, country_code: str):
 					'track': title.replace(' - Single',''),
 					'cover': cover,
 				}
+			if title.find(' (Apple Music Edition)') >= 0:
+				title = title.replace(' (Apple Music Edition)', '')
 			if title.find(' - EP') >= 0:
 				title = title.replace(' - EP', '')
 			return {
