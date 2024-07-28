@@ -9,22 +9,31 @@ except:
 
 
 def is_apple_music_track(url: str):
-	return bool(url.find('https://music.apple.com/') >= 0 and url.find('?i=') >= 0)
+	return bool(url.find('https://music.apple.com/') >= 0 and url.find('/song/') >= 0 or url.find('/album/') >= 0 and url.find('?i=') >= 0)
 
 def is_apple_music_album(url: str):
-	return bool(url.find('https://music.apple.com/') >= 0 and not url.find('?i=') >= 0)
+	return bool(url.find('https://music.apple.com/') >= 0 and url.find('/album/') >=0 and not url.find('?i=') >= 0)
 
 def get_apple_music_track_id(url: str):
-	if url.find('&uo=') >= 0:
+	if url.find('/song/') >= 0:
+		index = len(url) - 1
+		while url[index] != '/':
+			index -= 1
 		return {
-			'id': url[url.index('?i=')+3:url.index('&uo=')],
+			'id': url[index+1:],
 			'country_code': url[24:26],
 		}
 	else:
-		return {
-			'id': url[url.index('?i=')+3:],
-			'country_code': url[24:26],
-		}
+		if url.find('&uo=') >= 0:
+			return {
+				'id': url[url.index('?i=')+3:url.index('&uo=')],
+				'country_code': url[24:26],
+			}
+		else:
+			return {
+				'id': url[url.index('?i=')+3:],
+				'country_code': url[24:26],
+			}
 
 def get_apple_music_album_id(url: str):
 	index = len(url) - 1
@@ -140,9 +149,17 @@ def get_apple_music_album(identifier: str, country_code: str):
 			identifier = str(result['collectionId'])
 			artists = get_apple_music_artist(str(result['artistId']))
 			title = str(result['collectionName'])
+			cover = str(result['artworkUrl100'])
+			if title.find(' - Single') >= 0:
+				return {
+					'url': url,
+					'id': identifier,
+					'artists': artists,
+					'track': title.replace(' - Single',''),
+					'cover': cover,
+				}
 			if title.find(' - EP') >= 0:
 				title = title.replace(' - EP', '')
-			cover = str(result['artworkUrl100'])
 			return {
 				'url': url,
 				'id': identifier,

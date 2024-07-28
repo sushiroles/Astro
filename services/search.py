@@ -25,7 +25,10 @@ def get_music_data(url):
 	elif is_apple_music_album(url):
 		id_data = get_apple_music_album_id(url)
 		data = get_apple_music_album(id_data['id'], id_data['country_code'])
-		url_type = 'album'
+		if 'track' in data:
+			url_type = 'track'
+		else:
+			url_type = 'album'
 	elif is_youtube_music_track(url):
 		identifier = get_youtube_music_track_id(url)
 		data = get_youtube_music_track(identifier)
