@@ -96,7 +96,7 @@ def get_spotify_track(identifier: str):
 	spotify_id = config['spotify']['id']
 	spotify_secret = config['spotify']['secret']
 	client_credentials_manager = SpotifyClientCredentials(spotify_id, spotify_secret)
-	sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+	sp = spotipy.Spotify(client_credentials_manager = client_credentials_manager)
 
 	track = sp.track(identifier)
 	url = str(track['external_urls']['spotify'])
@@ -120,7 +120,7 @@ def get_spotify_album(identifier: str):
 	spotify_id = config['spotify']['id']
 	spotify_secret = config['spotify']['secret']
 	client_credentials_manager = SpotifyClientCredentials(spotify_id, spotify_secret)
-	sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+	sp = spotipy.Spotify(client_credentials_manager = client_credentials_manager)
 
 	album = sp.album(identifier)
 	url = str(album['external_urls']['spotify'])

@@ -24,10 +24,9 @@ ytmusic = YTMusic(auth = {
 })
 
 
-
 def is_youtube_music_track(url: str):
 	return bool(url.find('https://music.youtube.com/watch?v=') >= 0)
-
+ 
 def is_youtube_music_album(url: str):
 	return bool(url.find('https://music.youtube.com/playlist?list=') >= 0)
 
