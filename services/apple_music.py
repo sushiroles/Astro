@@ -116,7 +116,6 @@ def get_apple_music_track(identifier: str, country_code: str):
 	try:
 		url = f"https://itunes.apple.com/lookup?id={identifier}&country={country_code}"
 		response = requests.get(url)
-		save_json(response.json())
 		result = response.json()['results'][0]
 		
 
