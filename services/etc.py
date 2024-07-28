@@ -11,6 +11,7 @@ from PIL import ImageEnhance
 import requests
 from io import BytesIO
 import numpy as np
+from better_profanity import profanity
 
 
 
@@ -50,8 +51,8 @@ def save_json(json_data: dict):
 		json.dump(json_data, f, ensure_ascii = False, indent = 4)
 
 def remove_punctuation(string: str, remove_all: bool):
-	all_punc = f'''!()[];:'",<>./?@#$%^&*_~'''
-	some_punc = f'''!()[];:'",<>./?^*_~'''
+	all_punc = f'''!()[];:'",<>./?@#$%^&*`_~'''
+	some_punc = f'''!()[];:'",<>./?^*_~`'''
 	for element in string:
 		if remove_all == True:
 			if element in all_punc:
@@ -59,6 +60,13 @@ def remove_punctuation(string: str, remove_all: bool):
 		elif remove_all == False:
 			if element in some_punc:
 				string = string.replace(element, '')
+	return string
+
+def replace_punctuation_with_spaces(string: str):
+	punc = f'''!()[];:'",<>./?^*_`-~'''
+	for element in string:
+		if element in punc:
+			string = string.replace(element, ' ')
 	return string
 
 def replace_with_ascii(string: str):
@@ -126,3 +134,43 @@ def get_average_color(image_url: str, quality: int = 5):
 
 	hex_color = "#{:02x}{:02x}{:02x}".format(*average_color)
 	return int(hex_color[1:], base = 16)
+
+def remove_feat(string: str):
+	if string.lower().find('feat. ') >= 0:
+		if string[string.lower().index('feat. ')-1] == '[':
+			first_bracket = string.lower().index('feat. ')-1
+			second_bracket = string.lower().index('feat. ')-1
+			while string[second_bracket] != ']':
+				second_bracket += 1
+			string = string.replace(string[first_bracket:second_bracket],'')
+		elif string[string.lower().index('feat. ')-1] == '(':
+			first_bracket = string.lower().index('feat. ')-1
+			second_bracket = string.lower().index('feat. ')-1
+			while string[second_bracket] != ')':
+				second_bracket += 1
+			string = string.replace(string[first_bracket:second_bracket],'')
+		elif string[string.lower().index('feat. ')-1] == ' ':
+			string = string[:string.lower().index('feat. ')-1]
+	if string.lower().find('(with ') >= 0 or string.lower().find('[with ') >= 0:
+		if string[string.lower().index('with ')-1] == '[':
+			first_bracket = string.lower().index('with ')-1
+			second_bracket = string.lower().index('with ')-1
+			while string[second_bracket] != ']':
+				second_bracket += 1
+			string = string.replace(string[first_bracket:second_bracket],'')
+		elif string[string.lower().index('with ')-1] == '(':
+			first_bracket = string.lower().index('with ')-1
+			second_bracket = string.lower().index('with ')-1
+			while string[second_bracket] != ')':
+				second_bracket += 1
+			string = string.replace(string[first_bracket:second_bracket],'')
+	return string
+
+def optimize_string(string: str):
+	string = remove_feat(string)
+	string = replace_punctuation_with_spaces(string)
+	string = bare_bones(string, False)
+	string_list = string.split(sep = ' ')
+	for counter in range(string_list.count('')):
+		string_list.remove('')
+	return string_list
