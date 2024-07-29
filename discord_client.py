@@ -131,7 +131,7 @@ async def self(interaction: discord.Interaction, artist: str, track: str):
 	await interaction.response.defer()
 
 	try:
-		search_result = await search_track(bare_bones(artist), bare_bones(track))[0]
+		search_result = search_track(bare_bones(artist), bare_bones(track))[0]
 	except Exception as error:
 		await interaction.followup.send(embed = fail_embed('An error has occured while running your command. Please try again!'))
 		await logs_channel.send(embed = log('ERROR', f'When executing /searchtrack - "{error}"', f'Artist: "{artist}"\nTrack: "{track}"'))
