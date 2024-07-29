@@ -4,6 +4,7 @@ from discord import Spotify
 from discord.ext import tasks
 
 import configparser
+import asyncio
 from random import randint
 from time import sleep
 
@@ -89,11 +90,12 @@ async def on_message(message):
 				music_data = get_music_data(url)
 				data = music_data['data']
 				url_type = music_data['url_type']
+				await message.add_reaction('❗')
 			except:
 				continue
 
 			
-			while current_time_ms() - start_time <= 60000:
+			while current_time_ms() - start_time <= 30000:
 				try:
 					if url_type == 'track':
 						data['track'] = remove_feat(data['track'])
@@ -105,9 +107,9 @@ async def on_message(message):
 					break
 				except Exception as error:
 					await logs_channel.send(embed = log('NOTICE', f'Error when searching link - "{error}", retrying...', f'URL: {url}'))
-					sleep(5)
+					await asyncio.sleep(5)
 			
-			if current_time_ms() - start_time >= 60000:
+			if current_time_ms() - start_time >= 30000:
 				await message.add_reaction('⌛')
 				await logs_channel.send(embed = log('FAILURE', f'Search timed out', f'URL: {url}'))
 				continue
@@ -129,7 +131,7 @@ async def self(interaction: discord.Interaction, artist: str, track: str):
 	await interaction.response.defer()
 
 	try:
-		search_result = search_track(bare_bones(artist), bare_bones(track))[0]
+		search_result = await search_track(bare_bones(artist), bare_bones(track))[0]
 	except Exception as error:
 		await interaction.followup.send(embed = fail_embed('An error has occured while running your command. Please try again!'))
 		await logs_channel.send(embed = log('ERROR', f'When executing /searchtrack - "{error}"', f'Artist: "{artist}"\nTrack: "{track}"'))

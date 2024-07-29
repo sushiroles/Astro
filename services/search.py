@@ -6,6 +6,7 @@ from services.tidal import *
 from services.etc import *
 
 import threading
+import asyncio
 
 
 
@@ -128,7 +129,7 @@ def get_album_data(service: str, api_call: callable, results: list):
 
 
 
-def search_track(artist: str, track: str):
+async def search_track(artist: str, track: str):
 	artists = []
 	title = ''
 	cover = ''
@@ -184,7 +185,7 @@ def search_track(artist: str, track: str):
 
 
 
-def search_album(artist: str, album: str):
+async def search_album(artist: str, album: str):
 	artists = []
 	title = ''
 	cover = ''
@@ -240,7 +241,7 @@ def search_album(artist: str, album: str):
 
 
 
-def search_track_from_url_data(artist: str, track: str):
+async def search_track_from_url_data(artist: str, track: str):
 	artists = []
 	title = ''
 	cover = ''
@@ -298,7 +299,7 @@ def search_track_from_url_data(artist: str, track: str):
 
 
 
-def search_album_from_url_data(artist: str, album: str):
+async def search_album_from_url_data(artist: str, album: str):
 	artists = []
 	title = ''
 	cover = ''
