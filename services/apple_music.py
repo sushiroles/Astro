@@ -9,7 +9,7 @@ except:
 
 
 def is_apple_music_track(url: str):
-	return bool(url.find('https://music.apple.com/') >= 0 and url.find('/song/') >= 0 or url.find('/album/') >= 0 and url.find('?i=') >= 0)
+	return bool(url.find('https://music.apple.com/') >= 0 and url.find('/song/') >= 0 or url.find('https://music.apple.com/') >= 0 and url.find('/album/') >= 0 and url.find('?i=') >= 0)
 
 def is_apple_music_album(url: str):
 	return bool(url.find('https://music.apple.com/') >= 0 and url.find('/album/') >=0 and not url.find('?i=') >= 0)
