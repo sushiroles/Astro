@@ -1,11 +1,11 @@
-import requests
+import aiohttp
 try:
 	from services.etc import *
 	from services.filter import *
 except:
 	from etc import *
 	from filter import *
-
+	
 
 
 def is_apple_music_track(url: str):
@@ -39,137 +39,149 @@ def get_apple_music_album_id(url: str):
 	index = len(url) - 1
 	while url[index] != '/':
 		index -= 1
-	return {
-		'id': url[index+1:],
-		'country_code': url[24:26],
-	}
+	if '?uo' in url:
+		return {
+			'id': url[index+1:url.index('?uo')],
+			'country_code': url[24:26],
+		}
+	else:
+		return {
+			'id': url[index+1:],
+			'country_code': url[24:26],
+		}
 
-def get_apple_music_artist(artist_id: str):
-	url = f"https://itunes.apple.com/lookup?id={artist_id}"
-	response = requests.get(url)
-	result = response.json()['results'][0]
-	return [result['artistName']]
-
-
-
-def search_apple_music_track(artist: str, track: str):
-	try:
-		tracks_data = []
-
-		url = f"https://itunes.apple.com/search?term={bare_bones(artist)}+{bare_bones(track, False)}&entity=song"
-		response = requests.get(url)
-		search_results = response.json()['results']
-
-		if search_results != []:
-			for result in search_results:
-				url = str(result['trackViewUrl'])
-				identifier = str(result['trackId'])
-				artists = split_artists(str(result['artistName']))
-				title = str(result['trackName'])
-				cover = str(result['artworkUrl100'])
-				tracks_data.append({
-					'url': url,
-					'id': identifier,
-					'artists': artists,
-					'track': title,
-					'cover': cover,
-				})
-			return filter_track(artist, track, tracks_data)
-		else:
-			return None
-	except:
-		return None
+async def get_apple_music_artist(artist_id: int):
+	async with aiohttp.ClientSession() as session:
+		api_url = f"https://itunes.apple.com/lookup?id={artist_id}"
+		async with session.get(url = api_url) as response:
+			if response.status == 200:
+				json_response = await response.json(content_type = None)
+				result = json_response['results'][0]
+				return [result['artistName']]
+			else:
+				return []
 
 
 
-def search_apple_music_album(artist: str, album: str):
-	try:
-		albums_data = []
-
-		url = f"https://itunes.apple.com/search?term={bare_bones(artist)}+{bare_bones(album, False)}&entity=album"
-		response = requests.get(url)
-		search_results = response.json()['results']
-
-		if search_results != []:
-			for result in search_results:
-				url = str(result['collectionViewUrl'])
-				identifier = str(result['collectionId'])
-				artists = split_artists(str(result['artistName']))
-				title = str(result['collectionName'])
-				cover = str(result['artworkUrl100'])
-				albums_data.append({
-					'url': url,
-					'id': identifier,
-					'artists': artists,
-					'album': title,
-					'cover': cover,
-				})
-			return filter_album(artist, album, albums_data)
-		else:
-			return None
-	except:
-		return None
+async def get_apple_music_track(identifier: str, country_code: str):
+	async with aiohttp.ClientSession() as session:
+		api_url = f'https://itunes.apple.com/lookup?id={identifier}&country={country_code}'
+		async with session.get(url = api_url) as response:
+			if response.status == 200:
+				json_response = await response.json(content_type = None)
+				result = json_response['results'][0]
+				if result != []:
+					track_url = result['trackViewUrl']
+					track_id = str(result['trackId'])
+					track_title = result['trackName']
+					track_artists = await get_apple_music_artist(result['artistId'])
+					track_cover = result['artworkUrl100']
+					return {
+						'url': track_url,
+						'id': track_id,
+						'track': track_title,
+						'artists': track_artists,
+						'cover': track_cover,
+					}
+				else:
+					return None
+			else:
+				return None
 
 
 
-def get_apple_music_track(identifier: str, country_code: str):
-	try:
-		url = f"https://itunes.apple.com/lookup?id={identifier}&country={country_code}"
-		response = requests.get(url)
-		result = response.json()['results'][0]
-		
-		if result != []:
-			url = str(result['trackViewUrl'])
-			identifier = str(result['trackId'])
-			artists = get_apple_music_artist(str(result['artistId']))
-			title = str(result['trackName'])
-			cover = str(result['artworkUrl100'])
-			return {
-				'url': url,
-				'id': identifier,
-				'artists': artists,
-				'track': title,
-				'cover': cover,
-			}
-		else:
-			return None
-	except:
-		return None
-
-
-
-def get_apple_music_album(identifier: str, country_code: str):
-	try:
-		url = f"https://itunes.apple.com/lookup?id={identifier}&country={country_code}"
-		response = requests.get(url)
-		result = response.json()['results'][0]
-
-		if result != []:
-			url = str(result['collectionViewUrl'])
-			identifier = str(result['collectionId'])
-			artists = get_apple_music_artist(str(result['artistId']))
-			title = str(result['collectionName'])
-			cover = str(result['artworkUrl100'])
-			if title.find(' - Single') >= 0:
+async def get_apple_music_album(identifier: str, country_code: str):
+	async with aiohttp.ClientSession() as session:
+		api_url = f'https://itunes.apple.com/lookup?id={identifier}&country={country_code}'
+		async with session.get(url = api_url) as response:
+			if response.status == 200:
+				json_response = await response.json(content_type = None)
+				result = json_response['results'][0]
+				album_url = result['collectionViewUrl']
+				album_id = str(result['collectionId'])
+				album_title = result['collectionName']
+				album_artists = await get_apple_music_artist(result['artistId'])
+				album_cover = result['artworkUrl100']
+				if ' - Single' in album_title:
+					return {
+						'url': album_url,
+						'id': album_id,
+						'track': album_title.replace(' - Single',''),
+						'artists': album_artists,
+						'cover': album_cover,
+					}
+				if ' (Apple Music Edition)' in album_title:
+					album_title = album_title.replace(' (Apple Music Edition)', '')
+				if ' - EP' in album_title:
+					album_title = album_title.replace(' - EP', '')
 				return {
-					'url': url,
-					'id': identifier,
-					'artists': artists,
-					'track': title.replace(' - Single',''),
-					'cover': cover,
+					'url': album_url,
+					'id': album_id,
+					'album': album_title,
+					'artists': album_artists,
+					'cover': album_cover,
 				}
-			if title.find(' (Apple Music Edition)') >= 0:
-				title = title.replace(' (Apple Music Edition)', '')
-			if title.find(' - EP') >= 0:
-				title = title.replace(' - EP', '')
-			return {
-				'url': url,
-				'id': identifier,
-				'artists': artists,
-				'album': title,
-				'cover': cover,
-			}
-		else:
-			return None
-	except:
-		return None
+			else:
+				return None
+
+
+
+async def search_apple_music_track(artist: str, track: str):
+	tracks_data = []
+	async with aiohttp.ClientSession() as session:
+		query = f'{bare_bones(artist, False)}+{bare_bones(track, False)}'
+		api_url =f'https://itunes.apple.com/search?term={query}&entity=song&limit=200&country=us'
+		async with session.get(url = api_url) as response:
+			if response.status == 200:
+				json_response = await response.json(content_type = None)
+				search_results = json_response['results']
+				if search_results != []:
+					for item in search_results:
+						track_url = item['trackViewUrl']
+						track_id = str(item['trackId'])
+						track_title = item['trackName']
+						track_artists = split_artists(item['artistName'])
+						track_cover = item['artworkUrl100']
+						tracks_data.append({
+							'url': track_url,
+							'id': track_id,
+							'track': track_title,
+							'artists': track_artists,
+							'cover': track_cover,
+						})
+					return filter_track(artist = artist, track = track, tracks_data = tracks_data)
+				else:
+					return None
+			else:
+				return None
+			
+
+
+async def search_apple_music_album(artist: str, album: str):
+	albums_data = []
+	async with aiohttp.ClientSession() as session:
+		query = f'{bare_bones(artist, False)}+{bare_bones(album, False)}'
+		api_url =f'https://itunes.apple.com/search?term={query}&entity=album&limit=200&country=us'
+		async with session.get(url = api_url) as response:
+			if response.status == 200:
+				json_response = await response.json(content_type = None)
+				search_results = json_response['results']
+				if search_results != []:
+					for item in search_results:
+						album_url = item['collectionViewUrl']
+						album_id = str(item['collectionId'])
+						album_title = item['collectionName']
+						album_artists = split_artists(item['artistName'])
+						album_cover = item['artworkUrl100']
+						albums_data.append({
+							'url': album_url,
+							'id': album_id,
+							'album': album_title,
+							'artists': album_artists,
+							'cover': album_cover,
+						})
+					return filter_album(artist = artist, album = album, albums_data = albums_data)
+				else:
+					return None
+			else:
+				return None
