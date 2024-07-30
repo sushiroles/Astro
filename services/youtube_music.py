@@ -137,6 +137,3 @@ async def search_youtube_music_album(artist: str, album: str):
 			return None
 	except:
 		return None
-
-import asyncio
-print(asyncio.run(get_youtube_music_track('Rr1Cdli5nE8')))
