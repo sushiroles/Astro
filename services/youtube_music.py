@@ -50,7 +50,7 @@ async def get_youtube_music_track(identifier: str):
 		if result['musicVideoType'] == 'MUSIC_VIDEO_TYPE_ATV' or result['musicVideoType'] == 'MUSIC_VIDEO_TYPE_OMV':
 			url = str(f'https://music.youtube.com/watch?v={result['videoId']}')
 			identifier = str(result['videoId'])
-			artists = [result['author']]
+			artists = split_artists(result['author'])
 			title = str(result['title'])
 			cover = str(result['thumbnail']['thumbnails'][len(result['thumbnail']['thumbnails'])-1]['url'])
 			return {
@@ -137,3 +137,6 @@ async def search_youtube_music_album(artist: str, album: str):
 			return None
 	except:
 		return None
+
+import asyncio
+print(asyncio.run(get_youtube_music_track('Rr1Cdli5nE8')))
