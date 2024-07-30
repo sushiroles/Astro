@@ -70,22 +70,20 @@ async def get_apple_music_track(identifier: str, country_code: str):
 			if response.status == 200:
 				json_response = await response.json(content_type = None)
 				result = json_response['results'][0]
-				if result != []:
-					track_url = result['trackViewUrl']
-					track_id = str(result['trackId'])
-					track_title = result['trackName']
-					track_artists = await get_apple_music_artist(result['artistId'])
-					track_cover = result['artworkUrl100']
-					return {
-						'url': track_url,
-						'id': track_id,
-						'track': track_title,
-						'artists': track_artists,
-						'cover': track_cover,
-					}
-				else:
-					return None
+				track_url = result['trackViewUrl']
+				track_id = str(result['trackId'])
+				track_title = result['trackName']
+				track_artists = await get_apple_music_artist(result['artistId'])
+				track_cover = result['artworkUrl100']
+				return {
+					'url': track_url,
+					'id': track_id,
+					'track': track_title,
+					'artists': track_artists,
+					'cover': track_cover,
+				}
 			else:
+				print(f'Apple Music response status for ID {identifier}: {response.status}')
 				return None
 
 
@@ -122,6 +120,7 @@ async def get_apple_music_album(identifier: str, country_code: str):
 					'cover': album_cover,
 				}
 			else:
+				print(f'Apple Music response status for ID {identifier}: {response.status}')
 				return None
 
 
@@ -153,6 +152,7 @@ async def search_apple_music_track(artist: str, track: str):
 				else:
 					return None
 			else:
+				print(f'Apple Music response status for track query "{artist} - {track}": {response.status}')
 				return None
 			
 
@@ -184,4 +184,5 @@ async def search_apple_music_album(artist: str, album: str):
 				else:
 					return None
 			else:
+				print(f'Apple Music response status for album query "{artist} - {album}": {response.status}')
 				return None
