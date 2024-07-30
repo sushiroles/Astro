@@ -7,7 +7,6 @@ import json
 import re
 import discord as discord
 from PIL import Image
-from PIL import ImageEnhance
 import requests
 from io import BytesIO
 import numpy as np
@@ -173,3 +172,15 @@ def optimize_string(string: str):
 	for counter in range(string_list.count('')):
 		string_list.remove('')
 	return string_list
+
+async def check_reaction(message, reaction_emoji):
+	if not message.reactions:
+		return False
+	for reaction in message.reactions:
+		if reaction.emoji == reaction_emoji:
+			return True
+	return False
+
+async def add_reactions(message, emojis: list):
+	for emoji in emojis:
+		await message.add_reaction(emoji)
