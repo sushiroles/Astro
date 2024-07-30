@@ -91,9 +91,11 @@ async def on_message(message):
 				data = music_data['data']
 				url_type = music_data['url_type']
 				if data == None:
+					await logs_channel.send(embed = log('FAILURE', f'Failed to get track data from URL', f'URL: {url}'))
 					continue
 				await message.add_reaction('❗')
-			except:
+			except Exception as error:
+				await logs_channel.send(embed = log('ERROR', f'When getting track data from URL - "{error}"', f'URL: {url}'))
 				continue
 
 			while current_time_ms() - start_time <= 30000:
@@ -269,7 +271,11 @@ async def self(interaction: discord.Interaction, message: discord.Message):
 				music_data = await get_music_data(url)
 				data = music_data['data']
 				url_type = music_data['url_type']
-			except:
+				if data == None:
+					await logs_channel.send(embed = log('FAILURE', f'Failed to get track data from URL', f'URL: {url}'))
+					continue
+			except Exception as error:
+				await logs_channel.send(embed = log('ERROR', f'When getting track data from URL - "{error}"', f'URL: {url}'))
 				continue
 
 			try:
