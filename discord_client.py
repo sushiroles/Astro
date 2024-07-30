@@ -109,7 +109,7 @@ async def on_message(message):
 						title = search_result['album']
 					break
 				except Exception as error:
-					await logs_channel.send(embed = log('NOTICE', f'Error when searc.hing link - "{error}", retrying...', f'URL: {url}'))
+					await logs_channel.send(embed = log('NOTICE', f'Error when searching link - "{error}", retrying...', f'URL: {url}'))
 					await asyncio.sleep(5)
 			
 			if current_time_ms() - start_time >= 30000:
