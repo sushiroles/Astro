@@ -1,4 +1,5 @@
 import aiohttp
+import asyncio
 try:
 	from services.etc import *
 	from services.filter import *
@@ -66,123 +67,135 @@ async def get_apple_music_artist(artist_id: int):
 async def get_apple_music_track(identifier: str, country_code: str):
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://itunes.apple.com/lookup?id={identifier}&country={country_code}'
-		async with session.get(url = api_url) as response:
-			if response.status == 200:
-				json_response = await response.json(content_type = None)
-				result = json_response['results'][0]
-				track_url = result['trackViewUrl']
-				track_id = str(result['trackId'])
-				track_title = result['trackName']
-				track_artists = await get_apple_music_artist(result['artistId'])
-				track_cover = result['artworkUrl100']
-				return {
-					'url': track_url,
-					'id': track_id,
-					'track': track_title,
-					'artists': track_artists,
-					'cover': track_cover,
-				}
-			else:
-				print(f'Apple Music response status for ID {identifier}: {response.status}')
-				return None
+		while True:
+			async with session.get(url = api_url) as response:
+				if response.status == 200:
+					json_response = await response.json(content_type = None)
+					result = json_response['results'][0]
+					track_url = result['trackViewUrl']
+					track_id = str(result['trackId'])
+					track_title = result['trackName']
+					track_artists = await get_apple_music_artist(result['artistId'])
+					track_cover = result['artworkUrl100']
+					return {
+						'url': track_url,
+						'id': track_id,
+						'track': track_title,
+						'artists': track_artists,
+						'cover': track_cover,
+					}
+				elif response.status == 503:
+					asyncio.sleep(0.1)
+					continue
+				else:
+					return None
 
 
 
 async def get_apple_music_album(identifier: str, country_code: str):
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://itunes.apple.com/lookup?id={identifier}&country={country_code}'
-		async with session.get(url = api_url) as response:
-			if response.status == 200:
-				json_response = await response.json(content_type = None)
-				result = json_response['results'][0]
-				album_url = result['collectionViewUrl']
-				album_id = str(result['collectionId'])
-				album_title = result['collectionName']
-				album_artists = await get_apple_music_artist(result['artistId'])
-				album_cover = result['artworkUrl100']
-				if ' - Single' in album_title:
+		while True:
+			async with session.get(url = api_url) as response:
+				if response.status == 200:
+					json_response = await response.json(content_type = None)
+					result = json_response['results'][0]
+					album_url = result['collectionViewUrl']
+					album_id = str(result['collectionId'])
+					album_title = result['collectionName']
+					album_artists = await get_apple_music_artist(result['artistId'])
+					album_cover = result['artworkUrl100']
+					if ' - Single' in album_title:
+						return {
+							'url': album_url,
+							'id': album_id,
+							'track': album_title.replace(' - Single',''),
+							'artists': album_artists,
+							'cover': album_cover,
+						}
+					if ' (Apple Music Edition)' in album_title:
+						album_title = album_title.replace(' (Apple Music Edition)', '')
+					if ' - EP' in album_title:
+						album_title = album_title.replace(' - EP', '')
 					return {
 						'url': album_url,
 						'id': album_id,
-						'track': album_title.replace(' - Single',''),
+						'album': album_title,
 						'artists': album_artists,
 						'cover': album_cover,
 					}
-				if ' (Apple Music Edition)' in album_title:
-					album_title = album_title.replace(' (Apple Music Edition)', '')
-				if ' - EP' in album_title:
-					album_title = album_title.replace(' - EP', '')
-				return {
-					'url': album_url,
-					'id': album_id,
-					'album': album_title,
-					'artists': album_artists,
-					'cover': album_cover,
-				}
-			else:
-				print(f'Apple Music response status for ID {identifier}: {response.status}')
-				return None
+				elif response.status == 503:
+					asyncio.sleep(0.1)
+					continue
+				else:
+					return None
 
 
 
 async def search_apple_music_track(artist: str, track: str):
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
-		query = f'{bare_bones(artist, False)}+{bare_bones(track, False)}'
+		query = f'{artist}+{track}'
 		api_url =f'https://itunes.apple.com/search?term={query}&entity=song&limit=200&country=us'
-		async with session.get(url = api_url) as response:
-			if response.status == 200:
-				json_response = await response.json(content_type = None)
-				search_results = json_response['results']
-				if search_results != []:
-					for item in search_results:
-						track_url = item['trackViewUrl']
-						track_id = str(item['trackId'])
-						track_title = item['trackName']
-						track_artists = split_artists(item['artistName'])
-						track_cover = item['artworkUrl100']
-						tracks_data.append({
-							'url': track_url,
-							'id': track_id,
-							'track': track_title,
-							'artists': track_artists,
-							'cover': track_cover,
-						})
-					return filter_track(artist = artist, track = track, tracks_data = tracks_data)
+		while True:
+			async with session.get(url = api_url) as response:
+				if response.status == 200:
+					json_response = await response.json(content_type = None)
+					search_results = json_response['results']
+					if search_results != []:
+						for item in search_results:
+							track_url = item['trackViewUrl']
+							track_id = str(item['trackId'])
+							track_title = item['trackName']
+							track_artists = split_artists(item['artistName'])
+							track_cover = item['artworkUrl100']
+							tracks_data.append({
+								'url': track_url,
+								'id': track_id,
+								'track': track_title,
+								'artists': track_artists,
+								'cover': track_cover,
+							})
+						return filter_track(artist = artist, track = track, tracks_data = tracks_data)
+					else:
+						return None
+				elif response.status == 503:
+					asyncio.sleep(0.1)
+					continue
 				else:
 					return None
-			else:
-				print(f'Apple Music response status for track query "{artist} - {track}": {response.status}')
-				return None
 			
 
 
 async def search_apple_music_album(artist: str, album: str):
 	albums_data = []
 	async with aiohttp.ClientSession() as session:
-		query = f'{bare_bones(artist, False)}+{bare_bones(album, False)}'
+		query = f'{artist}+{album}'
 		api_url =f'https://itunes.apple.com/search?term={query}&entity=album&limit=200&country=us'
-		async with session.get(url = api_url) as response:
-			if response.status == 200:
-				json_response = await response.json(content_type = None)
-				search_results = json_response['results']
-				if search_results != []:
-					for item in search_results:
-						album_url = item['collectionViewUrl']
-						album_id = str(item['collectionId'])
-						album_title = item['collectionName']
-						album_artists = split_artists(item['artistName'])
-						album_cover = item['artworkUrl100']
-						albums_data.append({
-							'url': album_url,
-							'id': album_id,
-							'album': album_title,
-							'artists': album_artists,
-							'cover': album_cover,
-						})
-					return filter_album(artist = artist, album = album, albums_data = albums_data)
+		while True:
+			async with session.get(url = api_url) as response:
+				if response.status == 200:
+					json_response = await response.json(content_type = None)
+					search_results = json_response['results']
+					if search_results != []:
+						for item in search_results:
+							album_url = item['collectionViewUrl']
+							album_id = str(item['collectionId'])
+							album_title = item['collectionName']
+							album_artists = split_artists(item['artistName'])
+							album_cover = item['artworkUrl100']
+							albums_data.append({
+								'url': album_url,
+								'id': album_id,
+								'album': album_title,
+								'artists': album_artists,
+								'cover': album_cover,
+							})
+						return filter_album(artist = artist, album = album, albums_data = albums_data)
+					else:
+						return None
+				elif response.status == 503:
+					asyncio.sleep(0.1)
+					continue
 				else:
 					return None
-			else:
-				print(f'Apple Music response status for album query "{artist} - {album}": {response.status}')
-				return None
