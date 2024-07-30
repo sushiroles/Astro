@@ -77,6 +77,8 @@ def split_artists(string: str):
 	strings = re.split(r",|\&", string)
 	fixed_strings = []
 	for element in strings:
+		if element == ' ':
+			continue
 		if element[0] == ' ':
 			element = element[1:]
 		if element[-1] == ' ':
