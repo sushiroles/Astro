@@ -26,13 +26,20 @@ ytmusic = YTMusic(auth = {
 
 
 def is_youtube_music_track(url: str):
-	return bool(url.find('https://music.youtube.com/watch?v=') >= 0 or url.find('https://www.youtube.com/watch?v=') >= 0)
+	return bool(url.find('https://music.youtube.com/watch?v=') >= 0 or url.find('https://www.youtube.com/watch?v=') >= 0 or url.find('https://youtu.be/') >= 0)
  
 def is_youtube_music_album(url: str):
-	return bool(url.find('https://music.youtube.com/playlist?list=') >= 0 or url.find('https://www.youtube.com/playlist?list=') >= 0)
+	return bool(url.find('https://music.youtube.com/playlist?list=') >= 0 or url.find('https://www.youtube.com/playlist?list=') >= 0 or url.find('https://youtube.com/playlist?list=') >= 0)
 
 def get_youtube_music_track_id(url: str):
-	index = url.index('watch?v=') + 8
+	if url.find('https://youtu.be/') >= 0:
+		url = url.replace('https://youtu.be/','')
+		if url.find('?si') >= 0:
+			return str(url[0:url.index('?si')])
+		else:
+			return str(url[0:])
+	else:
+		index = url.index('watch?v=') + 8
 	if url.find('&') >= 0:
 		return str(url[index:url.index('&')])
 	else:
@@ -40,7 +47,10 @@ def get_youtube_music_track_id(url: str):
 
 def get_youtube_music_album_id(url: str):
 	index = url.index('?list=') + 6
-	return str(url[index:])
+	if url.find('&si') >= 0:
+		return str(url[index:url.index('&si')])
+	else:
+		return str(url[index:])
 
 
 
