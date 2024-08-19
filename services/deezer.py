@@ -89,7 +89,7 @@ async def get_deezer_album(identifier: str):
 async def search_deezer_track(artist: str, track: str):
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
-		api_url = f'https://api.deezer.com/search/track?q=artist:"{str(artist)}" track:"{str(track)}"'
+		api_url = f'https://api.deezer.com/search/track?q=artist:"{artist}" track:"{track}"'
 		async with session.get(url = api_url) as response:
 			if response.status == 200:
 				json_response = await response.json()
@@ -121,7 +121,7 @@ async def search_deezer_track(artist: str, track: str):
 async def search_deezer_album(artist: str, album: str):
 	albums_data = []
 	async with aiohttp.ClientSession() as session:
-		api_url = f'https://api.deezer.com/search/album?q=artist:"{str(artist)}" album:"{str(album)}"'
+		api_url = f'https://api.deezer.com/search/album?q=artist:"{artist}" album:"{album}"'
 		async with session.get(url = api_url) as response:
 			if response.status == 200:
 				json_response = await response.json()
