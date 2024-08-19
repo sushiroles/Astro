@@ -43,8 +43,8 @@ presence_statuses = open('discord_presence.txt','r').readlines()
 
 def success_embed(title: str, artists: list, cover: str, anchor: str):
 	embed = discord.Embed(
-		title = f'{title}',
-		description = f'by {', '.join(artists)}',
+		title = discord.utils.escape_markdown(f'{title}'),
+		description = discord.utils.escape_markdown(f'by {', '.join(artists)}'),
 		colour = get_average_color(cover),
 	)
 		
@@ -86,42 +86,45 @@ async def on_message(message):
 		for url in urls:
 			start_time = current_time_ms()
 
-			try:
-				music_data = await get_music_data(url)
-				data = music_data['data']
-				url_type = music_data['url_type']
-				if data == None:
-					await logs_channel.send(embed = log('FAILURE', f'Failed to get track data from URL', f'URL: {url}'))
+			if is_music(url):
+				try:
+					music_data = await get_music_data(url)
+					data = music_data['data']
+					url_type = music_data['url_type']
+					if data == None:
+						await logs_channel.send(embed = log('FAILURE - URL Lookup', f'Failed to get track data from URL', f'URL: {url}'))
+						continue
+					await message.add_reaction('❗')
+				except Exception as error:
+					await logs_channel.send(embed = log('ERROR - URL Lookup', f'When getting track data from URL - "{error}"', f'URL: {url}'))
 					continue
-				await message.add_reaction('❗')
-			except Exception as error:
-				await logs_channel.send(embed = log('ERROR', f'When getting track data from URL - "{error}"', f'URL: {url}'))
+			else:
 				continue
 
 			while current_time_ms() - start_time <= 30000:
 				try:
 					if url_type == 'track':
 						data['track'] = remove_feat(data['track'])
-						search_result = await search_track_from_url_data(max(data['artists'], key = len), data['track'])
+						search_result = await search_track_from_url_data(data['artists'][0], data['track'])
 						title = search_result['track']
 					elif url_type == 'album':
-						search_result = await search_album_from_url_data(max(data['artists'], key = len), data['album'])
+						search_result = await search_album_from_url_data(data['artists'][0], data['album'])
 						title = search_result['album']
 					break
 				except Exception as error:
-					await logs_channel.send(embed = log('NOTICE', f'Error when searching link - "{error}", retrying...', f'URL: {url}'))
+					await logs_channel.send(embed = log('NOTICE - URL Lookup', f'Error when searching link - "{error}", retrying...', f'URL: {url}'))
 					await asyncio.sleep(5)
 			
 			if current_time_ms() - start_time >= 30000:
 				await message.add_reaction('⌛')
-				await logs_channel.send(embed = log('FAILURE', f'Search timed out', f'URL: {url}'))
+				await logs_channel.send(embed = log('FAILURE - URL Lookup', f'Search timed out', f'URL: {url}'))
 				if await check_reaction(message, '❗'):
 					await message.remove_reaction('❗', client.user)
 				continue
 
 			if search_result['anchor'].count('\n') <= 1:
 				await message.add_reaction('🤷')
-				await logs_channel.send(embed = log('RETREAT', f'Insufficient results', f'URL: {url}'))
+				await logs_channel.send(embed = log('RETREAT - URL Lookup', f'Insufficient results', f'URL: {url}'))
 				if await check_reaction(message, '❗'):
 					await message.remove_reaction('❗', client.user)
 				continue
@@ -131,7 +134,7 @@ async def on_message(message):
 
 			embed = await message.reply(embed = success_embed(title, search_result['artists'], search_result['cover'], search_result['anchor']), mention_author = False)
 			await add_reactions(embed, ['👍','👎'])
-			await logs_channel.send(embed = log('SUCCESS', f'Successfully searched a link in {current_time_ms() - start_time}ms', f'URL: {url}', search_result['anchor']))
+			await logs_channel.send(embed = log('SUCCESS - URL Lookup', f'Successfully searched a link in {current_time_ms() - start_time}ms', f'URL: {url}', search_result['anchor']))
 
 
 
@@ -145,17 +148,17 @@ async def self(interaction: discord.Interaction, artist: str, track: str):
 		search_result = await search_track(artist, track)
 	except Exception as error:
 		await interaction.followup.send(embed = fail_embed('An error has occured while running your command. Please try again!'))
-		await logs_channel.send(embed = log('ERROR', f'When executing /searchtrack - "{error}"', f'Artist: "{artist}"\nTrack: "{track}"'))
+		await logs_channel.send(embed = log('ERROR - /searchtrack', f'{error}', f'Artist: "{artist}"\nTrack: "{track}"'))
 		return None
 
 	if search_result['anchor'] == '':
 		await interaction.followup.send(embed = fail_embed("I wasn't able to find your track. Please check for typos in your command and try again!"))
-		await logs_channel.send(embed = log('FAILURE', f'Unsuccessfully executed command /searchtrack', f'Artist: "{artist}"\nTrack: "{track}"'))
+		await logs_channel.send(embed = log('FAILURE - /searchtrack', f'Unsuccessfully executed command', f'Artist: "{artist}"\nTrack: "{track}"'))
 
 	else:
 		embed = await interaction.followup.send(embed = success_embed(search_result['track'], search_result['artists'], search_result['cover'], search_result['anchor']))
 		await add_reactions(embed, ['👍','👎'])
-		await logs_channel.send(embed = log('SUCCESS', f'Successfully executed command /searchtrack in {current_time_ms() - start_time}ms', f'Artist: "{artist}"\nTrack: "{track}"', search_result['anchor']))
+		await logs_channel.send(embed = log('SUCCESS - /searchtrack', f'Successfully executed command in {current_time_ms() - start_time}ms', f'Artist: "{artist}"\nTrack: "{track}"', search_result['anchor']))
 
 
 
@@ -169,17 +172,17 @@ async def self(interaction: discord.Interaction, artist: str, album: str):
 		search_result = await search_album(artist, album)
 	except Exception as error:
 		await interaction.followup.send(embed = fail_embed("An error has occured while running your command. Please try again!"),)
-		await logs_channel.send(embed = log('ERROR', f'When running command /searchalbum - "{error}"', f'Artist: "{artist}"\nAlbum: "{album}"'))
+		await logs_channel.send(embed = log('ERROR - /searchalbum', f'{error}', f'Artist: "{artist}"\nAlbum: "{album}"'))
 		return None
 
 	if search_result['anchor'] == '':
 		await interaction.followup.send(embed = fail_embed("I wasn't able to find your album. Please check for typos in your command and try again!"))
-		await logs_channel.send(embed = log('FAILURE', f'Unsuccessfully executed command /searchalbum', f'Artist: "{artist}"\nAlbum: "{album}"'))
+		await logs_channel.send(embed = log('FAILURE - /searchalbum', f'Unsuccessfully executed command', f'Artist: "{artist}"\nAlbum: "{album}"'))
 
 	else:
 		embed = await interaction.followup.send(embed = success_embed(search_result['album'], search_result['artists'], search_result['cover'], search_result['anchor']))
 		await add_reactions(embed, ['👍','👎'])
-		await logs_channel.send(embed = log('SUCCESS', f'Successfully executed command /searchalbum in {current_time_ms() - start_time}ms', f'Artist: "{artist}"\nAlbum: "{album}"', search_result['anchor']))
+		await logs_channel.send(embed = log('SUCCESS - /searchalbum', f'Successfully executed command in {current_time_ms() - start_time}ms', f'Artist: "{artist}"\nAlbum: "{album}"', search_result['anchor']))
 
 
 
@@ -195,7 +198,7 @@ async def self(interaction: discord.Interaction, link: str):
 		url_type = music_data['url_type']
 	except:
 		await interaction.followup.send(embed = fail_embed("The link provided isn't a valid music link."))
-		await logs_channel.send(embed = log('FAILURE', 'Invalid URL', f'URL: {link}'))
+		await logs_channel.send(embed = log('FAILURE - /lookup', 'Invalid URL', f'URL: {link}'))
 		return None
 
 	try:
@@ -208,17 +211,17 @@ async def self(interaction: discord.Interaction, link: str):
 			title = search_result['album']
 	except Exception as error:
 		await interaction.followup.send(embed = fail_embed("An error has occured while running your command. Please try again!"))
-		await logs_channel.send(embed = log('ERROR', f'When executing /lookup - "{error}"', f'URL: "{link}"'))
+		await logs_channel.send(embed = log('ERROR - /lookup', f'{error}', f'URL: "{link}"'))
 		return None
 
 	if search_result['anchor'] == '':
 		await interaction.followup.send(embed = fail_embed("I wasn't able to find anything regarding your link. Make sure you haven't accidentally typed anything in it and try again!"))
-		await logs_channel.send(embed = log('FAILURE', f'Unsuccessfully executed command /lookup',f'URL: "{link}"'))
+		await logs_channel.send(embed = log('FAILURE - /lookup', f'Unsuccessfully executed command',f'URL: "{link}"'))
 
 	else:
 		embed = await interaction.followup.send(embed = success_embed(title, search_result['artists'], search_result['cover'], search_result['anchor']))
 		await add_reactions(embed, ['👍','👎'])
-		await logs_channel.send(embed = log('SUCCESS', f'Successfully executed command /lookup in {current_time_ms() - start_time}ms', f'URL: "{link}"', search_result['anchor']))
+		await logs_channel.send(embed = log('SUCCESS - /lookup', f'Successfully executed command in {current_time_ms() - start_time}ms', f'URL: "{link}"', search_result['anchor']))
 
 
 
@@ -245,7 +248,8 @@ async def self(interaction: discord.Interaction, user: discord.Member):
 				await logs_channel.send(embed = log('ERROR', f'When running command /snoop - "{error}"', f'ID: {identifier}'))
 				return None
 
-			await interaction.followup.send(embed = success_embed(search_result['track'],search_result['artists'],search_result['cover'],search_result['anchor']))
+			embed = await interaction.followup.send(embed = success_embed(search_result['track'],search_result['artists'],search_result['cover'],search_result['anchor']))
+			await add_reactions(embed, ['👍','👎'])
 			await logs_channel.send(embed = log('SUCCESS', f'Successfully ran the command /snoop in {current_time_ms() - start_time}ms', f'ID: {identifier}', search_result['anchor']))
 			replied = True
 		
@@ -272,10 +276,10 @@ async def self(interaction: discord.Interaction, message: discord.Message):
 				data = music_data['data']
 				url_type = music_data['url_type']
 				if data == None:
-					await logs_channel.send(embed = log('FAILURE', f'Failed to get track data from URL', f'URL: {url}'))
+					await logs_channel.send(embed = log('FAILURE - Search link(s)', f'Failed to get track data from URL', f'URL: {url}'))
 					continue
 			except Exception as error:
-				await logs_channel.send(embed = log('ERROR', f'When getting track data from URL - "{error}"', f'URL: {url}'))
+				await logs_channel.send(embed = log('ERROR - Search link(s)', f'{error}', f'URL: {url}'))
 				continue
 
 			try:
@@ -288,12 +292,12 @@ async def self(interaction: discord.Interaction, message: discord.Message):
 					title = search_result['album']
 			except Exception as error:
 				await interaction.followup.send(embed = fail_embed("An error has occured while running your command. Please try again!"))
-				await logs_channel.send(embed = log('ERROR', f'When executing "Search link(s)" - "{error}"', f'URL: "{url}"'))
+				await logs_channel.send(embed = log('ERROR - Search link(s)', f'{error}', f'URL: "{url}"'))
 				return None
 
 			if search_result['anchor'] == '':
 				embeds.append(fail_embed("I wasn't able to find anything regarding this link."))
-				await logs_channel.send(embed = log('FAILURE', f'Unsuccessfully searched a URL with command "Search link(s)"',f'URL: "{url}"'))
+				await logs_channel.send(embed = log('FAILURE - Search link(s)', f'Unsuccessfully searched a URL"',f'URL: "{url}"'))
 				
 			else:
 				embeds.append(success_embed(title, search_result['artists'], search_result['cover'], search_result['anchor']))
@@ -301,14 +305,14 @@ async def self(interaction: discord.Interaction, message: discord.Message):
 		if embeds != []:
 			embed = await interaction.followup.send(embeds = embeds)
 			await add_reactions(embed, ['👍','👎'])
-			await logs_channel.send(embed = log('SUCCESS', f'Successfully executed command "Search link(s)" in {current_time_ms() - start_time}ms', '\n'.join(parameters)))
+			await logs_channel.send(embed = log('SUCCESS - Search link(s)', f'Successfully executed command in {current_time_ms() - start_time}ms', '\n'.join(parameters)))
 		else:
 			await interaction.followup.send(embed = fail_embed("I wasn't able to find any music links in this message."))
-			await logs_channel.send(embed = log('FAILURE', f'Found no music links when executing "Search link(s)"'))
+			await logs_channel.send(embed = log('FAILURE - Search link(s)', f'Found no music links'))
 
 	else:
 		await interaction.followup.send(embed = fail_embed("I wasn't able to find any links in this message."))
-		await logs_channel.send(embed = log('FAILURE', f'Found no links when executing "Search link(s)"'))
+		await logs_channel.send(embed = log('FAILURE - Search link(s)', f'Found no links'))
 
 
 
