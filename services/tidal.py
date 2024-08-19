@@ -32,17 +32,31 @@ async def get_access_token(client_id: str, client_secret: str):
 				return ''
 			
 def is_tidal_track(url: str):
-	return bool(url.find('https://tidal.com/browse/track/') >= 0)
+	return bool(url.find('https://tidal.com/') >= 0 and url.find('/track/') >= 0)
 
 def is_tidal_album(url: str):
-	return bool(url.find('https://tidal.com/browse/album/') >= 0)
+	return bool(url.find('https://tidal.com/') >= 0 and url.find('/album/') >= 0)
+
+def is_tidal_video(url: str):
+	return bool(url.find('https://tidal.com/') >= 0 and url.find('/video/') >= 0)
 
 def get_tidal_track_id(url: str):
-	return str(url.replace('https://tidal.com/browse/track/','').replace('?u',''))
+	if '?u' in url:
+		return str(url[url.index('/track/') + 7:url.index('?u')])
+	else:
+		return str(url[url.index('/track/') + 7:])
 
 def get_tidal_album_id(url: str):
-	return str(url.replace('https://tidal.com/browse/album/','')).replace('?u','')
-
+	if '?u' in url:
+		return str(url[url.index('/album/') + 7:url.index('?u')])
+	else:
+		return str(url[url.index('/album/') + 7:])
+	
+def get_tidal_video_id(url: str):
+	if '?u' in url:
+		return str(url[url.index('/video/') + 7:url.index('?u')])
+	else:
+		return str(url[url.index('/video/') + 7:])
 
 
 async def get_tidal_track(identifier: str):
@@ -101,11 +115,39 @@ async def get_tidal_album(identifier: str):
 
 
 
+async def get_tidal_video(identifier: str):
+	async with aiohttp.ClientSession() as session:
+		api_url = f'https://openapi.tidal.com/videos/{identifier}?countryCode=US'
+		api_headers = {
+			'accept': 'application/vnd.api+json',
+			'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}',
+			'Content-Type': 'application/vnd.tidal.v1+json'
+		}
+		async with session.get(url = api_url, headers = api_headers) as response:
+			if response.status == 200:
+				json_response = await response.json()
+				video_url = json_response['resource']['tidalUrl']
+				video_id = json_response['resource']['id']
+				video_title = json_response['resource']['title']
+				video_artists = [artist['name'] for artist in json_response['resource']['artists']]
+				video_cover = json_response['resource']['image'][1]['url']
+				return {
+					'url': video_url,
+					'id': video_id,
+					'track': video_title,
+					'artists': video_artists,
+					'cover': video_cover,
+				}
+			else:
+				return None
+
+
+
 async def search_tidal_track(artist: str, track: str):
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
-		query = f'{artist} {track}'
-		api_url = f"https://openapi.tidal.com/search?query={query}&type=TRACKS&offset=0&limit=30&countryCode=US&popularity=WORLDWIDE"
+		query = f'{track} {artist}'
+		api_url = f"https://openapi.tidal.com/search?query={query}&type=TRACKS&offset=0&limit=100&countryCode=US&popularity=WORLDWIDE"
 		api_headers = {
 			'accept': 'application/vnd.api+json',
 			'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}',
@@ -132,7 +174,7 @@ async def search_tidal_track(artist: str, track: str):
 				else:
 					return None
 			else:
-				return None
+				return response.status
 
 
 
@@ -140,7 +182,7 @@ async def search_tidal_album(artist: str, album: str):
 	albums_data = []
 	async with aiohttp.ClientSession() as session:
 		query = f'{artist} {album}'
-		api_url = f"https://openapi.tidal.com/search?query={query}&type=ALBUMS&offset=0&limit=30&countryCode=US&popularity=WORLDWIDE"
+		api_url = f"https://openapi.tidal.com/search?query={query}&type=ALBUMS&offset=0&limit=100&countryCode=US&popularity=WORLDWIDE"
 		api_headers = {
 			'accept': 'application/vnd.api+json',
 			'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}',
