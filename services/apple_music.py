@@ -15,6 +15,9 @@ def is_apple_music_track(url: str):
 def is_apple_music_album(url: str):
 	return bool(url.find('https://music.apple.com/') >= 0 and url.find('/album/') >=0 and not url.find('?i=') >= 0)
 
+def is_apple_music_video(url: str):
+	return bool(url.find('https://music.apple.com/') >= 0 and url.find('/music-video/') >=0)
+
 def get_apple_music_track_id(url: str):
 	if url.find('/song/') >= 0:
 		index = len(url) - 1
@@ -36,7 +39,7 @@ def get_apple_music_track_id(url: str):
 				'country_code': url[24:26],
 			}
 
-def get_apple_music_album_id(url: str):
+def get_apple_music_album_video_id(url: str):
 	index = len(url) - 1
 	while url[index] != '/':
 		index -= 1
@@ -54,13 +57,16 @@ def get_apple_music_album_id(url: str):
 async def get_apple_music_artist(artist_id: int):
 	async with aiohttp.ClientSession() as session:
 		api_url = f"https://itunes.apple.com/lookup?id={artist_id}"
-		async with session.get(url = api_url) as response:
-			if response.status == 200:
-				json_response = await response.json(content_type = None)
-				result = json_response['results'][0]
-				return [result['artistName']]
-			else:
-				return []
+		while True:
+			async with session.get(url = api_url) as response:
+				if response.status == 200:
+					json_response = await response.json(content_type = None)
+					result = json_response['results'][0]
+					return [result['artistName']]
+				if response.status == 503:
+					continue
+				else:
+					return []
 
 
 
@@ -85,7 +91,6 @@ async def get_apple_music_track(identifier: str, country_code: str):
 						'cover': track_cover,
 					}
 				elif response.status == 503:
-					asyncio.sleep(0.1)
 					continue
 				else:
 					return None
@@ -125,7 +130,6 @@ async def get_apple_music_album(identifier: str, country_code: str):
 						'cover': album_cover,
 					}
 				elif response.status == 503:
-					asyncio.sleep(0.1)
 					continue
 				else:
 					return None
@@ -160,7 +164,6 @@ async def search_apple_music_track(artist: str, track: str):
 					else:
 						return None
 				elif response.status == 503:
-					asyncio.sleep(0.1)
 					continue
 				else:
 					return None
@@ -195,7 +198,6 @@ async def search_apple_music_album(artist: str, album: str):
 					else:
 						return None
 				elif response.status == 503:
-					asyncio.sleep(0.1)
 					continue
 				else:
 					return None
