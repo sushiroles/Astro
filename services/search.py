@@ -4,6 +4,33 @@ from services.etc import *
 import asyncio
 
 
+def is_music(url):
+    if is_spotify_track(url):
+        return True
+    elif is_spotify_album(url):
+        return True
+    elif is_apple_music_track(url):
+        return True
+    elif is_apple_music_album(url):
+        return True
+    elif is_apple_music_video(url):
+        return True
+    elif is_youtube_music_track(url):
+        return True
+    elif is_youtube_music_album(url):
+        return True
+    elif is_deezer_track(url):
+        return True
+    elif is_deezer_album(url):
+        return True
+    elif is_tidal_track(url):
+        return True
+    elif is_tidal_album(url):
+        return True
+    elif is_tidal_video(url):
+        return True
+    else:
+        return False
 
 async def get_music_data(url):
     if is_spotify_track(url):
@@ -19,12 +46,16 @@ async def get_music_data(url):
         data = await get_apple_music_track(id_data['id'], id_data['country_code'])
         url_type = 'track'
     elif is_apple_music_album(url):
-        id_data = get_apple_music_album_id(url)
+        id_data = get_apple_music_album_video_id(url)
         data = await get_apple_music_album(id_data['id'], id_data['country_code'])
         if 'track' in data:
             url_type = 'track'
         else:
             url_type = 'album'
+    elif is_apple_music_video(url):
+        id_data = get_apple_music_album_video_id(url)
+        data = await get_apple_music_track(id_data['id'], id_data['country_code'])
+        url_type = 'track'
     elif is_youtube_music_track(url):
         identifier = get_youtube_music_track_id(url)
         data = await get_youtube_music_track(identifier)
@@ -49,6 +80,10 @@ async def get_music_data(url):
         identifier = get_tidal_album_id(url)
         data = await get_tidal_album(identifier)
         url_type = 'album'
+    elif is_tidal_video(url):
+        identifier = get_tidal_video_id(url)
+        data = await get_tidal_video(identifier)
+        url_type = 'track'
     return {
         'data': data,
         'url_type': url_type,
@@ -132,11 +167,11 @@ async def search_track(artist: str, track: str):
     requested_track = track
 
     service_data = [
-        ('Spotify', await search_spotify_track(bare_bones(artist), bare_bones(track))),
-        ('Apple Music', await search_apple_music_track(bare_bones(artist), bare_bones(track))),
-        ('YouTube Music', await search_youtube_music_track(bare_bones(artist), bare_bones(track))),
-        ('Deezer', await search_deezer_track(bare_bones(artist), bare_bones(track))),
-        ('TIDAL', await search_tidal_track(bare_bones(artist), bare_bones(track))),
+        ('Spotify', await search_spotify_track(artist.replace("'",'').replace(",",''), track.replace("'",'').replace(",",''))),
+        ('Apple Music', await search_apple_music_track(artist, replace_with_ascii(track))),
+        ('YouTube Music', await search_youtube_music_track(artist, track)),
+        ('Deezer', await search_deezer_track(artist, track)),
+        ('TIDAL', await search_tidal_track(artist, track)),
     ]
     tasks = [asyncio.create_task(get_track_data(service, function)) for service, function in service_data]
     results = await asyncio.gather(*tasks)
@@ -178,8 +213,8 @@ async def search_album(artist: str, album: str):
     requested_album = album
 
     service_data = [
-        ('Spotify', await search_spotify_album(bare_bones(artist), bare_bones(album))),
-        ('Apple Music', await search_apple_music_album(artist, album)),
+        ('Spotify', await search_spotify_album(artist.replace("'",'').replace(",",''), album.replace("'",'').replace(",",''))),
+        ('Apple Music', await search_apple_music_album(artist, replace_with_ascii(album))),
         ('YouTube Music', await search_youtube_music_album(artist, album)),
         ('Deezer', await search_deezer_album(artist, album)),
         ('TIDAL', await search_tidal_album(artist, album)),
@@ -225,8 +260,8 @@ async def search_track_from_url_data(artist: str, track: str):
     requested_track = track
 
     service_data = [
-        ('Spotify', await search_spotify_track(artist.replace("'",''), track.replace("'",''))),
-        ('Apple Music', await search_apple_music_track(replace_with_ascii(artist), replace_with_ascii(track))),
+        ('Spotify', await search_spotify_track(artist.replace("'",'').replace(",",''), track.replace("'",'').replace(",",''))),
+        ('Apple Music', await search_apple_music_track(artist, replace_with_ascii(track))),
         ('YouTube Music', await search_youtube_music_track(artist, track)),
         ('Deezer', await search_deezer_track(artist, track)),
         ('TIDAL', await search_tidal_track(artist, track)),
@@ -272,8 +307,8 @@ async def search_album_from_url_data(artist: str, album: str):
     requested_album = album
 
     service_data = [
-        ('Spotify', await search_spotify_album(artist.replace("'",''), album.replace("'",''))),
-        ('Apple Music', await search_apple_music_album(replace_with_ascii(artist), replace_with_ascii(album))),
+        ('Spotify', await search_spotify_album(artist.replace("'",'').replace(",",''), album.replace("'",'').replace(",",''))),
+        ('Apple Music', await search_apple_music_album(artist, replace_with_ascii(album))),
         ('YouTube Music', await search_youtube_music_album(artist, album)),
         ('Deezer', await search_deezer_album(artist, album)),
         ('TIDAL', await search_tidal_album(artist, album)),
