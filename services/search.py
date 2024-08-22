@@ -5,32 +5,20 @@ import asyncio
 
 
 def is_music(url):
-    if is_spotify_track(url):
-        return True
-    elif is_spotify_album(url):
-        return True
-    elif is_apple_music_track(url):
-        return True
-    elif is_apple_music_album(url):
-        return True
-    elif is_apple_music_video(url):
-        return True
-    elif is_youtube_music_track(url):
-        return True
-    elif is_youtube_music_album(url):
-        return True
-    elif is_deezer_track(url):
-        return True
-    elif is_deezer_album(url):
-        return True
-    elif is_tidal_track(url):
-        return True
-    elif is_tidal_album(url):
-        return True
-    elif is_tidal_video(url):
-        return True
-    else:
-        return False
+    return (
+        is_spotify_track(url)
+        or is_spotify_album(url)
+        or is_apple_music_track(url)
+        or is_apple_music_album(url)
+        or is_apple_music_video(url)
+        or is_youtube_music_track(url)
+        or is_youtube_music_album(url)
+        or is_deezer_track(url)
+        or is_deezer_album(url)
+        or is_tidal_track(url)
+        or is_tidal_album(url)
+        or is_tidal_video(url)
+    )
 
 async def get_music_data(url):
     if is_spotify_track(url):
