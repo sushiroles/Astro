@@ -1,4 +1,4 @@
-from services.services import *
+from services.music_services import *
 from services.etc import *
 
 import asyncio
@@ -194,100 +194,6 @@ async def search_track(artist: str, track: str):
 
 
 async def search_album(artist: str, album: str):
-    artists = []
-    title = ''
-    cover = ''
-    requested_artist = artist
-    requested_album = album
-
-    service_data = [
-        ('Spotify', await search_spotify_album(artist.replace("'",'').replace(",",''), album.replace("'",'').replace(",",''))),
-        ('Apple Music', await search_apple_music_album(artist, replace_with_ascii(album))),
-        ('YouTube Music', await search_youtube_music_album(artist, album)),
-        ('Deezer', await search_deezer_album(artist, album)),
-        ('TIDAL', await search_tidal_album(artist, album)),
-    ]
-
-    tasks = [asyncio.create_task(get_album_data(service, function)) for service, function in service_data]
-    results = await asyncio.gather(*tasks)
-
-    search_results = []
-    for result in results:
-        search_results.append(result)
-
-    counter = 0
-    try:
-        while title == '':
-            artists = search_results[counter]['artists']
-            title = search_results[counter]['album']
-            cover = search_results[counter]['cover']
-            counter += 1
-        anchor = ''.join(result['anchor'] for result in search_results)	
-    except:
-        artists = []
-        title = ''
-        cover = ''
-        anchor = ''
-
-    return {
-        'cover': cover,
-        'artists': artists,
-        'album': title,
-        'anchor': anchor,
-        'requested_artist': requested_artist,
-        'requested_album': requested_album,
-    }
-
-
-
-async def search_track_from_url_data(artist: str, track: str):
-    artists = []
-    title = ''
-    cover = ''
-    requested_artist = artist
-    requested_track = track
-
-    service_data = [
-        ('Spotify', await search_spotify_track(artist.replace("'",'').replace(",",''), track.replace("'",'').replace(",",''))),
-        ('Apple Music', await search_apple_music_track(artist, replace_with_ascii(track))),
-        ('YouTube Music', await search_youtube_music_track(artist, track)),
-        ('Deezer', await search_deezer_track(artist, track)),
-        ('TIDAL', await search_tidal_track(artist, track)),
-    ]
-
-    tasks = [asyncio.create_task(get_track_data(service, function)) for service, function in service_data]
-    results = await asyncio.gather(*tasks)
-
-    search_results = []
-    for result in results:
-        search_results.append(result)
-
-    counter = 0
-    try:
-        while title == '':
-            artists = search_results[counter]['artists']
-            title = search_results[counter]['track']
-            cover = search_results[counter]['cover']
-            counter += 1
-        anchor = ''.join(result['anchor'] for result in search_results)
-    except:
-        artists = []
-        title = ''
-        cover = ''
-        anchor = ''
-
-    return {
-        'cover': cover,
-        'artists': artists,
-        'track': title,
-        'anchor': anchor,
-        'requested_artist': requested_artist,
-        'requested_track': requested_track,
-    }
-
-
-
-async def search_album_from_url_data(artist: str, album: str):
     artists = []
     title = ''
     cover = ''
