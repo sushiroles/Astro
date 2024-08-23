@@ -1,5 +1,6 @@
-*.ini
+tokens.ini
 *.json
 *.cache
 *.pyc
 *.DS_Store
+test.py
