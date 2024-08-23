@@ -42,6 +42,7 @@ def get_deezer_album_id(url: str):
 async def get_deezer_track(identifier: str):
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://api.deezer.com/track/{identifier}'
+		start_time = current_time_ms()
 		async with session.get(url = api_url) as response:
 			if response.status == 200:
 				json_response = await response.json()
@@ -51,20 +52,29 @@ async def get_deezer_track(identifier: str):
 				track_artists = [artist['name'] for artist in json_response['contributors']]
 				track_cover = json_response['album']['cover_xl']
 				return {
+					'type': 'track',
 					'url': track_url,
 					'id': track_id,
-					'track': track_title,
+					'title': track_title,
 					'artists': track_artists,
 					'cover': track_cover,
+					'extra': {
+						'api_time_ms': current_time_ms() - start_time,
+						'response_status': f'Deezer-{response.status}'
+					}
 				}
 			else:
-				return None
+				return {
+					'type': 'error',
+					'response_status': f'Deezer-{response.status}'
+				}
 
 
 
 async def get_deezer_album(identifier: str):
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://api.deezer.com/album/{identifier}'
+		start_time = current_time_ms()
 		async with session.get(url = api_url) as response:
 			if response.status == 200:
 				json_response = await response.json()
@@ -73,15 +83,25 @@ async def get_deezer_album(identifier: str):
 				album_title = json_response['title']
 				album_artists = [artist['name'] for artist in json_response['contributors']]
 				album_cover = json_response['cover_xl']
+				album_year = json_response['release_date'][:4]
 				return {
+					'type': 'album',
 					'url': album_url,
 					'id': album_id,
-					'album': album_title,
+					'title': album_title,
 					'artists': album_artists,
 					'cover': album_cover,
+					'year': album_year,
+					'extra': {
+						'api_time_ms': current_time_ms() - start_time,
+						'response_status': f'Deezer-{response.status}'
+					}
 				}
 			else:
-				return None
+				return {
+					'type': 'error',
+					'response_status': f'Deezer-{response.status}'
+				}
 
 			
 
@@ -89,6 +109,7 @@ async def search_deezer_track(artist: str, track: str):
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://api.deezer.com/search/track?q=artist:"{artist}" track:"{track}"'
+		start_time = current_time_ms()
 		async with session.get(url = api_url) as response:
 			if response.status == 200:
 				json_response = await response.json()
@@ -103,17 +124,27 @@ async def search_deezer_track(artist: str, track: str):
 							track_artists = [artist['name'] for artist in data['contributors']]
 							track_cover = data['album']['cover_xl']
 							tracks_data.append({
+								'type': 'track',
 								'url': track_url,
 								'id': track_id,
-								'track': track_title,
+								'title': track_title,
 								'artists': track_artists,
 								'cover': track_cover,
+								'extra': {
+									'api_time_ms': current_time_ms() - start_time,
+									'response_status': f'Deezer-{response.status}'
+								}
 							})
 					return filter_track(artist = artist, track = track, tracks_data = tracks_data)
 				else:
-					return None
+					return {
+						'type': 'empty_response'
+					}
 			else:
-				return None
+				return {
+					'type': 'error',
+					'response_status': f'Deezer-{response.status}'
+				}
 
 
 
@@ -121,6 +152,7 @@ async def search_deezer_album(artist: str, album: str):
 	albums_data = []
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://api.deezer.com/search/album?q=artist:"{artist}" album:"{album}"'
+		start_time = current_time_ms()
 		async with session.get(url = api_url) as response:
 			if response.status == 200:
 				json_response = await response.json()
@@ -134,16 +166,28 @@ async def search_deezer_album(artist: str, album: str):
 							album_title = data['title']
 							album_artists = [artist['name'] for artist in data['contributors']]
 							album_cover = data['cover_xl']
+							album_year = data['release_date'][:4]
 							albums_data.append({
+								'type': 'album',
 								'url': album_url,
 								'id': album_id,
-								'album': album_title,
+								'title': album_title,
 								'artists': album_artists,
 								'cover': album_cover,
+								'year': album_year,
+								'extra': {
+									'api_time_ms': current_time_ms() - start_time,
+									'response_status': f'Deezer-{response.status}'
+								}
 							})
 					return filter_album(artist = artist, album = album, albums_data = albums_data)
 				else:
-					return None
+					return {
+						'type': 'empty_response'
+					}
 			else:
-				return None
+				return {
+					'type': 'error',
+					'response_status': f'Deezer-{response.status}'
+				}
 					

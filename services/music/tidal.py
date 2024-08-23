@@ -67,6 +67,7 @@ async def get_tidal_track(identifier: str):
 			'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}',
 			'Content-Type': 'application/vnd.tidal.v1+json'
 		}
+		start_time = current_time_ms()
 		async with session.get(url = api_url, headers = api_headers) as response:
 			if response.status == 200:
 				json_response = await response.json()
@@ -76,14 +77,22 @@ async def get_tidal_track(identifier: str):
 				track_artists = [artist['name'] for artist in json_response['resource']['artists']]
 				track_cover = json_response['resource']['album']['imageCover'][1]['url']
 				return {
+					'type': 'track',
 					'url': track_url,
 					'id': track_id,
-					'track': track_title,
+					'title': track_title,
 					'artists': track_artists,
 					'cover': track_cover,
+					'extra': {
+						'api_time_ms': current_time_ms() - start_time,
+						'response_status': f'TIDAL-{response.status}'
+					}
 				}
 			else:
-				return None
+				return {
+					'type': 'error',
+					'response_status': f'TIDAL-{response.status}'
+				}
 			
 
 
@@ -95,6 +104,7 @@ async def get_tidal_album(identifier: str):
 			'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}',
 			'Content-Type': 'application/vnd.tidal.v1+json'
 		}
+		start_time = current_time_ms()
 		async with session.get(url = api_url, headers = api_headers) as response:
 			if response.status == 200:
 				json_response = await response.json()
@@ -103,15 +113,25 @@ async def get_tidal_album(identifier: str):
 				album_title = json_response['resource']['title']
 				album_artists = [artist['name'] for artist in json_response['resource']['artists']]
 				album_cover = json_response['resource']['imageCover'][1]['url']
+				album_year = json_response['resource']['releaseDate'][:4]
 				return {
+					'type': 'album',
 					'url': album_url,
 					'id': album_id,
-					'album': album_title,
+					'title': album_title,
 					'artists': album_artists,
 					'cover': album_cover,
+					'year': album_year,
+					'extra': {
+						'api_time_ms': current_time_ms() - start_time,
+						'response_status': f'TIDAL-{response.status}'
+					}
 				}
 			else:
-				return None	
+				return {
+					'type': 'error',
+					'response_status': f'TIDAL-{response.status}'
+				}
 
 
 
@@ -123,6 +143,7 @@ async def get_tidal_video(identifier: str):
 			'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}',
 			'Content-Type': 'application/vnd.tidal.v1+json'
 		}
+		start_time = current_time_ms()
 		async with session.get(url = api_url, headers = api_headers) as response:
 			if response.status == 200:
 				json_response = await response.json()
@@ -132,14 +153,22 @@ async def get_tidal_video(identifier: str):
 				video_artists = [artist['name'] for artist in json_response['resource']['artists']]
 				video_cover = json_response['resource']['image'][1]['url']
 				return {
+					'type': 'track',
 					'url': video_url,
 					'id': video_id,
-					'track': video_title,
+					'title': video_title,
 					'artists': video_artists,
 					'cover': video_cover,
+					'extra': {
+						'api_time_ms': current_time_ms() - start_time,
+						'response_status': f'TIDAL-{response.status}'
+					}
 				}
 			else:
-				return None
+				return {
+					'type': 'error',
+					'response_status': f'TIDAL-{response.status}'
+				}
 
 
 
@@ -153,6 +182,7 @@ async def search_tidal_track(artist: str, track: str):
 			'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}',
 			'Content-Type': 'application/vnd.tidal.v1+json'
 		}
+		start_time = current_time_ms()
 		async with session.get(url = api_url, headers = api_headers) as response:
 			if response.status == 207:
 				json_response = await response.json()
@@ -164,17 +194,27 @@ async def search_tidal_track(artist: str, track: str):
 						track_artists = [artist['name'] for artist in item['resource']['artists']]
 						track_cover = item['resource']['album']['imageCover'][1]['url']
 						tracks_data.append({
+							'type': 'track',
 							'url': track_url,
 							'id': track_id,
-							'track': track_title,
+							'title': track_title,
 							'artists': track_artists,
 							'cover': track_cover,
+							'extra': {
+								'api_time_ms': current_time_ms() - start_time,
+								'response_status': f'TIDAL-{response.status}'
+							}
 						})
 					return filter_track(artist = artist, track = track, tracks_data = tracks_data)
 				else:
-					return None
+					return {
+						'type': 'empty_response'
+					}
 			else:
-				return response.status
+				return {
+					'type': 'error',
+					'response_status': f'TIDAL-{response.status}'
+				}
 
 
 
@@ -188,6 +228,7 @@ async def search_tidal_album(artist: str, album: str):
 			'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}',
 			'Content-Type': 'application/vnd.tidal.v1+json'
 		}
+		start_time = current_time_ms()
 		async with session.get(url = api_url, headers = api_headers) as response:
 			if response.status == 207:
 				json_response = await response.json()
@@ -198,15 +239,27 @@ async def search_tidal_album(artist: str, album: str):
 						album_title = item['resource']['title']
 						album_artists = [artist['name'] for artist in item['resource']['artists']]
 						album_cover = item['resource']['imageCover'][1]['url']
+						album_year = item['resource']['releaseDate'][:4]
 						albums_data.append({
+							'type': 'album',
 							'url': album_url,
 							'id': album_id,
-							'album': album_title,
+							'title': album_title,
 							'artists': album_artists,
 							'cover': album_cover,
+							'year': album_year,
+							'extra': {
+								'api_time_ms': current_time_ms() - start_time,
+								'response_status': f'TIDAL-{response.status}'
+							}
 						})
 					return filter_album(artist = artist, album = album, albums_data = albums_data)
 				else:
-					return None
+					return {
+						'type': 'empty_response'
+					}
 			else:
-				return None
+				return {
+					'type': 'error',
+					'response_status': f'TIDAL-{response.status}'
+				}

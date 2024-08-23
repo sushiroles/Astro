@@ -56,94 +56,138 @@ def get_youtube_music_album_id(url: str):
 
 async def get_youtube_music_track(identifier: str):
 	try:
+		start_time = current_time_ms()
 		result = ytmusic.get_song(identifier)['videoDetails']
 		if result['musicVideoType'] == 'MUSIC_VIDEO_TYPE_ATV' or result['musicVideoType'] == 'MUSIC_VIDEO_TYPE_OMV':
-			url = str(f'https://music.youtube.com/watch?v={result['videoId']}')
-			identifier = str(result['videoId'])
-			artists = split_artists(result['author'])
-			title = str(result['title'])
-			cover = str(result['thumbnail']['thumbnails'][len(result['thumbnail']['thumbnails'])-1]['url'])
+			track_url = str(f'https://music.youtube.com/watch?v={result['videoId']}')
+			track_id = str(result['videoId'])
+			track_title = str(result['title'])
+			track_artists = split_artists(result['author'])
+			track_cover = str(result['thumbnail']['thumbnails'][len(result['thumbnail']['thumbnails'])-1]['url'])
 			return {
-				'url': url,
-				'id': identifier,
-				'artists': artists,
-				'track': title,
-				'cover': cover,
+				'type': 'track',
+				'url': track_url,
+				'id': track_id,
+				'title': track_title,
+				'artists': track_artists,
+				'cover': track_cover,
+				'extra': {
+					'api_time_ms': current_time_ms() - start_time,
+					'response_status': 'YouTubeMusic-200'
+				}
 			}
-	except:
-		return None
+	except Exception as response:
+		return {
+			'type': 'error',
+			'response_status': f'YouTubeMusic-"{response}"'
+		}
 
 
 
 async def get_youtube_music_album(identifier: str):
 	try:
+		start_time = current_time_ms()
 		browse_id = ytmusic.get_album_browse_id(identifier)
 		result = ytmusic.get_album(browse_id)
 		if 'OLAK5' in identifier[:5]:
-			url = str(result['audioPlaylistId'])
-			identifier = str(result['audioPlaylistId'])
-			artists = []
-			for names in result['artists']:
-				artists.append(str(names['name']))
-			title = str(result['title'])
-			cover = str(result['thumbnails'][1]['url'])
+			album_url = result['audioPlaylistId']
+			album_id = result['audioPlaylistId']
+			album_title = result['title']
+			album_artists = [artist['name'] for artist in result['artists']]
+			album_cover = result['thumbnails'][1]['url']
+			album_year = result['year']
 			return {
-				'url': url,
-				'id': identifier,
-				'artists': artists,
-				'album': title,
-				'cover': cover,
+				'type': 'album',
+				'url': album_url,
+				'id': album_id,
+				'title': album_title,
+				'artists': album_artists,
+				'cover': album_cover,
+				'year': album_year,
+				'extra': {
+					'api_time_ms': current_time_ms() - start_time,
+					'response_status': 'YouTubeMusic-200'
+				}
 			}
-	except:
-		return None
+	except Exception as response:
+		return {
+			'type': 'error',
+			'response_status': f'YouTubeMusic-"{response}"'
+		}
 
 
 
 async def search_youtube_music_track(artist: str, track: str):
 	try:
 		tracks_data = []
+		start_time = current_time_ms()
 		search_results = ytmusic.search(f'{artist} {track}', filter = 'songs')
 		for result in search_results:
 			if result['resultType'] == 'song':
-				url = str(f'https://music.youtube.com/watch?v={result['videoId']}')
-				identifier = str(result['videoId'])
-				artists = []
-				for names in result['artists']:
-					artists.append(str(names['name']))
-				title = str(result['title'])
-				cover = str(result['thumbnails'][1]['url'])
+				track_url = str(f'https://music.youtube.com/watch?v={result['videoId']}')
+				track_id = str(result['videoId'])
+				track_artists = [artist['name'] for artist in result['artists']]
+				track_title = str(result['title'])
+				track_cover = str(result['thumbnails'][1]['url'])
 				tracks_data.append({
-					'url': url,
-					'id': identifier,
-					'artists': artists,
-					'track': title,
-					'cover': cover,
+					'type': 'track',
+					'url': track_url,
+					'id': track_id,
+					'title': track_title,
+					'artists': track_artists,
+					'cover': track_cover,
+					'extra': {
+						'api_time_ms': current_time_ms() - start_time,
+						'response_status': 'YouTubeMusic-200'
+					}
 				})
-		return filter_track(artist, track, tracks_data)
-	except:
-		return None
+		return filter_track(artist = artist, track = track, tracks_data = tracks_data)
+	except Exception as response:
+		return {
+			'type': 'error',
+			'response_status': f'YouTubeMusic-"{response}"'
+		}
 
 
 
 async def search_youtube_music_album(artist: str, album: str):
 	try:
-		result = ytmusic.search(f'{artist} {album}')[0]
-		url = str(f'https://music.youtube.com/playlist?list={result['playlistId']}')
-		if result['resultType'] == 'album':
-			identifier = str(result['playlistId'])
-			artists = []
-			for names in result['artists']:
-				artists.append(str(names['name']))
-			title = str(result['title'])
-			cover = str(result['thumbnails'][1]['url'])
-			return {
-				'url': url,
-				'id': identifier,
-				'artists': artists,
-				'album': title,
-				'cover': cover,
+		albums_data = []
+		start_time = current_time_ms()
+		search_results = ytmusic.search(f'{artist} {album}', filter = 'albums')
+		for result in search_results:
+			if result['resultType'] == 'album':
+				browse_id = result['browseId']
+				album_artists = [artist['name'] for artist in result['artists']]
+				album_title = str(result['title'])
+				albums_data.append({
+					'browse_id': browse_id,
+					'title': album_title,
+					'artists': album_artists,
+				})
+		result_browse_id = filter_album(artist = artist, album = album, albums_data = albums_data)['browse_id']
+		result = ytmusic.get_album(result_browse_id)
+		album_url = f'https://music.youtube.com/playlist?list={result['audioPlaylistId']}'
+		album_id = result['audioPlaylistId']
+		album_title = result['title']
+		album_artists = [artist['name'] for artist in result['artists']]
+		album_cover = result['thumbnails'][1]['url']
+		album_year = result['year']
+		return {
+			'type': 'album',
+			'url': album_url,
+			'id': album_id,
+			'title': album_title,
+			'artists': album_artists,
+			'cover': album_cover,
+			'year': album_year,
+			'extra': {
+				'api_time_ms': current_time_ms() - start_time,
+				'response_status': 'YouTubeMusic-200'
 			}
-		else:
-			return None
-	except:
-		return None
+		}
+	except Exception as response:
+		return {
+			'type': 'error',
+			'response_status': f'YouTubeMusic-"{response}"'
+		}

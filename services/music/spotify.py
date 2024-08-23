@@ -1,5 +1,6 @@
 import configparser
 import aiohttp
+import asyncio
 try:
 	from services.etc import *
 	from services.filter import *
@@ -39,6 +40,7 @@ def get_spotify_id(url: str):
 
 
 async def get_spotify_track(identifier: str):
+	start_time = current_time_ms()
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://api.spotify.com/v1/tracks/{identifier}'
 		api_headers = {'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}'}
@@ -51,14 +53,22 @@ async def get_spotify_track(identifier: str):
 				track_artists = [artist['name'] for artist in json_response['artists']]
 				track_cover = json_response['album']['images'][0]['url']
 				return {
+					'type': 'track',
 					'url': track_url,
 					'id': track_id,
-					'track': track_title,
+					'title': track_title,
 					'artists': track_artists,
 					'cover': track_cover,
+					'extra': {
+						'time_ms': current_time_ms() - start_time,
+						'response_status': f'Spotify-{response.status}'
+					}
 				}
 			else:
-				return None
+				return {
+					'type': 'error',
+					'response_status': f'Spotify-{response.status}'
+				}
 
 
 
@@ -66,6 +76,7 @@ async def get_spotify_album(identifier: str):
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://api.spotify.com/v1/albums/{identifier}'
 		api_headers = {'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}'}
+		start_time = current_time_ms()
 		async with session.get(url = api_url, headers = api_headers) as response:
 			if response.status == 200:
 				json_response = await response.json()
@@ -74,15 +85,25 @@ async def get_spotify_album(identifier: str):
 				album_title = json_response['name']
 				album_artists = [artist['name'] for artist in json_response['artists']]
 				album_cover = json_response['images'][0]['url']
+				album_year = json_response['release_date'][:4]
 				return {
+					'type': 'album',
 					'url': album_url,
 					'id': album_id,
-					'album': album_title,
+					'title': album_title,
 					'artists': album_artists,
 					'cover': album_cover,
+					'year': album_year,
+					'extra': {
+						'api_time_ms': current_time_ms() - start_time,
+						'response_status': f'Spotify-{response.status}'
+					}
 				}
 			else:
-				return None
+				return {
+					'type': 'error',
+					'response_status': f'Spotify-{response.status}'
+				}
 			
 
 
@@ -92,6 +113,7 @@ async def search_spotify_track(artist: str, track: str):
 		query = f'artist:{artist} track:{track}'
 		api_url = f'https://api.spotify.com/v1/search?q={query}&type=track&limit=50'
 		api_headers = {'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}'}
+		start_time = current_time_ms()
 		async with session.get(url = api_url, headers = api_headers) as response:
 			if response.status == 200:
 				json_response = await response.json()
@@ -103,26 +125,40 @@ async def search_spotify_track(artist: str, track: str):
 						track_artists = [artist['name'] for artist in item['artists']]
 						track_cover = item['album']['images'][0]['url']
 						tracks_data.append({
+							'type': 'track',
 							'url': track_url,
 							'id': track_id,
-							'track': track_title,
+							'title': track_title,
 							'artists': track_artists,
 							'cover': track_cover,
+							'extra': {
+								'api_time_ms': current_time_ms() - start_time,
+								'response_status': f'Spotify-{response.status}'
+							}
 						})
 					return filter_track(artist = artist, track = track, tracks_data = tracks_data)
 				else:
-					return None
+					return {
+						'type': 'empty_response'
+					}
 			else:
-				return None
+				return {
+					'type': 'error',
+					'response_status': f'Spotify-{response.status}'
+				}
 			
 
 
-async def search_spotify_album(artist: str, album: str):
+async def search_spotify_album(artist: str, album: str, year: str = 'None'):
 	albums_data = []
 	async with aiohttp.ClientSession() as session:
-		query = f'artist:{artist} album:{album}'
+		if year != 'None':
+			query = f'artist:{artist} album:{album} year:{year}'
+		else:
+			query = f'artist:{artist} album:{album}'
 		api_url = f'https://api.spotify.com/v1/search?q={query}&type=album&limit=50'
 		api_headers = {'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}'}
+		start_time = current_time_ms()
 		async with session.get(url = api_url, headers = api_headers) as response:
 			if response.status == 200:
 				json_response = await response.json()
@@ -133,15 +169,27 @@ async def search_spotify_album(artist: str, album: str):
 						album_title = item['name']
 						album_artists = [artist['name'] for artist in item['artists']]
 						album_cover = item['images'][0]['url']
+						album_year = item['release_date'][:4]
 						albums_data.append({
+							'type': 'album',
 							'url': album_url,
 							'id': album_id,
-							'album': album_title,
+							'title': album_title,
 							'artists': album_artists,
 							'cover': album_cover,
+							'year': album_year,
+							'extra': {
+								'api_time_ms': current_time_ms() - start_time,
+								'response_status': f'Spotify-{response.status}'
+							}
 						})
 					return filter_album(artist = artist, album = album, albums_data = albums_data)
 				else:
-					return None
+					return {
+						'type': 'empty_response'
+					}
 			else:
-				return None
+				return {
+					'type': 'error',
+					'response_status': f'Spotify-{response.status}'
+				}
