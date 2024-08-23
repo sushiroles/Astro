@@ -14,7 +14,7 @@ def filter_track(artist: str, track: str, tracks_data: list):
 		for name in data['artists']:
 			data_artists.append(bare_bones(name))
 		artists_string = ' '.join(data_artists)
-		data_track = bare_bones(data['track'], False)
+		data_track = bare_bones(data['title'], False)
 		num_of_found_words = 0
 		if artists_string.find(artist) >= 0:
 			for word in track:
@@ -38,7 +38,7 @@ def filter_album(artist: str, album: str, albums_data: list):
 		for name in data['artists']:
 			data_artists.append(bare_bones(name))
 		artists_string = ' '.join(data_artists)
-		data_album = bare_bones(data['album'], False)
+		data_album = bare_bones(data['title'], False)
 		num_of_found_words = 0
 		if artists_string.find(artist) >= 0:
 			for word in album:
