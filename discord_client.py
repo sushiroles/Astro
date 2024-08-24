@@ -47,11 +47,9 @@ def success_embed(title: str, artists: list, cover: str, anchor: str, result_typ
 		description = discord.utils.escape_markdown(f'by {', '.join(artists)}'),
 		colour = get_average_color(cover),
 	)
-
-	embed.set_author(name = result_type.capitalize())
 		
 	embed.add_field(
-		name = 'You can find it on:',
+		name = f'You can find this {result_type} on:',
 		value = anchor,
 		inline = False
 	)
@@ -226,7 +224,7 @@ async def self(interaction: discord.Interaction, link: str):
 
 
 
-@tree.command(name = 'snoop', description = 'Get the song a user is listening to on Spotify')
+@tree.command(name = 'snoop', description = 'Get the track a user is listening to on Spotify')
 async def self(interaction: discord.Interaction, user: discord.Member):
 	logs_channel = client.get_channel(int(config['discord']['logs_channel']))
 	start_time = current_time_ms()
@@ -262,6 +260,52 @@ async def self(interaction: discord.Interaction, user: discord.Member):
 		await interaction.followup.send(embed = fail_embed("That user doesn't appear to be listening to any Spotify track."))
 		await logs_channel.send(embed = log('FAILURE - Snoop', f'No Spotify playback detected'))
 		return None
+
+
+
+@tree.command(name = 'coverart', description = 'Get the cover art of a track or album')
+async def self(interaction: discord.Interaction, link: str):
+	logs_channel = client.get_channel(int(config['discord']['logs_channel']))
+	start_time = current_time_ms()
+	await interaction.response.defer()
+
+	try:
+		data = await get_music_data(link)
+	except:
+		await interaction.followup.send(embed = fail_embed("The link provided isn't a valid music link."))
+		await logs_channel.send(embed = log('FAILURE - Get Cover Art', 'Invalid URL', f'URL: {link}'))
+		return None
+
+	try:
+		if data['type'] == 'error':
+			await interaction.followup.send(embed = fail_embed("An error has occured while running your command. Please try again!"))
+			await logs_channel.send(embed = log('FAILURE - Get Cover Art', f'HTTP Error {data['response_status']}', f'URL: {link}'))
+			return None
+		if data['type'] == 'track':
+			data['title'] = remove_feat(data['title'])
+			search_result = await search_track(data['artists'][0], data['title'])
+		elif data['type'] == 'album':
+			search_result = await search_album(data['artists'][0], data['album'])
+	except Exception as error:
+		await interaction.followup.send(embed = fail_embed("An error has occured while running your command. Please try again!"))
+		await logs_channel.send(embed = log('ERROR - Get Cover Art', f'{error}', f'URL: "{link}"'))
+		return None
+
+	if search_result['anchor'] == '':
+		await interaction.followup.send(embed = fail_embed("I wasn't able to find anything regarding your link. Make sure you haven't accidentally typed anything in it and try again!"))
+		await logs_channel.send(embed = log('FAILURE - Get Cover Art', f'Unsuccessfully executed command',f'URL: "{link}"'))
+
+	embed = discord.Embed(
+		title = discord.utils.escape_markdown(f'{search_result['title']}'),
+		description = discord.utils.escape_markdown(f'by {', '.join(search_result['artists'])}'),
+		colour = get_average_color(search_result['cover']),
+	)
+	
+	embed.set_image(url = search_result['cover'])
+	embed.set_footer(text = 'Thank you for using Astro!')
+
+	await interaction.followup.send(embed = embed)
+	await logs_channel.send(embed = log('SUCCESS - Get Cover Art', f'Successfully executed command in {current_time_ms() - start_time}ms', f'URL: "{link}"', search_result['cover']))
 
 
 
