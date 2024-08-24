@@ -34,8 +34,8 @@ def is_youtube_music_album(url: str):
 def get_youtube_music_track_id(url: str):
 	if url.find('https://youtu.be/') >= 0:
 		url = url.replace('https://youtu.be/','')
-		if url.find('?si') >= 0:
-			return str(url[0:url.index('?si')])
+		if url.find('?') >= 0:
+			return str(url[0:url.index('?')])
 		else:
 			return str(url[0:])
 	else:
