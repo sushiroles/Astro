@@ -246,8 +246,8 @@ async def self(interaction: discord.Interaction, user: discord.Member):
 					await interaction.followup.send(embed = fail_embed("An error occured while running your command. Please try again!"))
 					await logs_channel.send(embed = log('ERROR - Snoop', f'{error}', f'ID: {identifier}'))
 					return None
-				data['track'] = remove_feat(data['track'])
-				search_result = await search_track(data['artists'][0], data['track'])
+				data['title'] = remove_feat(data['title'])
+				search_result = await search_track(data['artists'][0], data['title'])
 			except Exception as error:
 				await interaction.followup.send(embed = fail_embed("An error occured while running your command. Please try again!"))
 				await logs_channel.send(embed = log('ERROR - Snoop', f'{error}', f'ID: {identifier}'))
