@@ -88,7 +88,7 @@ async def get_track_data(service: str, api_call: callable):
 			'anchor': anchor,
 			'log_anchor': log_anchor
 		}
-	if call_results['type'] != 'empty_response':
+	if call_results['type'] != 'empty_response' and call_results['type'] != 'error':
 		url = call_results['url']
 		identifier = call_results['id']
 		artists = call_results['artists']
@@ -137,7 +137,7 @@ async def get_album_data(service: str, api_call: callable):
 			'anchor': anchor,
 			'log_anchor': log_anchor
 		}
-	if call_results['type'] != 'empty_response':
+	if call_results['type'] != 'empty_response' and call_results['type'] != 'error':
 		url = call_results['url']
 		identifier = call_results['id']
 		title = call_results['title']
