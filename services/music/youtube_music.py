@@ -142,6 +142,7 @@ async def search_youtube_music_track(artist: str, track: str):
 					}
 				})
 		return filter_track(artist = artist, track = track, tracks_data = tracks_data)
+
 	except Exception as response:
 		return {
 			'type': 'error',
@@ -161,31 +162,37 @@ async def search_youtube_music_album(artist: str, album: str):
 				album_artists = [artist['name'] for artist in result['artists']]
 				album_title = str(result['title'])
 				albums_data.append({
+					'type': 'album',
 					'browse_id': browse_id,
 					'title': album_title,
 					'artists': album_artists,
 				})
-		result_browse_id = filter_album(artist = artist, album = album, albums_data = albums_data)['browse_id']
-		result = ytmusic.get_album(result_browse_id)
-		album_url = f'https://music.youtube.com/playlist?list={result['audioPlaylistId']}'
-		album_id = result['audioPlaylistId']
-		album_title = result['title']
-		album_artists = [artist['name'] for artist in result['artists']]
-		album_cover = result['thumbnails'][1]['url']
-		album_year = result['year']
-		return {
-			'type': 'album',
-			'url': album_url,
-			'id': album_id,
-			'title': album_title,
-			'artists': album_artists,
-			'cover': album_cover,
-			'year': album_year,
-			'extra': {
-				'api_time_ms': current_time_ms() - start_time,
-				'response_status': 'YouTubeMusic-200'
+		result = filter_album(artist = artist, album = album, albums_data = albums_data)
+		if result['type'] != 'empty_response':
+			result = ytmusic.get_album(result['browse_id'])
+			album_url = f'https://music.youtube.com/playlist?list={result['audioPlaylistId']}'
+			album_id = result['audioPlaylistId']
+			album_title = result['title']
+			album_artists = [artist['name'] for artist in result['artists']]
+			album_cover = result['thumbnails'][1]['url']
+			album_year = result['year']
+			return {
+				'type': 'album',
+				'url': album_url,
+				'id': album_id,
+				'title': album_title,
+				'artists': album_artists,
+				'cover': album_cover,
+				'year': album_year,
+				'extra': {
+					'api_time_ms': current_time_ms() - start_time,
+					'response_status': 'YouTubeMusic-200'
+				}
 			}
-		}
+		else:
+			return {
+				'type': 'empty_response'
+			}
 	except Exception as response:
 		return {
 			'type': 'error',

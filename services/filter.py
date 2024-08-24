@@ -26,7 +26,9 @@ def filter_track(artist: str, track: str, tracks_data: list):
 	if data_with_percentage != []:
 		return data_with_percentage[0][1]
 	else:
-		return None
+		return {
+			'type': 'empty_response'
+		}
 
 	
 def filter_album(artist: str, album: str, albums_data: list):
@@ -50,4 +52,6 @@ def filter_album(artist: str, album: str, albums_data: list):
 	if data_with_percentage != []:
 		return data_with_percentage[0][1]
 	else:
-		return None
+		return {
+			'type': 'empty_response'
+		}
