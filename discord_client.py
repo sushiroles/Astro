@@ -273,13 +273,13 @@ async def self(interaction: discord.Interaction, link: str):
 		data = await get_music_data(link)
 	except:
 		await interaction.followup.send(embed = fail_embed("The link provided isn't a valid music link."))
-		await logs_channel.send(embed = log('FAILURE - Get Cover Art', 'Invalid URL', f'URL: {link}'))
+		await logs_channel.send(embed = log('FAILURE - Cover Art Showcase', 'Invalid URL', f'URL: {link}'))
 		return None
 
 	try:
 		if data['type'] == 'error':
 			await interaction.followup.send(embed = fail_embed("An error has occured while running your command. Please try again!"))
-			await logs_channel.send(embed = log('FAILURE - Get Cover Art', f'HTTP Error {data['response_status']}', f'URL: {link}'))
+			await logs_channel.send(embed = log('FAILURE - Cover Art Showcase', f'HTTP Error {data['response_status']}', f'URL: {link}'))
 			return None
 		if data['type'] == 'track':
 			data['title'] = remove_feat(data['title'])
@@ -288,12 +288,12 @@ async def self(interaction: discord.Interaction, link: str):
 			search_result = await search_album(data['artists'][0], data['title'])
 	except Exception as error:
 		await interaction.followup.send(embed = fail_embed("An error has occured while running your command. Please try again!"))
-		await logs_channel.send(embed = log('ERROR - Get Cover Art', f'{error}', f'URL: "{link}"'))
+		await logs_channel.send(embed = log('ERROR - Cover Art Showcase', f'{error}', f'URL: "{link}"'))
 		return None
 
 	if search_result['anchor'] == '':
 		await interaction.followup.send(embed = fail_embed("I wasn't able to find anything regarding your link. Make sure you haven't accidentally typed anything in it and try again!"))
-		await logs_channel.send(embed = log('FAILURE - Get Cover Art', f'Unsuccessfully executed command',f'URL: "{link}"'))
+		await logs_channel.send(embed = log('FAILURE - Cover Art Showcase', f'Unsuccessfully executed command',f'URL: "{link}"'))
 
 	embed = discord.Embed(
 		title = discord.utils.escape_markdown(f'{search_result['title']}'),
