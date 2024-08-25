@@ -207,7 +207,7 @@ async def self(interaction: discord.Interaction, link: str):
 			data['title'] = remove_feat(data['title'])
 			search_result = await search_track(data['artists'][0], data['title'])
 		elif data['type'] == 'album':
-			search_result = await search_album(data['artists'][0], data['album'])
+			search_result = await search_album(data['artists'][0], data['title'])
 	except Exception as error:
 		await interaction.followup.send(embed = fail_embed("An error has occured while running your command. Please try again!"))
 		await logs_channel.send(embed = log('ERROR - Link Lookup', f'{error}', f'URL: "{link}"'))
