@@ -41,6 +41,9 @@ def log(type: str, message: str, parameters: str = None, anchors: str = None):
 
 	return embed
 
+def current_time():
+	return int(time())
+
 def current_time_ms():
 	return int(time() * 1000)
 
@@ -122,7 +125,7 @@ def get_average_color(image_url: str, quality: int = 5):
 		response = requests.get(image_url)
 		image = Image.open(BytesIO(response.content))
 	except:
-		return None
+		return 0xf5c000
 
 	width, height = image.size
 	new_width = width // quality

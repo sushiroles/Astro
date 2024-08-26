@@ -24,13 +24,6 @@ class Client(discord.Client):
 		discordintents.presences = True
 		discordintents.members = True
 		super().__init__(intents = discordintents)
-		self.synced = False
-	async def on_ready(self):
-		await self.wait_until_ready()
-		if not self.synced:
-			await tree.sync()
-			self.synced = True
-		discord_presence.start()
 
 
 
@@ -76,6 +69,27 @@ def fail_embed(message: str):
 	embed.set_footer(text = 'Thank you for using Astro!')
 
 	return embed
+
+
+
+@client.event
+async def on_ready():
+	await client.wait_until_ready()
+	await tree.sync()
+	discord_presence.start()
+	logs_channel = client.get_channel(int(config['discord']['logs_channel']))
+	embed = discord.Embed(
+		title = f'**Liftoff!**',
+		colour = 0xf5c000,
+	)
+		
+	embed.add_field(
+		name = 'Start time',
+		value = f'<t:{current_time()}:F>',
+		inline = False
+	)
+	
+	await logs_channel.send(embed = embed)
 
 
 
