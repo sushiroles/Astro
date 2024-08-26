@@ -34,6 +34,7 @@ class Client(discord.Client):
 
 
 
+version = '1.0'
 client = Client() 
 tree = app_commands.CommandTree(client)
 is_internal = True
