@@ -58,23 +58,28 @@ async def get_youtube_music_track(identifier: str):
 	try:
 		start_time = current_time_ms()
 		result = ytmusic.get_song(identifier)['videoDetails']
-		if result['musicVideoType'] == 'MUSIC_VIDEO_TYPE_ATV' or result['musicVideoType'] == 'MUSIC_VIDEO_TYPE_OMV':
-			track_url = str(f'https://music.youtube.com/watch?v={result['videoId']}')
-			track_id = str(result['videoId'])
-			track_title = str(result['title'])
-			track_artists = split_artists(result['author'])
-			track_cover = str(result['thumbnail']['thumbnails'][len(result['thumbnail']['thumbnails'])-1]['url'])
-			return {
-				'type': 'track',
-				'url': track_url,
-				'id': track_id,
-				'title': track_title,
-				'artists': track_artists,
-				'cover': track_cover,
-				'extra': {
-					'api_time_ms': current_time_ms() - start_time,
-					'response_status': 'YouTubeMusic-200'
+		if 'musicVideoType' in result:
+			if result['musicVideoType'] == 'MUSIC_VIDEO_TYPE_ATV' or result['musicVideoType'] == 'MUSIC_VIDEO_TYPE_OMV':
+				track_url = str(f'https://music.youtube.com/watch?v={result['videoId']}')
+				track_id = str(result['videoId'])
+				track_title = str(result['title'])
+				track_artists = split_artists(result['author'])
+				track_cover = str(result['thumbnail']['thumbnails'][len(result['thumbnail']['thumbnails'])-1]['url'])
+				return {
+					'type': 'track',
+					'url': track_url,
+					'id': track_id,
+					'title': track_title,
+					'artists': track_artists,
+					'cover': track_cover,
+					'extra': {
+						'api_time_ms': current_time_ms() - start_time,
+						'response_status': 'YouTubeMusic-200'
+					}
 				}
+		else:
+			return {
+				'type': 'empty_response',
 			}
 	except Exception as response:
 		return {
@@ -108,6 +113,10 @@ async def get_youtube_music_album(identifier: str):
 					'api_time_ms': current_time_ms() - start_time,
 					'response_status': 'YouTubeMusic-200'
 				}
+			}
+		else:
+			return {
+				'type': 'empty_response',
 			}
 	except Exception as response:
 		return {

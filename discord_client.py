@@ -27,7 +27,7 @@ class Client(discord.Client):
 
 
 
-version = '1.0'
+version = '1.0.1'
 client = Client() 
 tree = app_commands.CommandTree(client)
 is_internal = True
@@ -77,16 +77,31 @@ async def on_ready():
 	await client.wait_until_ready()
 	await tree.sync()
 	discord_presence.start()
+
 	logs_channel = client.get_channel(int(config['discord']['logs_channel']))
 	embed = discord.Embed(
-		title = f'**Liftoff!**',
+		title = f'LIFT-OFF',
 		colour = 0xf5c000,
 	)
-		
+	embed.add_field(
+		name = 'Current version',
+		value = f'> `{version}`',
+		inline = True
+	)
+	embed.add_field(
+		name = 'Is internal?',
+		value = f'> `{is_internal}`',
+		inline = True
+	)
 	embed.add_field(
 		name = 'Start time',
 		value = f'<t:{current_time()}:F>',
-		inline = False
+		inline = True
+	)
+	embed.add_field(
+		name = 'Stats',
+		value = f'>>> In `{len(client.guilds)}` servers',
+		inline = True
 	)
 	
 	await logs_channel.send(embed = embed)
@@ -104,20 +119,20 @@ async def on_message(message):
 			if is_music(url):
 				try:
 					data = await get_music_data(url)
-					if data == None:
-						await logs_channel.send(embed = log('FAILURE - Auto Link Lookup', f'Failed to get track data from URL', f'URL: {url}'))
+					if data['type'] == 'empty_response':
+						await logs_channel.send(embed = log('FAILURE - Auto Link Lookup', f'Empty response', f'URL: {url}'))
+						continue
+					if data['type'] == 'error':
+						await logs_channel.send(embed = log('FAILURE - Auto Link Lookup', f'HTTP Error {data['response_status']}', f'URL: {url}'))
 						continue
 					await message.add_reaction('❗')
 				except Exception as error:
-					await logs_channel.send(embed = log('ERROR - Auto Link Lookup', f'When getting track data from URL - "{error}"', f'URL: {url}'))
+					await logs_channel.send(embed = log('ERROR - Auto Link Lookup', f'{error}', f'URL: {url}'))
 					continue
 			else:
 				continue
 
 			while current_time_ms() - start_time <= 30000:
-				if data['type'] == 'error':
-					await logs_channel.send(embed = log('FAILURE - Auto Link Lookup', f'HTTP Error {data['response_status']}', f'URL: {url}'))
-					return None
 				try:
 					if data['type'] == 'track':
 						data['title'] = remove_feat(data['title'])
