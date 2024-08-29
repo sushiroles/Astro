@@ -150,8 +150,7 @@ async def search_youtube_music_track(artist: str, track: str):
 						'response_status': 'YouTubeMusic-200'
 					}
 				})
-		return filter_track(artist = artist, track = track, tracks_data = tracks_data)
-
+		return filter_track(tracks_data = tracks_data, artist = artist, track = track)
 	except Exception as response:
 		return {
 			'type': 'error',
@@ -176,7 +175,7 @@ async def search_youtube_music_album(artist: str, album: str):
 					'title': album_title,
 					'artists': album_artists,
 				})
-		result = filter_album(artist = artist, album = album, albums_data = albums_data)
+		result = filter_album(albums_data = albums_data, artist = artist, album = album)
 		if result['type'] != 'empty_response':
 			result = ytmusic.get_album(result['browse_id'])
 			album_url = f'https://music.youtube.com/playlist?list={result['audioPlaylistId']}'

@@ -76,6 +76,8 @@ async def get_tidal_track(identifier: str):
 				track_title = json_response['resource']['title']
 				track_artists = [artist['name'] for artist in json_response['resource']['artists']]
 				track_cover = json_response['resource']['album']['imageCover'][1]['url']
+				track_collection = json_response['resource']['album']['title']
+				track_is_explicit = 'explicit' in json_response['resource']['properties']['content'][0] if 'content' in json_response['resource']['properties'] else False
 				return {
 					'type': 'track',
 					'url': track_url,
@@ -83,6 +85,8 @@ async def get_tidal_track(identifier: str):
 					'title': track_title,
 					'artists': track_artists,
 					'cover': track_cover,
+					'collection_name': track_collection,
+					'is_explicit': track_is_explicit,
 					'extra': {
 						'api_time_ms': current_time_ms() - start_time,
 						'response_status': f'TIDAL-{response.status}'
@@ -172,7 +176,7 @@ async def get_tidal_video(identifier: str):
 
 
 
-async def search_tidal_track(artist: str, track: str):
+async def search_tidal_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
 		query = f'{track} {artist}'
@@ -193,6 +197,8 @@ async def search_tidal_track(artist: str, track: str):
 						track_title = item['resource']['title']
 						track_artists = [artist['name'] for artist in item['resource']['artists']]
 						track_cover = item['resource']['album']['imageCover'][1]['url']
+						track_collection = item['resource']['album']['title']
+						track_is_explicit = 'explicit' in item['resource']['properties']['content'][0] if 'content' in item['resource']['properties'] else False
 						tracks_data.append({
 							'type': 'track',
 							'url': track_url,
@@ -200,12 +206,14 @@ async def search_tidal_track(artist: str, track: str):
 							'title': track_title,
 							'artists': track_artists,
 							'cover': track_cover,
+							'collection_name': track_collection,
+							'is_explicit': track_is_explicit,
 							'extra': {
 								'api_time_ms': current_time_ms() - start_time,
 								'response_status': f'TIDAL-{response.status}'
 							}
 						})
-					return filter_track(artist = artist, track = track, tracks_data = tracks_data)
+					return filter_track(tracks_data = tracks_data, artist = artist, track = track, collection = collection, is_explicit = is_explicit)
 				else:
 					return {
 						'type': 'empty_response'
@@ -218,7 +226,7 @@ async def search_tidal_track(artist: str, track: str):
 
 
 
-async def search_tidal_album(artist: str, album: str):
+async def search_tidal_album(artist: str, album: str, year: str):
 	albums_data = []
 	async with aiohttp.ClientSession() as session:
 		query = f'{artist} {album}'
@@ -253,7 +261,7 @@ async def search_tidal_album(artist: str, album: str):
 								'response_status': f'TIDAL-{response.status}'
 							}
 						})
-					return filter_album(artist = artist, album = album, albums_data = albums_data)
+					return filter_album(albums_data = albums_data, artist = artist, album = album, year = year)
 				else:
 					return {
 						'type': 'empty_response'

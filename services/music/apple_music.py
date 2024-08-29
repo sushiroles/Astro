@@ -85,6 +85,8 @@ async def get_apple_music_track(identifier: str, country_code: str):
 					track_title = result['trackName']
 					track_artists = await get_apple_music_artist(result['artistId'])
 					track_cover = result['artworkUrl100']
+					track_collection = result['collectionName']
+					track_is_explicit = not 'not' in result['trackExplicitness']
 					return {
 						'type': 'track',
 						'url': track_url,
@@ -92,6 +94,8 @@ async def get_apple_music_track(identifier: str, country_code: str):
 						'title': track_title,
 						'artists': track_artists,
 						'cover': track_cover,
+						'collection_name': track_collection,
+						'is_explicit': track_is_explicit,
 						'extra': {
 							'api_time_ms': current_time_ms() - start_time,
 							'response_status': f'AppleMusic-{response.status}'
@@ -164,7 +168,7 @@ async def get_apple_music_album(identifier: str, country_code: str):
 
 
 
-async def search_apple_music_track(artist: str, track: str):
+async def search_apple_music_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
 		query = f'{artist}+{track}'
@@ -182,6 +186,8 @@ async def search_apple_music_track(artist: str, track: str):
 							track_title = item['trackName']
 							track_artists = split_artists(item['artistName'])
 							track_cover = item['artworkUrl100']
+							track_collection = item['collectionName']
+							track_is_explicit = not 'not' in item['trackExplicitness']
 							tracks_data.append({
 								'type': 'track',
 								'url': track_url,
@@ -189,12 +195,14 @@ async def search_apple_music_track(artist: str, track: str):
 								'title': track_title,
 								'artists': track_artists,
 								'cover': track_cover,
+								'collection_name': track_collection,
+								'is_explicit': track_is_explicit,
 								'extra': {
 									'api_time_ms': current_time_ms() - start_time,
 									'response_status': str(response.status)
 								}
 							})
-						return filter_track(artist = artist, track = track, tracks_data = tracks_data)
+						return filter_track(tracks_data = tracks_data, artist = artist, track = track, collection = collection, is_explicit = is_explicit)
 					else:
 						return {
 							'type': 'empty_response'
@@ -210,7 +218,7 @@ async def search_apple_music_track(artist: str, track: str):
 			
 
 
-async def search_apple_music_album(artist: str, album: str):
+async def search_apple_music_album(artist: str, album: str, year: str = None):
 	albums_data = []
 	async with aiohttp.ClientSession() as session:
 		query = f'{artist}+{album}'
@@ -241,8 +249,8 @@ async def search_apple_music_album(artist: str, album: str):
 										'api_time_ms': current_time_ms() - start_time,
 										'response_status': f'AppleMusic-{response.status}'
 									}
-					})
-						return filter_album(artist = artist, album = album, albums_data = albums_data)
+							})
+						return filter_album(albums_data = albums_data, artist = artist, album = album, year = year)
 					else:
 						return {
 							'type': 'empty_response'

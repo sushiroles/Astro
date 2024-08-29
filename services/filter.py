@@ -5,7 +5,7 @@ except:
 
 
 
-def filter_track(artist: str, track: str, tracks_data: list):
+def filter_track(tracks_data: list, artist: str, track: str, album: str = None, is_explicit: bool = None):
 	artist = bare_bones(artist)
 	track = optimize_string(track)
 	data_with_percentage = []
@@ -31,7 +31,7 @@ def filter_track(artist: str, track: str, tracks_data: list):
 		}
 
 	
-def filter_album(artist: str, album: str, albums_data: list):
+def filter_album(albums_data: list, artist: str, album: str, year: str = None):
 	artist = bare_bones(artist)
 	album = optimize_string(album)
 	data_with_percentage = []

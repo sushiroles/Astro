@@ -51,6 +51,8 @@ async def get_deezer_track(identifier: str):
 				track_title = json_response['title']
 				track_artists = [artist['name'] for artist in json_response['contributors']]
 				track_cover = json_response['album']['cover_xl']
+				track_collection = json_response['album']['name']
+				track_is_explicit = json_response['explicit_lyrics']
 				return {
 					'type': 'track',
 					'url': track_url,
@@ -58,6 +60,8 @@ async def get_deezer_track(identifier: str):
 					'title': track_title,
 					'artists': track_artists,
 					'cover': track_cover,
+					'collection_name': track_collection,
+					'is_explicit': track_is_explicit,
 					'extra': {
 						'api_time_ms': current_time_ms() - start_time,
 						'response_status': f'Deezer-{response.status}'
@@ -105,7 +109,7 @@ async def get_deezer_album(identifier: str):
 
 			
 
-async def search_deezer_track(artist: str, track: str):
+async def search_deezer_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://api.deezer.com/search/track?q=artist:"{artist}" track:"{track}"'
@@ -123,6 +127,8 @@ async def search_deezer_track(artist: str, track: str):
 							track_title = data['title']
 							track_artists = [artist['name'] for artist in data['contributors']]
 							track_cover = data['album']['cover_xl']
+							track_collection = data['album']['name']
+							track_is_explicit = data['explicit_lyrics']
 							tracks_data.append({
 								'type': 'track',
 								'url': track_url,
@@ -130,12 +136,14 @@ async def search_deezer_track(artist: str, track: str):
 								'title': track_title,
 								'artists': track_artists,
 								'cover': track_cover,
+								'collection_name': track_collection,
+								'is_explicit': track_is_explicit,
 								'extra': {
 									'api_time_ms': current_time_ms() - start_time,
 									'response_status': f'Deezer-{response.status}'
 								}
 							})
-					return filter_track(artist = artist, track = track, tracks_data = tracks_data)
+					return filter_track(tracks_data = tracks_data, artist = artist, track = track, collection = collection, is_explicit = is_explicit)
 				else:
 					return {
 						'type': 'empty_response'
@@ -148,7 +156,7 @@ async def search_deezer_track(artist: str, track: str):
 
 
 
-async def search_deezer_album(artist: str, album: str):
+async def search_deezer_album(artist: str, album: str, year: str = None):
 	albums_data = []
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://api.deezer.com/search/album?q=artist:"{artist}" album:"{album}"'
@@ -180,7 +188,7 @@ async def search_deezer_album(artist: str, album: str):
 									'response_status': f'Deezer-{response.status}'
 								}
 							})
-					return filter_album(artist = artist, album = album, albums_data = albums_data)
+					return filter_album(albums_data = albums_data, artist = artist, album = album, year = year)
 				else:
 					return {
 						'type': 'empty_response'
