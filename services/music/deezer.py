@@ -51,7 +51,7 @@ async def get_deezer_track(identifier: str):
 				track_title = json_response['title']
 				track_artists = [artist['name'] for artist in json_response['contributors']]
 				track_cover = json_response['album']['cover_xl']
-				track_collection = json_response['album']['name']
+				track_collection = json_response['album']['title']
 				track_is_explicit = json_response['explicit_lyrics']
 				return {
 					'type': 'track',
@@ -127,7 +127,7 @@ async def search_deezer_track(artist: str, track: str, collection: str = None, i
 							track_title = data['title']
 							track_artists = [artist['name'] for artist in data['contributors']]
 							track_cover = data['album']['cover_xl']
-							track_collection = data['album']['name']
+							track_collection = data['album']['title']
 							track_is_explicit = data['explicit_lyrics']
 							tracks_data.append({
 								'type': 'track',
