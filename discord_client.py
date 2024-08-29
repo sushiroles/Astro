@@ -397,7 +397,10 @@ async def self(interaction: discord.Interaction, message: discord.Message):
 
 @tasks.loop(seconds = 60)
 async def discord_presence():
-	await client.change_presence(activity = discord.Activity(type = discord.ActivityType.listening, name = presence_statuses[randint(0, len(presence_statuses)-1)]))
+	await client.change_presence(activity = discord.Activity(
+		type = discord.ActivityType.listening,
+		name = presence_statuses[randint(0, len(presence_statuses)-1)],
+	))
 
 
 
