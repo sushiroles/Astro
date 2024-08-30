@@ -6,7 +6,6 @@ from discord.ext import tasks
 import configparser
 import asyncio
 from random import randint
-from time import sleep
 
 from app_services import *
 
@@ -137,9 +136,9 @@ async def on_message(message):
 				try:
 					if data['type'] == 'track':
 						data['title'] = remove_feat(data['title'])
-						search_result = await search_track(data['artists'][0], data['title'])
+						search_result = await search_track(data['artists'][0], data['title'], data['collection_name'], data['is_explicit'])
 					elif data['type'] == 'album':
-						search_result = await search_album(data['artists'][0], data['title'])
+						search_result = await search_album(data['artists'][0], data['title'], data['year'])
 					break
 				except Exception as error:
 					await logs_channel.send(embed = log('NOTICE - Auto Link Lookup', f'Error when searching link - "{error}", retrying...', f'URL: {url}'))
@@ -162,9 +161,9 @@ async def on_message(message):
 			if search_result['anchor'].count('\n') == 2:
 				if search_result['type'] == 'track':
 					search_result['title'] = remove_feat(search_result['title'])
-					search_result = await search_track(search_result['artists'][0], search_result['title'])
+					search_result = await search_track(search_result['artists'][0], search_result['title'], search_result['collection_name'], search_result['is_explicit'])
 				elif search_result['type'] == 'album':
-					search_result = await search_album(search_result['artists'][0], search_result['title'])
+					search_result = await search_album(search_result['artists'][0], search_result['title'], search_result['year'])
 				
 			if await check_reaction(message, '❗'):
 				await message.remove_reaction('❗', client.user)
