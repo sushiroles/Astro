@@ -27,10 +27,11 @@ class Client(discord.Client):
 
 
 
-version = '1.0.1'
+version = '1.0.2'
 client = Client() 
 tree = app_commands.CommandTree(client)
 is_internal = True
+misc_processes_running = False
 presence_statuses = open('discord_presence.txt','r').readlines()
 
 
@@ -76,12 +77,14 @@ def fail_embed(message: str):
 async def on_ready():
 	await client.wait_until_ready()
 	await tree.sync()
-	discord_presence.start()
+	if misc_processes_running == False:
+		discord_presence.start()
+		misc_processes_running = True
 
 	logs_channel = client.get_channel(int(config['discord']['logs_channel']))
 	embed = discord.Embed(
-		title = f'LIFT-OFF',
-		colour = 0xf5c000,
+		title = f'READY',
+		colour = 0x66f500,
 	)
 	embed.add_field(
 		name = 'Current version',

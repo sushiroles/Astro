@@ -16,7 +16,7 @@ import numpy as np
 def log(type: str, message: str, parameters: str = None, anchors: str = None):
 	embed = discord.Embed(
 		title = f'{type}',
-		colour = 0x3f81eb,
+		colour = 0x0097f5,
 	)
 		
 	embed.add_field(
