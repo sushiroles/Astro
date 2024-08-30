@@ -27,7 +27,7 @@ class Client(discord.Client):
 
 
 
-version = '1.0.2'
+version = '1.0.3'
 client = Client() 
 tree = app_commands.CommandTree(client)
 is_internal = True
@@ -158,6 +158,13 @@ async def on_message(message):
 				if await check_reaction(message, '❗'):
 					await message.remove_reaction('❗', client.user)
 				continue
+
+			if search_result['anchor'].count('\n') == 2:
+				if search_result['type'] == 'track':
+					search_result['title'] = remove_feat(search_result['title'])
+					search_result = await search_track(search_result['artists'][0], search_result['title'])
+				elif search_result['type'] == 'album':
+					search_result = await search_album(search_result['artists'][0], search_result['title'])
 				
 			if await check_reaction(message, '❗'):
 				await message.remove_reaction('❗', client.user)
@@ -243,6 +250,13 @@ async def self(interaction: discord.Interaction, link: str):
 		await interaction.followup.send(embed = fail_embed("An error has occured while running your command. Please try again!"))
 		await logs_channel.send(embed = log('ERROR - Link Lookup', f'{error}', f'URL: "{link}"'))
 		return None
+
+	if search_result['anchor'].count('\n') <= 2:
+		if search_result['type'] == 'track':
+			search_result['title'] = remove_feat(search_result['title'])
+			search_result = await search_track(search_result['artists'][0], search_result['title'])
+		elif search_result['type'] == 'album':
+			search_result = await search_album(search_result['artists'][0], search_result['title'])
 
 	if search_result['anchor'] == '':
 		await interaction.followup.send(embed = fail_embed("I wasn't able to find anything regarding your link. Make sure you haven't accidentally typed anything in it and try again!"))
@@ -374,11 +388,18 @@ async def self(interaction: discord.Interaction, message: discord.Message):
 				await interaction.followup.send(embed = fail_embed("An error has occured while running your command. Please try again!"))
 				await logs_channel.send(embed = log('ERROR - Context Menu Link Lookup', f'{error}', f'URL: "{url}"'))
 				return None
+			
+			if search_result['anchor'].count('\n') <= 2:
+				if search_result['type'] == 'track':
+					search_result['title'] = remove_feat(search_result['title'])
+					search_result = await search_track(search_result['artists'][0], search_result['title'])
+				elif search_result['type'] == 'album':
+					search_result = await search_album(search_result['artists'][0], search_result['title'])
 
 			if search_result['anchor'] == '':
 				embeds.append(fail_embed("I wasn't able to find anything regarding this link."))
 				await logs_channel.send(embed = log('FAILURE - Context Menu Link Lookup', f'Unsuccessfully searched a URL"',f'URL: "{url}"'))
-				
+			
 			else:
 				embeds.append(success_embed(search_result['title'], search_result['artists'], search_result['cover'], search_result['anchor'], data['type']))
 				parameters.append(f'URL: {url}')
