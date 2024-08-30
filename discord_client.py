@@ -31,7 +31,6 @@ version = '1.0.2'
 client = Client() 
 tree = app_commands.CommandTree(client)
 is_internal = True
-misc_processes_running = False
 presence_statuses = open('discord_presence.txt','r').readlines()
 
 
@@ -77,9 +76,7 @@ def fail_embed(message: str):
 async def on_ready():
 	await client.wait_until_ready()
 	await tree.sync()
-	if misc_processes_running == False:
-		discord_presence.start()
-		misc_processes_running = True
+	discord_presence.start()
 
 	logs_channel = client.get_channel(int(config['discord']['logs_channel']))
 	embed = discord.Embed(
