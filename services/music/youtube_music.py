@@ -11,6 +11,11 @@ except:
 
 config = configparser.ConfigParser()
 config.read('tokens.ini')
+allowed_track_types = [
+	'MUSIC_VIDEO_TYPE_ATV',
+	'MUSIC_VIDEO_TYPE_OMV',
+	'MUSIC_VIDEO_TYPE_OFFICIAL_SOURCE_MUSIC'
+]
 
 
 
@@ -58,8 +63,9 @@ async def get_youtube_music_track(identifier: str):
 	try:
 		start_time = current_time_ms()
 		result = ytmusic.get_song(identifier)['videoDetails']
+		save_json(ytmusic.get_song('Ktc9Oh9TXdE'))
 		if 'musicVideoType' in result:
-			if result['musicVideoType'] == 'MUSIC_VIDEO_TYPE_ATV' or result['musicVideoType'] == 'MUSIC_VIDEO_TYPE_OMV':
+			if result['musicVideoType'] in allowed_track_types:
 				track_url = str(f'https://music.youtube.com/watch?v={result['videoId']}')
 				track_id = str(result['videoId'])
 				track_title = str(result['title'])
@@ -159,11 +165,12 @@ async def search_youtube_music_track(artist: str, track: str):
 
 
 
-async def search_youtube_music_album(artist: str, album: str):
+async def search_youtube_music_album(artist: str, album: str, year: str = None):
 	try:
 		albums_data = []
 		start_time = current_time_ms()
 		search_results = ytmusic.search(f'{artist} {album}', filter = 'albums')
+		save_json(search_results)
 		for result in search_results:
 			if result['resultType'] == 'album':
 				browse_id = result['browseId']
@@ -175,7 +182,7 @@ async def search_youtube_music_album(artist: str, album: str):
 					'title': album_title,
 					'artists': album_artists,
 				})
-		result = filter_album(albums_data = albums_data, artist = artist, album = album)
+		result = filter_album(albums_data = albums_data, artist = artist, album = album, year = year)
 		if result['type'] != 'empty_response':
 			result = ytmusic.get_album(result['browse_id'])
 			album_url = f'https://music.youtube.com/playlist?list={result['audioPlaylistId']}'
