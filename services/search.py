@@ -159,7 +159,7 @@ async def get_album_data(service: str, api_call: callable):
 
 
 
-async def search_track(artist: str, track: str):
+async def search_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
 	title = ''
 	artists = []
 	cover = ''
@@ -167,11 +167,11 @@ async def search_track(artist: str, track: str):
 	requested_track = track
 
 	service_data = [
-		('Spotify', search_spotify_track(artist.replace("'",'').replace(",",''), track.replace("'",'').replace(",",''))),
-		('Apple Music', search_apple_music_track(artist, replace_with_ascii(track))),
+		('Spotify', search_spotify_track(artist.replace("'",'').replace(",",''), track.replace("'",'').replace(",",''), collection, is_explicit)),
+		('Apple Music', search_apple_music_track(artist, replace_with_ascii(track), collection, is_explicit)),
 		('YouTube Music', search_youtube_music_track(artist, track)),
-		('Deezer', search_deezer_track(artist, track)),
-		('TIDAL', search_tidal_track(artist, track)),
+		('Deezer', search_deezer_track(artist, track, collection, is_explicit)),
+		('TIDAL', search_tidal_track(artist, track, collection, is_explicit)),
 	]
 	tasks = [get_track_data(service, function) for service, function in service_data]
 	results = await asyncio.gather(*tasks)
@@ -209,7 +209,7 @@ async def search_track(artist: str, track: str):
 
 
 
-async def search_album(artist: str, album: str):
+async def search_album(artist: str, album: str, year: str = None):
 	title = ''
 	artists = []
 	cover = ''
@@ -217,11 +217,11 @@ async def search_album(artist: str, album: str):
 	requested_album = album
 
 	service_data = [
-		('Spotify', search_spotify_album(artist.replace("'",'').replace(",",''), album.replace("'",'').replace(",",''))),
-		('Apple Music', search_apple_music_album(artist, replace_with_ascii(album))),
-		('YouTube Music', search_youtube_music_album(artist, album)),
-		('Deezer', search_deezer_album(artist, album)),
-		('TIDAL', search_tidal_album(artist, album)),
+		('Spotify', search_spotify_album(artist.replace("'",'').replace(",",''), album.replace("'",'').replace(",",''), year)),
+		('Apple Music', search_apple_music_album(artist, replace_with_ascii(album), year)),
+		('YouTube Music', search_youtube_music_album(artist, album, year)),
+		('Deezer', search_deezer_album(artist, album, year)),
+		('TIDAL', search_tidal_album(artist, album, year)),
 	]
 
 	tasks = [get_album_data(service, function) for service, function in service_data]
