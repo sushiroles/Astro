@@ -76,7 +76,8 @@ def fail_embed(message: str):
 async def on_ready():
 	await client.wait_until_ready()
 	await tree.sync()
-	discord_presence.start()
+	if not discord_presence.is_running():
+		discord_presence.start()
 
 	logs_channel = client.get_channel(int(config['discord']['logs_channel']))
 	embed = discord.Embed(
