@@ -156,6 +156,8 @@ async def get_tidal_video(identifier: str):
 				video_title = json_response['resource']['title']
 				video_artists = [artist['name'] for artist in json_response['resource']['artists']]
 				video_cover = json_response['resource']['image'][1]['url']
+				video_collection = None
+				video_is_explicit = 'explicit' in json_response['resource']['properties']['content'][0] if 'content' in json_response['resource']['properties'] else False
 				return {
 					'type': 'track',
 					'url': video_url,
@@ -163,6 +165,8 @@ async def get_tidal_video(identifier: str):
 					'title': video_title,
 					'artists': video_artists,
 					'cover': video_cover,
+					'collection_name': video_collection,
+					'is_explicit': video_is_explicit,
 					'extra': {
 						'api_time_ms': current_time_ms() - start_time,
 						'response_status': f'TIDAL-{response.status}'
