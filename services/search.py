@@ -129,7 +129,7 @@ async def get_album_data(service: str, api_call: callable):
 	artists = []
 	title = ''
 	cover = ''
-	year = ''
+	year = None
 	anchor = ''
 	log_anchor = ''
 	try:
@@ -201,8 +201,7 @@ async def search_track(artist: str, track: str, collection: str = None, is_expli
 			counter += 1
 		anchor = ''.join(result['anchor'] for result in search_results)
 		log_anchor = ''.join(result['log_anchor'] for result in search_results)
-	except Exception as e:
-		print(f"{e} - {counter}")
+	except:
 		artists = []
 		title = ''
 		cover = ''
@@ -216,7 +215,7 @@ async def search_track(artist: str, track: str, collection: str = None, is_expli
 		'title': title,
 		'artists': artists,
 		'cover': cover,
-		'collection': track_collection,
+		'collection_name': track_collection,
 		'is_explicit': track_is_explicit,
 		'anchor': anchor,
 		'log_anchor': log_anchor,
