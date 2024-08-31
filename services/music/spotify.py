@@ -52,7 +52,7 @@ async def get_spotify_track(identifier: str):
 				track_title = json_response['name']
 				track_artists = [artist['name'] for artist in json_response['artists']]
 				track_cover = json_response['album']['images'][0]['url']
-				track_collection = json_response['album']['name']
+				track_collection = remove_feat(json_response['album']['name'])
 				track_is_explicit = json_response['explicit']
 				return {
 					'type': 'track',
@@ -115,7 +115,7 @@ async def search_spotify_track(artist: str, track: str, collection: str = None, 
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
 		query = f'artist:{artist} track:{track}'
-		if collection != None and collection != track:
+		if collection != None:
 			query = f'artist:{artist} track:{track} album:{collection}'
 		api_url = f'https://api.spotify.com/v1/search?q={query}&type=track&limit=50'
 		api_headers = {'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}'}
@@ -130,7 +130,7 @@ async def search_spotify_track(artist: str, track: str, collection: str = None, 
 						track_title = item['name']
 						track_artists = [artist['name'] for artist in item['artists']]
 						track_cover = item['album']['images'][0]['url']
-						track_collection = item['album']['name']
+						track_collection = remove_feat(item['album']['name'])
 						track_is_explicit = item['explicit']
 						tracks_data.append({
 							'type': 'track',

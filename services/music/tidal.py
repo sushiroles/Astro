@@ -76,7 +76,7 @@ async def get_tidal_track(identifier: str):
 				track_title = json_response['resource']['title']
 				track_artists = [artist['name'] for artist in json_response['resource']['artists']]
 				track_cover = json_response['resource']['album']['imageCover'][1]['url']
-				track_collection = json_response['resource']['album']['title']
+				track_collection = remove_feat(json_response['resource']['album']['title'])
 				track_is_explicit = 'explicit' in json_response['resource']['properties']['content'][0] if 'content' in json_response['resource']['properties'] else False
 				return {
 					'type': 'track',
@@ -201,7 +201,7 @@ async def search_tidal_track(artist: str, track: str, collection: str = None, is
 						track_title = item['resource']['title']
 						track_artists = [artist['name'] for artist in item['resource']['artists']]
 						track_cover = item['resource']['album']['imageCover'][1]['url']
-						track_collection = item['resource']['album']['title']
+						track_collection = remove_feat(item['resource']['album']['title'])
 						track_is_explicit = 'explicit' in item['resource']['properties']['content'][0] if 'content' in item['resource']['properties'] else False
 						tracks_data.append({
 							'type': 'track',

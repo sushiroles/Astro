@@ -93,7 +93,7 @@ async def get_apple_music_track(identifier: str, country_code: str):
 					track_title = result['trackName']
 					track_artists = await get_apple_music_artist(result['artistId'])
 					track_cover = result['artworkUrl100']
-					track_collection = clean_up_collection_title(result['collectionName']) if 'song' in result['kind'] else None
+					track_collection = remove_feat(clean_up_collection_title(result['collectionName'])) if 'song' in result['kind'] else None
 					track_is_explicit = not 'not' in result['trackExplicitness']
 					return {
 						'type': 'track',
@@ -144,7 +144,7 @@ async def get_apple_music_album(identifier: str, country_code: str):
 							'title': album_title.replace(' - Single',''),
 							'artists': album_artists,
 							'cover': album_cover,
-							'collection_name': album_title.replace(' - Single',''),
+							'collection_name': remove_feat(album_title).replace(' - Single',''),
 							'is_explicit': track_is_explicit,
 							'extra': {
 								'api_time_ms': current_time_ms() - start_time,
@@ -199,7 +199,7 @@ async def search_apple_music_track(artist: str, track: str, collection: str = No
 							track_title = item['trackName']
 							track_artists = split_artists(item['artistName'])
 							track_cover = item['artworkUrl100']
-							track_collection = clean_up_collection_title(item['collectionName'])
+							track_collection = remove_feat(clean_up_collection_title(item['collectionName']))
 							track_is_explicit = not 'not' in item['trackExplicitness']
 							tracks_data.append({
 								'type': 'track',
