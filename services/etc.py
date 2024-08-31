@@ -3,14 +3,14 @@ from time import time
 from unidecode import *
 from urllib.parse import urlparse
 from urllib import request
-import json
-import re
-import discord as discord
 from PIL import Image
-import requests
 from io import BytesIO
 import numpy as np
 import difflib 
+import json
+import re
+import discord as discord
+import requests
 
 
 
