@@ -10,6 +10,7 @@ from PIL import Image
 import requests
 from io import BytesIO
 import numpy as np
+import difflib 
 
 
 
@@ -178,7 +179,17 @@ def optimize_string(string: str):
 		string_list.remove('')
 	return string_list
 
-async def check_reaction(message, reaction_emoji):
+def calculate_similarity(reference_string: str, input_string: str):
+	return difflib.SequenceMatcher(None, reference_string, input_string).ratio() * 1000
+
+def sort_similarity_lists(data_list: list, similarity_index: int = 0):
+	return sorted(data_list, key = lambda x: x[similarity_index], reverse = True)
+
+def percentage(hundred_percent: int, number: int):
+	thing = 100 / hundred_percent
+	return number * thing
+
+async def check_reaction(message: discord.Message, reaction_emoji: str):
 	if not message.reactions:
 		return False
 	for reaction in message.reactions:
@@ -186,6 +197,6 @@ async def check_reaction(message, reaction_emoji):
 			return True
 	return False
 
-async def add_reactions(message, emojis: list):
+async def add_reactions(message: discord.Message, emojis: list):
 	for emoji in emojis:
 		await message.add_reaction(emoji)
