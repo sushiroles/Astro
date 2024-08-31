@@ -74,6 +74,8 @@ async def get_track_data(service: str, api_call: callable):
 	artists = []
 	title = ''
 	cover = ''
+	collection_name = None
+	is_explicit = None
 	anchor = ''
 	log_anchor = ''
 	try:
@@ -85,6 +87,8 @@ async def get_track_data(service: str, api_call: callable):
 			'title': title,
 			'artists': artists,
 			'cover': cover,
+			'collection_name': collection_name,
+			'is_explicit': is_explicit,
 			'anchor': anchor,
 			'log_anchor': log_anchor
 		}
@@ -94,6 +98,8 @@ async def get_track_data(service: str, api_call: callable):
 		artists = call_results['artists']
 		title = call_results['title']
 		cover = call_results['cover']
+		collection_name = None
+		is_explicit = None
 		anchor = f'{emojis[service]} [{service}]({url})\n'
 		log_anchor = f'{emojis[service]} [{service}]({url}) ({call_results['extra']['api_time_ms']}ms)\n'
 	return {
@@ -102,6 +108,8 @@ async def get_track_data(service: str, api_call: callable):
 		'title': title,
 		'artists': artists,
 		'cover': cover,
+		'collection_name': collection_name,
+		'is_explicit': is_explicit,
 		'anchor': anchor,
 		'log_anchor': log_anchor
 	}
@@ -163,6 +171,8 @@ async def search_track(artist: str, track: str, collection: str = None, is_expli
 	title = ''
 	artists = []
 	cover = ''
+	track_collection = None
+	track_is_explicit = None
 	requested_artist = artist
 	requested_track = track
 
@@ -183,16 +193,21 @@ async def search_track(artist: str, track: str, collection: str = None, is_expli
 	counter = 0
 	try:
 		while title == '':
-			artists = search_results[counter]['artists']
 			title = search_results[counter]['title']
+			artists = search_results[counter]['artists']
 			cover = search_results[counter]['cover']
+			track_collection = search_results[counter]['collection_name']
+			track_is_explicit = search_results[counter]['is_explicit']
 			counter += 1
 		anchor = ''.join(result['anchor'] for result in search_results)
 		log_anchor = ''.join(result['log_anchor'] for result in search_results)
-	except:
+	except Exception as e:
+		print(f"{e} - {counter}")
 		artists = []
 		title = ''
 		cover = ''
+		track_collection = None
+		track_is_explicit = None
 		anchor = ''
 		log_anchor = ''
 
@@ -201,6 +216,8 @@ async def search_track(artist: str, track: str, collection: str = None, is_expli
 		'title': title,
 		'artists': artists,
 		'cover': cover,
+		'collection': track_collection,
+		'is_explicit': track_is_explicit,
 		'anchor': anchor,
 		'log_anchor': log_anchor,
 		'requested_artist': requested_artist,
@@ -213,6 +230,7 @@ async def search_album(artist: str, album: str, year: str = None):
 	title = ''
 	artists = []
 	cover = ''
+	album_year = None
 	requested_artist = artist
 	requested_album = album
 
@@ -237,6 +255,7 @@ async def search_album(artist: str, album: str, year: str = None):
 			artists = search_results[counter]['artists']
 			title = search_results[counter]['title']
 			cover = search_results[counter]['cover']
+			album_year = search_results[counter]['year']
 			counter += 1
 		anchor = ''.join(result['anchor'] for result in search_results)
 		log_anchor = ''.join(result['log_anchor'] for result in search_results)
@@ -245,6 +264,7 @@ async def search_album(artist: str, album: str, year: str = None):
 		title = ''
 		cover = ''
 		anchor = ''
+		album_year = None
 		log_anchor = ''
 
 	return {
@@ -253,7 +273,8 @@ async def search_album(artist: str, album: str, year: str = None):
 		'artists': artists,
 		'cover': cover,
 		'anchor': anchor,
+		'year': album_year,
 		'log_anchor': log_anchor,
 		'requested_artist': requested_artist,
-		'requested_album': requested_album,
+		'requested_album': requested_album
 	}
