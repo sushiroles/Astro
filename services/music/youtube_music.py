@@ -63,14 +63,13 @@ async def get_youtube_music_track(identifier: str):
 	try:
 		start_time = current_time_ms()
 		result = ytmusic.get_song(identifier)['videoDetails']
-		save_json(ytmusic.get_song('Ktc9Oh9TXdE'))
 		if 'musicVideoType' in result:
 			if result['musicVideoType'] in allowed_track_types:
-				track_url = str(f'https://music.youtube.com/watch?v={result['videoId']}')
-				track_id = str(result['videoId'])
+				track_url = f'https://music.youtube.com/watch?v={result['videoId']}'
+				track_id = result['videoId']
 				track_title = str(result['title'])
 				track_artists = split_artists(result['author'])
-				track_cover = str(result['thumbnail']['thumbnails'][len(result['thumbnail']['thumbnails'])-1]['url'])
+				track_cover = result['thumbnail']['thumbnails'][len(result['thumbnail']['thumbnails'])-1]['url']
 				return {
 					'type': 'track',
 					'url': track_url,
@@ -78,6 +77,8 @@ async def get_youtube_music_track(identifier: str):
 					'title': track_title,
 					'artists': track_artists,
 					'cover': track_cover,
+					'collection_name': None,
+					'is_explicit': None,
 					'extra': {
 						'api_time_ms': current_time_ms() - start_time,
 						'response_status': 'YouTubeMusic-200'
@@ -139,11 +140,11 @@ async def search_youtube_music_track(artist: str, track: str):
 		search_results = ytmusic.search(f'{artist} {track}', filter = 'songs')
 		for result in search_results:
 			if result['resultType'] == 'song':
-				track_url = str(f'https://music.youtube.com/watch?v={result['videoId']}')
-				track_id = str(result['videoId'])
+				track_url = f'https://music.youtube.com/watch?v={result['videoId']}'
+				track_id = result['videoId']
 				track_artists = [artist['name'] for artist in result['artists']]
-				track_title = str(result['title'])
-				track_cover = str(result['thumbnails'][1]['url'])
+				track_title = result['title']
+				track_cover = result['thumbnails'][1]['url']
 				tracks_data.append({
 					'type': 'track',
 					'url': track_url,
@@ -151,6 +152,8 @@ async def search_youtube_music_track(artist: str, track: str):
 					'title': track_title,
 					'artists': track_artists,
 					'cover': track_cover,
+					'collection_name': None,
+					'is_explicit': None,
 					'extra': {
 						'api_time_ms': current_time_ms() - start_time,
 						'response_status': 'YouTubeMusic-200'
@@ -170,44 +173,28 @@ async def search_youtube_music_album(artist: str, album: str, year: str = None):
 		albums_data = []
 		start_time = current_time_ms()
 		search_results = ytmusic.search(f'{artist} {album}', filter = 'albums')
-		save_json(search_results)
 		for result in search_results:
 			if result['resultType'] == 'album':
-				browse_id = result['browseId']
+				album_url = f'https://music.youtube.com/playlist?list={result['playlistId']}'
+				album_id = result['playlistId']
+				album_title = result['title']
 				album_artists = [artist['name'] for artist in result['artists']]
-				album_title = str(result['title'])
+				album_cover = result['thumbnails'][len(result['thumbnails'])-1]['url']
+				album_year = result['year']
 				albums_data.append({
 					'type': 'album',
-					'browse_id': browse_id,
+					'url': album_url,
+					'id': album_id,
 					'title': album_title,
 					'artists': album_artists,
+					'cover': album_cover,
+					'year': album_year,
+					'extra': {
+						'api_time_ms': current_time_ms() - start_time,
+						'response_status': 'YouTubeMusic-200'
+					}
 				})
-		result = filter_album(albums_data = albums_data, artist = artist, album = album, year = year)
-		if result['type'] != 'empty_response':
-			result = ytmusic.get_album(result['browse_id'])
-			album_url = f'https://music.youtube.com/playlist?list={result['audioPlaylistId']}'
-			album_id = result['audioPlaylistId']
-			album_title = result['title']
-			album_artists = [artist['name'] for artist in result['artists']]
-			album_cover = result['thumbnails'][1]['url']
-			album_year = result['year']
-			return {
-				'type': 'album',
-				'url': album_url,
-				'id': album_id,
-				'title': album_title,
-				'artists': album_artists,
-				'cover': album_cover,
-				'year': album_year,
-				'extra': {
-					'api_time_ms': current_time_ms() - start_time,
-					'response_status': 'YouTubeMusic-200'
-				}
-			}
-		else:
-			return {
-				'type': 'empty_response'
-			}
+		return filter_album(albums_data = albums_data, artist = artist, album = album, year = year)
 	except Exception as response:
 		return {
 			'type': 'error',
