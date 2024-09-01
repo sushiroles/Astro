@@ -177,8 +177,8 @@ async def search_track(artist: str, track: str, collection: str = None, is_expli
 	requested_track = track
 
 	service_data = [
-		('Spotify', search_spotify_track(artist.replace("'",'').replace(",",''), track.replace("'",'').replace(",",''), collection, is_explicit)),
-		('Apple Music', search_apple_music_track(artist, replace_with_ascii(track), collection, is_explicit)),
+		('Spotify', search_spotify_track(artist, track, collection, is_explicit)),
+		('Apple Music', search_apple_music_track(artist, track, collection, is_explicit)),
 		('YouTube Music', search_youtube_music_track(artist, track)),
 		('Deezer', search_deezer_track(artist, track, collection, is_explicit)),
 		('TIDAL', search_tidal_track(artist, track, collection, is_explicit)),

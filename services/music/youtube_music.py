@@ -134,6 +134,8 @@ async def get_youtube_music_album(identifier: str):
 
 
 async def search_youtube_music_track(artist: str, track: str):
+	artist = artist[1:] if artist[0] == '&' else artist
+	track = track[1:] if track[0] == '&' else track
 	try:
 		tracks_data = []
 		start_time = current_time_ms()
@@ -169,6 +171,8 @@ async def search_youtube_music_track(artist: str, track: str):
 
 
 async def search_youtube_music_album(artist: str, album: str, year: str = None):
+	artist = artist[1:] if artist[0] == '&' else artist
+	album = album[1:] if album[0] == '&' else album
 	try:
 		albums_data = []
 		start_time = current_time_ms()
