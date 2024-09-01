@@ -236,7 +236,7 @@ async def search_apple_music_track(artist: str, track: str, collection: str = No
 
 
 async def search_apple_music_album(artist: str, album: str, year: str = None):
-	track = replace_with_ascii(track)
+	album = replace_with_ascii(album)
 	artist = artist[1:] if artist[0] == '&' else artist
 	album = album[1:] if album[0] == '&' else album
 	albums_data = []

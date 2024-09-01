@@ -234,8 +234,8 @@ async def search_album(artist: str, album: str, year: str = None):
 	requested_album = album
 
 	service_data = [
-		('Spotify', search_spotify_album(artist.replace("'",'').replace(",",''), album.replace("'",'').replace(",",''), year)),
-		('Apple Music', search_apple_music_album(artist, replace_with_ascii(album), year)),
+		('Spotify', search_spotify_album(artist, album, year)),
+		('Apple Music', search_apple_music_album(artist, album, year)),
 		('YouTube Music', search_youtube_music_album(artist, album, year)),
 		('Deezer', search_deezer_album(artist, album, year)),
 		('TIDAL', search_tidal_album(artist, album, year)),

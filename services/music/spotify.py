@@ -166,10 +166,10 @@ async def search_spotify_track(artist: str, track: str, collection: str = None, 
 
 
 async def search_spotify_album(artist: str, album: str, year: str = None):
-	artist = artist.replace("'",'').replace(",",'').replace("&",'')
-	track = track.replace("'",'').replace(",",'').replace("&",'')
+	artist = artist.replace("'",'').replace(",",'')
+	album = album.replace("'",'').replace(",",'')
 	artist = artist[1:] if artist[0] == '&' else artist
-	album = track[1:] if album[0] == '&' else album
+	album = album[1:] if album[0] == '&' else album
 	albums_data = []
 	async with aiohttp.ClientSession() as session:
 		query = f'artist:{artist} album:{album}'
