@@ -98,8 +98,8 @@ async def get_track_data(service: str, api_call: callable):
 		artists = call_results['artists']
 		title = call_results['title']
 		cover = call_results['cover']
-		collection_name = None
-		is_explicit = None
+		collection_name = call_results['collection_name']
+		is_explicit = call_results['is_explicit']
 		anchor = f'{emojis[service]} [{service}]({url})\n'
 		log_anchor = f'{emojis[service]} [{service}]({url}) ({call_results['extra']['api_time_ms']}ms)\n'
 	return {

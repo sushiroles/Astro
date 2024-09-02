@@ -183,7 +183,7 @@ async def get_tidal_video(identifier: str):
 async def search_tidal_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
 	artist = artist[1:] if artist[0] == '&' else artist
 	track = track[1:] if track[0] == '&' else track
-	collection = collection[1:] if collection[0] == '&' else collection
+	collection = None if collection == None else collection[1:] if collection[0] == '&' else collection
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
 		query = f'{track} {artist}'
@@ -233,7 +233,7 @@ async def search_tidal_track(artist: str, track: str, collection: str = None, is
 
 
 
-async def search_tidal_album(artist: str, album: str, year: str):
+async def search_tidal_album(artist: str, album: str, year: str = None):
 	artist = artist[1:] if artist[0] == '&' else artist
 	album = album[1:] if album[0] == '&' else album
 	albums_data = []
