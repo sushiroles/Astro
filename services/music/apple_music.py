@@ -181,9 +181,9 @@ async def get_apple_music_album(identifier: str, country_code: str):
 
 async def search_apple_music_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
 	track = replace_with_ascii(track)
-	artist = artist[1:] if artist[0] == '&' else artist
-	track = track[1:] if track[0] == '&' else track
-	collection = None if collection == None else collection[1:] if collection[0] == '&' else collection
+	artist = optimize_for_search(artist)
+	track = optimize_for_search(track)
+	collection = optimize_for_search(collection) if collection != None else None
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
 		query = f'{artist}+"{track}"'

@@ -189,6 +189,13 @@ def percentage(hundred_percent: int, number: int):
 	thing = 100 / hundred_percent
 	return number * thing
 
+def optimize_for_search(string: str):
+	optimized_string = string
+	optimized_string = optimized_string.replace('#','')
+	if optimized_string[0] == '&':
+		optimized_string = optimized_string[1:]
+	return optimized_string
+
 async def check_reaction(message: discord.Message, reaction_emoji: str):
 	if not message.reactions:
 		return False
