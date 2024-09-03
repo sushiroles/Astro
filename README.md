@@ -1,7 +1,7 @@
 # Astro
 A Discord app that makes sharing music easier.
 
-Astro is a Discord app that makes sharing music easier. It passively sits in your server, scans music service links from Spotify, Apple Music, YouTube/YouTube Music, Deezer and TIDAL, and provides more links to where you can find said music.
+Astro is an app that passively sits in your server, scans music service links from Spotify, Apple Music, YouTube/YouTube Music, Deezer and TIDAL, and provides more links to where you can find said music.
 
 ## Installation
 Since Astro is just a Discord app, clicking the link below lets you add it to a server.
