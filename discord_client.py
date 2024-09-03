@@ -23,10 +23,11 @@ class Client(discord.Client):
 		discordintents.presences = True
 		discordintents.members = True
 		super().__init__(intents = discordintents)
+		self.synced = False
 
 
 
-version = '1.1.2'
+version = '1.1.3'
 client = Client() 
 tree = app_commands.CommandTree(client)
 is_internal = True
@@ -80,7 +81,9 @@ def fail_embed(message: str):
 @client.event
 async def on_ready():
 	await client.wait_until_ready()
-	await tree.sync()
+	if not client.synced:
+		await tree.sync()
+		client.synced = True
 	if not discord_presence.is_running():
 		discord_presence.start()
 
