@@ -6,7 +6,7 @@ try:
 except:
 	from etc import *
 	from filter import *
-	
+
 
 
 def is_apple_music_track(url: str):
@@ -113,10 +113,12 @@ async def get_apple_music_track(identifier: str, country_code: str):
 					await asyncio.sleep(0.1)
 					continue
 				else:
-					return {
+					error = {
 						'type': 'error',
 						'response_status': f'AppleMusic-{response.status}'
 					}
+					await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`\nCountry code: `{country_code}`')
+					return error
 
 
 
@@ -172,10 +174,12 @@ async def get_apple_music_album(identifier: str, country_code: str):
 					await asyncio.sleep(0.1)
 					continue
 				else:
-					return {
-						'type': 'error',
-						'response_status': f'AppleMusic-{response.status}'
-					}
+					error = {
+					'type': 'error',
+					'response_status': f'AppleMusic-{response.status}'
+				}
+				await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`\nCountry code: `{country_code}`')
+				return error
 
 
 
@@ -228,11 +232,13 @@ async def search_apple_music_track(artist: str, track: str, collection: str = No
 					await asyncio.sleep(0.1)
 					continue
 				else:
-					return {
+					error = {
 						'type': 'error',
 						'response_status': f'AppleMusic-{response.status}'
 					}
-			
+					await log('ERROR - Apple Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`')
+					return error
+
 
 
 async def search_apple_music_album(artist: str, album: str, year: str = None):
@@ -279,7 +285,9 @@ async def search_apple_music_album(artist: str, album: str, year: str = None):
 					await asyncio.sleep(0.1)
 					continue
 				else:
-					return {
+					error = {
 						'type': 'error',
 						'response_status': f'AppleMusic-{response.status}'
 					}
+					await log('ERROR - Apple Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`')
+					return error

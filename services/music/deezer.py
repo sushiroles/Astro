@@ -5,7 +5,7 @@ try:
 except:
 	from etc import *
 	from filter import *
-	
+
 
 
 def is_deferred_url(url: str):
@@ -36,7 +36,7 @@ def get_deezer_album_id(url: str):
 		return str(url[url.index('album/')+6:url.index('?')])
 	else:
 		return str(url[url.index('album/')+6:])
-	
+
 
 
 async def get_deezer_track(identifier: str):
@@ -68,10 +68,12 @@ async def get_deezer_track(identifier: str):
 					}
 				}
 			else:
-				return {
+				error = {
 					'type': 'error',
 					'response_status': f'Deezer-{response.status}'
 				}
+				await log('ERROR - Deezer API', error['response_status'],f'ID: `{identifier}`')
+				return error
 
 
 
@@ -102,12 +104,14 @@ async def get_deezer_album(identifier: str):
 					}
 				}
 			else:
-				return {
+				error = {
 					'type': 'error',
 					'response_status': f'Deezer-{response.status}'
 				}
+				await log('ERROR - Deezer API', error['response_status'],f'ID: `{identifier}`')
+				return error
 
-			
+
 
 async def search_deezer_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
 	artist = optimize_for_search(artist)
@@ -154,10 +158,12 @@ async def search_deezer_track(artist: str, track: str, collection: str = None, i
 						'type': 'empty_response'
 					}
 			else:
-				return {
+				error = {
 					'type': 'error',
 					'response_status': f'Deezer-{response.status}'
 				}
+				await log('ERROR - Deezer API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`')
+				return error
 
 
 
@@ -201,8 +207,9 @@ async def search_deezer_album(artist: str, album: str, year: str = None):
 						'type': 'empty_response'
 					}
 			else:
-				return {
+				error = {
 					'type': 'error',
 					'response_status': f'Deezer-{response.status}'
 				}
-					
+				await log('ERROR - Deezer API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`')
+				return error

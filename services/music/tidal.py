@@ -7,7 +7,7 @@ try:
 except:
 	from etc import *
 	from filter import *
-	
+
 
 
 config = configparser.ConfigParser()
@@ -30,7 +30,7 @@ async def get_access_token(client_id: str, client_secret: str):
 				return json_response['access_token']
 			else:
 				return ''
-			
+
 def is_tidal_track(url: str):
 	return bool(url.find('https://tidal.com/') >= 0 and url.find('/track/') >= 0)
 
@@ -51,12 +51,13 @@ def get_tidal_album_id(url: str):
 		return str(url[url.index('/album/') + 7:url.index('?u')])
 	else:
 		return str(url[url.index('/album/') + 7:])
-	
+
 def get_tidal_video_id(url: str):
 	if '?u' in url:
 		return str(url[url.index('/video/') + 7:url.index('?u')])
 	else:
 		return str(url[url.index('/video/') + 7:])
+
 
 
 async def get_tidal_track(identifier: str):
@@ -93,11 +94,13 @@ async def get_tidal_track(identifier: str):
 					}
 				}
 			else:
-				return {
+				error = {
 					'type': 'error',
 					'response_status': f'TIDAL-{response.status}'
 				}
-			
+				await log('ERROR - TIDAL API', error['response_status'],f'ID: `{identifier}`')
+				return error
+
 
 
 async def get_tidal_album(identifier: str):
@@ -132,10 +135,12 @@ async def get_tidal_album(identifier: str):
 					}
 				}
 			else:
-				return {
+				error = {
 					'type': 'error',
 					'response_status': f'TIDAL-{response.status}'
 				}
+				await log('ERROR - TIDAL API', error['response_status'],f'ID: `{identifier}`')
+				return error
 
 
 
@@ -173,10 +178,12 @@ async def get_tidal_video(identifier: str):
 					}
 				}
 			else:
-				return {
+				error = {
 					'type': 'error',
 					'response_status': f'TIDAL-{response.status}'
 				}
+				await log('ERROR - TIDAL API', error['response_status'],f'ID: `{identifier}`')
+				return error
 
 
 
@@ -226,10 +233,12 @@ async def search_tidal_track(artist: str, track: str, collection: str = None, is
 						'type': 'empty_response'
 					}
 			else:
-				return {
+				error = {
 					'type': 'error',
 					'response_status': f'TIDAL-{response.status}'
 				}
+				await log('ERROR - TIDAL API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`')
+				return error
 
 
 
@@ -276,7 +285,9 @@ async def search_tidal_album(artist: str, album: str, year: str = None):
 						'type': 'empty_response'
 					}
 			else:
-				return {
+				error = {
 					'type': 'error',
 					'response_status': f'TIDAL-{response.status}'
 				}
+				await log('ERROR - TIDAL API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`')
+				return error

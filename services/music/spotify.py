@@ -30,7 +30,7 @@ async def get_access_token(client_id: str, client_secret: str):
 
 def is_spotify_track(url: str):
 	return bool(url.find('https://open.spotify.com/track/') >= 0)
-	
+
 def is_spotify_album(url: str):
 	return bool(url.find('https://open.spotify.com/album/') >= 0)
 
@@ -69,10 +69,12 @@ async def get_spotify_track(identifier: str):
 					}
 				}
 			else:
-				return {
+				error = {
 					'type': 'error',
 					'response_status': f'Spotify-{response.status}'
 				}
+				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`')
+				return error
 
 
 
@@ -104,11 +106,13 @@ async def get_spotify_album(identifier: str):
 					}
 				}
 			else:
-				return {
+				error = {
 					'type': 'error',
 					'response_status': f'Spotify-{response.status}'
 				}
-			
+				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`')
+				return error
+
 
 
 async def search_spotify_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
@@ -158,11 +162,13 @@ async def search_spotify_track(artist: str, track: str, collection: str = None, 
 						'type': 'empty_response'
 					}
 			else:
-				return {
+				error = {
 					'type': 'error',
 					'response_status': f'Spotify-{response.status}'
 				}
-			
+				await log('ERROR - Spotify API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`')
+				return error
+
 
 
 async def search_spotify_album(artist: str, album: str, year: str = None):
@@ -206,7 +212,9 @@ async def search_spotify_album(artist: str, album: str, year: str = None):
 						'type': 'empty_response'
 					}
 			else:
-				return {
+				error = {
 					'type': 'error',
 					'response_status': f'Spotify-{response.status}'
 				}
+				await log('ERROR - Spotify API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`')
+				return error
