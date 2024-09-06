@@ -27,7 +27,7 @@ class Client(discord.Client):
 
 
 
-version = '1.1.3'
+version = '1.1.4'
 client = Client() 
 tree = app_commands.CommandTree(client)
 is_internal = True
@@ -87,7 +87,7 @@ async def on_ready():
 	if not discord_presence.is_running():
 		discord_presence.start()
 
-	logs_channel = client.get_channel(log_channel)
+	logs_channel = log_channel
 	embed = discord.Embed(
 		title = f'READY',
 		colour = 0x66f500,
@@ -113,13 +113,13 @@ async def on_ready():
 		inline = True
 	)
 	
-	await logs_channel.send(embed = embed)
+	await log('meow', 'mrrp', 'mreow', ':3', embed, logs_channel)
 
 
 
 @client.event
 async def on_message(message):
-	logs_channel = client.get_channel(log_channel)
+	logs_channel = log_channel
 	urls = find_urls(message.content)
 	if urls != []:
 		for url in urls:
@@ -129,14 +129,14 @@ async def on_message(message):
 				try:
 					data = await get_music_data(url)
 					if data['type'] == 'empty_response':
-						await logs_channel.send(embed = log('FAILURE - Auto Link Lookup', f'Empty response', f'URL: `{url}`'))
+						await log('FAILURE - Auto Link Lookup', f'Empty response', f'URL: `{url}`', logs_channel = logs_channel)
 						continue
 					if data['type'] == 'error':
-						await logs_channel.send(embed = log('FAILURE - Auto Link Lookup', f'HTTP Error {data['response_status']}', f'URL: `{url}`'))
+						await log('FAILURE - Auto Link Lookup', f'HTTP Error {data['response_status']}', f'URL: `{url}`', logs_channel = logs_channel)
 						continue
 					await message.add_reaction('❗')
 				except Exception as error:
-					await logs_channel.send(embed = log('ERROR - Auto Link Lookup', f'{error}', f'URL: `{url}`'))
+					await log('ERROR - Auto Link Lookup', f'{error}', f'URL: `{url}`', logs_channel = logs_channel)
 					continue
 			else:
 				continue
@@ -150,19 +150,19 @@ async def on_message(message):
 						search_result = await search_album(data['artists'][0], data['title'], data['year'])
 					break
 				except Exception as error:
-					await logs_channel.send(embed = log('NOTICE - Auto Link Lookup', f'Error when searching link - "{error}", retrying...', f'URL: `{url}`'))
+					await log('NOTICE - Auto Link Lookup', f'Error when searching link - "{error}", retrying...', f'URL: `{url}`', logs_channel = logs_channel)
 					await asyncio.sleep(5)
 
 			if current_time_ms() - start_time >= 30000:
 				await message.add_reaction('⌛')
-				await logs_channel.send(embed = log('FAILURE - Auto Link Lookup', f'Search timed out', f'URL: `{url}`'))
+				await log('FAILURE - Auto Link Lookup', f'Search timed out', f'URL: `{url}`', logs_channel = logs_channel)
 				if await check_reaction(message, '❗'):
 					await message.remove_reaction('❗', client.user)
 				continue
 
 			if search_result['anchor'].count('\n') <= 1:
 				await message.add_reaction('🤷')
-				await logs_channel.send(embed = log('RETREAT - Auto Link Lookup', f'Insufficient results', f'URL: `{url}`'))
+				await log('RETREAT - Auto Link Lookup', f'Insufficient results', f'URL: `{url}`', logs_channel = logs_channel)
 				if await check_reaction(message, '❗'):
 					await message.remove_reaction('❗', client.user)
 				continue
@@ -179,7 +179,7 @@ async def on_message(message):
 
 			embed = await message.reply(embed = success_embed(search_result['title'], search_result['artists'], search_result['cover'], search_result['anchor'], search_result['type']), mention_author = False)
 			await add_reactions(embed, ['👍','👎'])
-			await logs_channel.send(embed = log('SUCCESS - Auto Link Lookup', f'Successfully searched a link in {current_time_ms() - start_time}ms', f'URL: `{url}`', search_result['log_anchor']))
+			await log('SUCCESS - Auto Link Lookup', f'Successfully searched a link in {current_time_ms() - start_time}ms', f'URL: `{url}`', search_result['log_anchor'], logs_channel = logs_channel)
 
 
 
@@ -189,7 +189,7 @@ async def on_message(message):
 @app_commands.describe(from_album = 'The album or collection of the track you want to look up, helps with precision (ex. "In Rainbows")')
 @app_commands.describe(is_explicit = 'Whether the track you want to look up has explicit content (has the little [E] badge next to its name on streaming platforms), helps with precision')
 async def self(interaction: discord.Interaction, artist: str, track: str, from_album: str = None, is_explicit: bool = None):
-	logs_channel = client.get_channel(log_channel)
+	logs_channel = log_channel
 	start_time = current_time_ms()
 	await interaction.response.defer()
 
@@ -197,12 +197,12 @@ async def self(interaction: discord.Interaction, artist: str, track: str, from_a
 		search_result = await search_track(artist, track, from_album, is_explicit)
 	except Exception as error:
 		await interaction.followup.send(embed = fail_embed('An error has occured while running your command. Please try again!'))
-		await logs_channel.send(embed = log('ERROR - Track Search', f'{error}', f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{from_album}`\nIs explicit? `{is_explicit}`'))
+		await log('ERROR - Track Search', f'{error}', f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{from_album}`\nIs explicit? `{is_explicit}`', logs_channel = logs_channel)
 		return None
 
 	if search_result['anchor'] == '':
 		await interaction.followup.send(embed = fail_embed("I wasn't able to find your track. Please check for typos in your command and try again!"))
-		await logs_channel.send(embed = log('FAILURE - Track Search', f'Unsuccessfully executed command', f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{from_album}`\nIs explicit? `{is_explicit}`'))
+		await log('FAILURE - Track Search', f'Unsuccessfully executed command', f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{from_album}`\nIs explicit? `{is_explicit}`', logs_channel = logs_channel)
 		return None
 
 	if search_result['anchor'].count('\n') <= 2:
@@ -210,14 +210,14 @@ async def self(interaction: discord.Interaction, artist: str, track: str, from_a
 			search_result = await search_track(search_result['artists'][0], search_result['title'], search_result['collection_name'], search_result['is_explicit'])
 		except Exception as error:
 			await interaction.followup.send(embed = fail_embed('An error has occured while running your command. Please try again!'))
-			await logs_channel.send(embed = log('ERROR - Track Search', f'{error}', f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{from_album}`\nIs explicit? `{is_explicit}`'))
+			await log('ERROR - Track Search', f'{error}', f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{from_album}`\nIs explicit? `{is_explicit}`', logs_channel = logs_channel)
 			return None
 
 	
 	embed = await interaction.followup.send(embed = success_embed(search_result['title'], search_result['artists'], search_result['cover'], search_result['anchor'], search_result['type']))
 	await add_reactions(embed, ['👍','👎'])
 	end_time = current_time_ms()
-	await logs_channel.send(embed = log('SUCCESS - Track Search', f'Successfully executed command in {end_time - start_time}ms', f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{from_album}`\nIs explicit? `{is_explicit}`', search_result['log_anchor']))
+	await log('SUCCESS - Track Search', f'Successfully executed command in {end_time - start_time}ms', f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{from_album}`\nIs explicit? `{is_explicit}`', search_result['log_anchor'], logs_channel = logs_channel)
 
 
 
@@ -226,7 +226,7 @@ async def self(interaction: discord.Interaction, artist: str, track: str, from_a
 @app_commands.describe(album = 'The title of the album you want to look up (ex. "To Pimp A Butterfly")')
 @app_commands.describe(year = 'The release year of the album you want to look up, helps with precision (ex. "2015")')
 async def self(interaction: discord.Interaction, artist: str, album: str, year: str = None):
-	logs_channel = client.get_channel(log_channel)
+	logs_channel = log_channel
 	start_time = current_time_ms()
 	await interaction.response.defer()
 
@@ -234,12 +234,12 @@ async def self(interaction: discord.Interaction, artist: str, album: str, year: 
 		search_result = await search_album(artist, album, year)
 	except Exception as error:
 		await interaction.followup.send(embed = fail_embed('An error has occured while running your command. Please try again!'),)
-		await logs_channel.send(embed = log('ERROR - Album Search', f'{error}', f'Artist: `{artist}`\nAlbum: `{album}`\nYear: `{year}`'))
+		await log('ERROR - Album Search', f'{error}', f'Artist: `{artist}`\nAlbum: `{album}`\nYear: `{year}`', logs_channel = logs_channel)
 		return None
 
 	if search_result['anchor'] == '':
 		await interaction.followup.send(embed = fail_embed("I wasn't able to find your album. Please check for typos in your command and try again!"))
-		await logs_channel.send(embed = log('FAILURE - Album Search', f'Unsuccessfully executed command', f'Artist: `{artist}`\nAlbum: `{album}`\nYear: `{year}`'))
+		await log('FAILURE - Album Search', f'Unsuccessfully executed command', f'Artist: `{artist}`\nAlbum: `{album}`\nYear: `{year}`', logs_channel = logs_channel)
 		return None
 
 	if search_result['anchor'].count('\n') <= 2:
@@ -247,20 +247,20 @@ async def self(interaction: discord.Interaction, artist: str, album: str, year: 
 			search_result = await search_album(search_result['artists'][0], search_result['title'], search_result['year'])
 		except Exception as error:
 			await interaction.followup.send(embed = fail_embed('An error has occured while running your command. Please try again!'))
-			await logs_channel.send(embed = log('FAILURE - Album Search', f'Unsuccessfully executed command', f'Artist: `{artist}`\nAlbum: `{album}`\nYear: `{year}`'))
+			await log('FAILURE - Album Search', f'Unsuccessfully executed command', f'Artist: `{artist}`\nAlbum: `{album}`\nYear: `{year}`', logs_channel = logs_channel)
 			return None
 
 	embed = await interaction.followup.send(embed = success_embed(search_result['title'], search_result['artists'], search_result['cover'], search_result['anchor'], search_result['type']))
 	await add_reactions(embed, ['👍','👎'])
 	end_time = current_time_ms()
-	await logs_channel.send(embed = log('SUCCESS - Album Search', f'Successfully executed command in {end_time - start_time}ms', f'Artist: `{artist}`\nAlbum: `{album}`\nYear: `{year}`', search_result['log_anchor']))
+	await log('SUCCESS - Album Search', f'Successfully executed command in {end_time - start_time}ms', f'Artist: `{artist}`\nAlbum: `{album}`\nYear: `{year}`', search_result['log_anchor'], logs_channel = logs_channel)
 
 
 
 @tree.command(name = 'lookup', description = 'Look up a track or album from its link')
 @app_commands.describe(link = 'The link of the track or album you want to look up')
 async def self(interaction: discord.Interaction, link: str):
-	logs_channel = client.get_channel(log_channel)
+	logs_channel = log_channel
 	start_time = current_time_ms()
 	await interaction.response.defer()
 
@@ -268,13 +268,13 @@ async def self(interaction: discord.Interaction, link: str):
 		data = await get_music_data(link)
 	except:
 		await interaction.followup.send(embed = fail_embed("The link provided isn't a valid music link."))
-		await logs_channel.send(embed = log('FAILURE - Link Lookup', 'Invalid URL', f'URL: `{link}`'))
+		await log('FAILURE - Link Lookup', 'Invalid URL', f'URL: `{link}`', logs_channel = logs_channel)
 		return None
 
 	try:
 		if data['type'] == 'error':
 			await interaction.followup.send(embed = fail_embed('An error has occured while running your command. Please try again!'))
-			await logs_channel.send(embed = log('FAILURE - Link Lookup', f'HTTP Error {data['response_status']}', f'URL: `{link}`'))
+			await log('FAILURE - Link Lookup', f'HTTP Error {data['response_status']}', f'URL: `{link}`', logs_channel = logs_channel)
 			return None
 		if data['type'] == 'track':
 			data['title'] = remove_feat(data['title'])
@@ -283,12 +283,12 @@ async def self(interaction: discord.Interaction, link: str):
 			search_result = await search_album(data['artists'][0], data['title'], data['year'])
 	except Exception as error:
 		await interaction.followup.send(embed = fail_embed('An error has occured while running your command. Please try again!'))
-		await logs_channel.send(embed = log('ERROR - Link Lookup', f'{error}', f'URL: `{link}`'))
+		await log('ERROR - Link Lookup', f'{error}', f'URL: `{link}`', logs_channel = logs_channel)
 		return None
 
 	if search_result['anchor'] == '':
 		await interaction.followup.send(embed = fail_embed("I wasn't able to find anything regarding your link. Make sure you haven't accidentally typed anything in it and try again!"))
-		await logs_channel.send(embed = log('FAILURE - Link Lookup', f'Unsuccessfully executed command',f'URL: `{link}`'))
+		await log('FAILURE - Link Lookup', f'Unsuccessfully executed command',f'URL: `{link}`', logs_channel = logs_channel)
 		return None
 
 	if search_result['anchor'].count('\n') <= 2:
@@ -300,20 +300,20 @@ async def self(interaction: discord.Interaction, link: str):
 				search_result = await search_album(search_result['artists'][0], search_result['title'])
 		except Exception as error:
 			await interaction.followup.send(embed = fail_embed('An error has occured while running your command. Please try again!'))
-			await logs_channel.send(embed = log('ERROR - Link Lookup', f'{error}', f'URL: `{link}`'))
+			await log('ERROR - Link Lookup', f'{error}', f'URL: `{link}`', logs_channel = logs_channel)
 			return None
 
 	embed = await interaction.followup.send(embed = success_embed(search_result['title'], search_result['artists'], search_result['cover'], search_result['anchor'], search_result['type']))
 	await add_reactions(embed, ['👍','👎'])
 	end_time = current_time_ms()
-	await logs_channel.send(embed = log('SUCCESS - Link Lookup', f'Successfully executed command in {end_time - start_time}ms', f'URL: `{link}`', search_result['log_anchor']))
+	await log('SUCCESS - Link Lookup', f'Successfully executed command in {end_time - start_time}ms', f'URL: `{link}`', search_result['log_anchor'], logs_channel = logs_channel)
 
 
 
 @tree.command(name = 'snoop', description = 'Get the track a user is listening to on Spotify')
 @app_commands.describe(user = 'The user you want to snoop on')
 async def self(interaction: discord.Interaction, user: discord.Member):
-	logs_channel = client.get_channel(log_channel)
+	logs_channel = log_channel
 	start_time = current_time_ms()
 	await interaction.response.defer()
 
@@ -329,13 +329,13 @@ async def self(interaction: discord.Interaction, user: discord.Member):
 			try:
 				if data['type'] == 'error':
 					await interaction.followup.send(embed = fail_embed('An error occured while running your command. Please try again!'))
-					await logs_channel.send(embed = log('ERROR - Snoop', f'{error}', f'ID: `{identifier}`'))
+					await log('ERROR - Snoop', f'{error}', f'ID: `{identifier}`', logs_channel = logs_channel)
 					return None
 				data['title'] = remove_feat(data['title'])
 				search_result = await search_track(data['artists'][0], data['title'], data['collection_name'], data['is_explicit'])
 			except Exception as error:
 				await interaction.followup.send(embed = fail_embed('An error occured while running your command. Please try again!'))
-				await logs_channel.send(embed = log('ERROR - Snoop', f'{error}', f'ID: `{identifier}`'))
+				await log('ERROR - Snoop', f'{error}', f'ID: `{identifier}`', logs_channel = logs_channel)
 				return None
 
 			if search_result['anchor'].count('\n') <= 2:
@@ -344,18 +344,18 @@ async def self(interaction: discord.Interaction, user: discord.Member):
 					search_result = await search_track(search_result['artists'][0], search_result['title'], search_result['collection_name'], search_result['is_explicit'])
 				except Exception as error:
 					await interaction.followup.send(embed = fail_embed('An error occured while running your command. Please try again!'))
-					await logs_channel.send(embed = log('ERROR - Snoop', f'{error}', f'ID: `{identifier}`'))
+					await log('ERROR - Snoop', f'{error}', f'ID: `{identifier}`', logs_channel = logs_channel)
 					return None
 
 			embed = await interaction.followup.send(embed = success_embed(search_result['title'], search_result['artists'], search_result['cover'], search_result['anchor'], search_result['type'], user))
 			await add_reactions(embed, ['👍','👎'])
 			end_time = current_time_ms()
-			await logs_channel.send(embed = log('SUCCESS - Snoop', f'Successfully executed command in {end_time - start_time}ms', f'ID: `{identifier}`', search_result['log_anchor']))
+			await log('SUCCESS - Snoop', f'Successfully executed command in {end_time - start_time}ms', f'ID: `{identifier}`', search_result['log_anchor'], logs_channel = logs_channel)
 			replied = True
 		
 	if replied == False:
 		await interaction.followup.send(embed = fail_embed("That user doesn't appear to be listening to any Spotify track."))
-		await logs_channel.send(embed = log('FAILURE - Snoop', f'No Spotify playback detected'))
+		await log('FAILURE - Snoop', f'No Spotify playback detected', logs_channel = logs_channel)
 		return None
 
 
@@ -363,7 +363,7 @@ async def self(interaction: discord.Interaction, user: discord.Member):
 @tree.command(name = 'coverart', description = 'Get the cover art of a track or album')
 @app_commands.describe(link = 'The link of the track or album you want to retrieve the cover art from')
 async def self(interaction: discord.Interaction, link: str):
-	logs_channel = client.get_channel(log_channel)
+	logs_channel = log_channel
 	start_time = current_time_ms()
 	await interaction.response.defer()
 
@@ -371,13 +371,13 @@ async def self(interaction: discord.Interaction, link: str):
 		data = await get_music_data(link)
 	except:
 		await interaction.followup.send(embed = fail_embed("The link provided isn't a valid music link."))
-		await logs_channel.send(embed = log('FAILURE - Cover Art Showcase', 'Invalid URL', f'URL: `{link}`'))
+		await log('FAILURE - Cover Art Showcase', 'Invalid URL', f'URL: `{link}`', logs_channel = logs_channel)
 		return None
 
 	try:
 		if data['type'] == 'error':
 			await interaction.followup.send(embed = fail_embed('An error has occured while running your command. Please try again!'))
-			await logs_channel.send(embed = log('FAILURE - Cover Art Showcase', f'HTTP Error {data['response_status']}', f'URL: `{link}`'))
+			await log('FAILURE - Cover Art Showcase', f'HTTP Error {data['response_status']}', f'URL: `{link}`', logs_channel = logs_channel)
 			return None
 		if data['type'] == 'track':
 			data['title'] = remove_feat(data['title'])
@@ -386,12 +386,12 @@ async def self(interaction: discord.Interaction, link: str):
 			search_result = await search_album(data['artists'][0], data['title'], data['year'])
 	except Exception as error:
 		await interaction.followup.send(embed = fail_embed('An error has occured while running your command. Please try again!'))
-		await logs_channel.send(embed = log('ERROR - Cover Art Showcase', f'{error}', f'URL: `{link}`'))
+		await log('ERROR - Cover Art Showcase', f'{error}', f'URL: `{link}`', logs_channel = logs_channel)
 		return None
 
 	if search_result['anchor'] == '':
 		await interaction.followup.send(embed = fail_embed("I wasn't able to find anything regarding your link. Make sure you haven't accidentally typed anything in it and try again!"))
-		await logs_channel.send(embed = log('FAILURE - Cover Art Showcase', f'Unsuccessfully executed command',f'URL: `{link}`'))
+		await log('FAILURE - Cover Art Showcase', f'Unsuccessfully executed command',f'URL: `{link}`', logs_channel = logs_channel)
 		return None
 
 	embed = discord.Embed(
@@ -405,7 +405,7 @@ async def self(interaction: discord.Interaction, link: str):
 
 	await interaction.followup.send(embed = embed)
 	end_time = current_time_ms()
-	await logs_channel.send(embed = log('SUCCESS - Get Cover Art', f'Successfully executed command in {end_time - start_time}ms', f'URL: `{link}`', search_result['cover']))
+	await log('SUCCESS - Get Cover Art', f'Successfully executed command in {end_time - start_time}ms', f'URL: `{link}`', search_result['cover'], logs_channel = logs_channel)
 
 
 
@@ -423,16 +423,16 @@ async def self(interaction: discord.Interaction, message: discord.Message):
 			try:
 				data = await get_music_data(url)
 				if data == None:
-					await logs_channel.send(embed = log('FAILURE - Context Menu Link Lookup', f'Failed to get track data from URL', f'URL: `{url}`'))
+					await log('FAILURE - Context Menu Link Lookup', f'Failed to get track data from URL', f'URL: `{url}`', logs_channel = logs_channel)
 					continue
 			except Exception as error:
-				await logs_channel.send(embed = log('ERROR - Context Menu Link Lookup', f'{error}', f'URL: `{url}`'))
+				await log('ERROR - Context Menu Link Lookup', f'{error}', f'URL: `{url}`', logs_channel = logs_channel)
 				continue
 
 			try:
 				if data['type'] == 'error':
 					await interaction.followup.send(embed = fail_embed('An error has occured while running your command. Please try again!'))
-					await logs_channel.send(embed = log('FAILURE - Context Menu Link Lookup', f'HTTP Error {data['response_status']}', f'URL: {url}'))
+					await log('FAILURE - Context Menu Link Lookup', f'HTTP Error {data['response_status']}', f'URL: {url}', logs_channel = logs_channel)
 					return None
 				if data['type'] == 'track':
 					data['title'] = remove_feat(data['title'])
@@ -441,12 +441,12 @@ async def self(interaction: discord.Interaction, message: discord.Message):
 					search_result = await search_album(data['artists'][0], data['title'], data['year'])
 			except Exception as error:
 				await interaction.followup.send(embed = fail_embed('An error has occured while running your command. Please try again!'))
-				await logs_channel.send(embed = log('ERROR - Context Menu Link Lookup', f'{error}', f'URL: `{url}`'))
+				await log('ERROR - Context Menu Link Lookup', f'{error}', f'URL: `{url}`', logs_channel = logs_channel)
 				return None
 			
 			if search_result['anchor'] == '':
 				embeds.append(fail_embed("I wasn't able to find anything regarding this link."))
-				await logs_channel.send(embed = log('FAILURE - Context Menu Link Lookup', f'Unsuccessfully searched a URL',f'URL: `{url}`'))
+				await log('FAILURE - Context Menu Link Lookup', f'Unsuccessfully searched a URL',f'URL: `{url}`', logs_channel = logs_channel)
 				continue
 
 			if search_result['anchor'].count('\n') <= 2:
@@ -458,7 +458,7 @@ async def self(interaction: discord.Interaction, message: discord.Message):
 						search_result = await search_album(search_result['artists'][0], search_result['title'], search_result['year'])
 				except Exception as error:
 					await interaction.followup.send(embed = fail_embed('An error has occured while running your command. Please try again!'))
-					await logs_channel.send(embed = log('ERROR - Context Menu Link Lookup', f'{error}', f'URL: `{url}`'))
+					await log('ERROR - Context Menu Link Lookup', f'{error}', f'URL: `{url}`', logs_channel = logs_channel)
 					return None
 			
 			else:
@@ -468,14 +468,14 @@ async def self(interaction: discord.Interaction, message: discord.Message):
 			embed = await interaction.followup.send(embeds = embeds)
 			await add_reactions(embed, ['👍','👎'])
 			end_time = current_time_ms()
-			await logs_channel.send(embed = log('SUCCESS - Context Menu Link Lookup', f'Successfully executed command in {end_time - start_time}ms', '\n'.join(parameters)))
+			await log('SUCCESS - Context Menu Link Lookup', f'Successfully executed command in {end_time - start_time}ms', '\n'.join(parameters), logs_channel = logs_channel)
 		else:
 			await interaction.followup.send(embed = fail_embed("I wasn't able to find any music links in this message."))
-			await logs_channel.send(embed = log('FAILURE - Context Menu Link Lookup', f'No music service URL-s found in message'))
+			await log('FAILURE - Context Menu Link Lookup', f'No music service URL-s found in message', logs_channel = logs_channel)
 
 	else:
 		await interaction.followup.send(embed = fail_embed("I wasn't able to find any links in this message."))
-		await logs_channel.send(embed = log('FAILURE - Context Menu Link Lookup', f'No URL-s at all found in message'))
+		await log('FAILURE - Context Menu Link Lookup', f'No URL-s at all found in message', logs_channel = logs_channel)
 
 
 
@@ -489,8 +489,8 @@ async def discord_presence():
 
 
 if is_internal:
-	log_channel = int(config['discord']['internal_logs_channel'])
+	log_channel = str(config['discord']['internal_logs_channel'])
 	client.run(config['discord']['internal_token'])
 else:
-	log_channel = int(config['discord']['logs_channel'])
+	log_channel = str(config['discord']['logs_channel'])
 	client.run(config['discord']['token'])
