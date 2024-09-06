@@ -5,42 +5,22 @@ from urllib.parse import urlparse
 from urllib import request
 from PIL import Image
 from io import BytesIO
+from discord import Webhook
 import numpy as np
 import difflib 
 import json
 import re
 import discord as discord
 import requests
+import aiohttp
+import configparser
 
 
 
-def log(type: str, message: str, parameters: str = None, anchors: str = None):
-	embed = discord.Embed(
-		title = f'{type}',
-		colour = 0x0097f5,
-	)
-		
-	embed.add_field(
-		name = 'Message',
-		value = f'{message}',
-		inline = False
-	)
+config = configparser.ConfigParser()
+config.read('tokens.ini')
 
-	if parameters != None:
-		embed.add_field(
-			name = 'Parameters',
-			value = f'{parameters}',
-			inline = False
-		)
 
-	if anchors != None:
-		embed.add_field(
-			name = 'Anchors',
-			value = f'{anchors}',
-			inline = False
-		)
-
-	return embed
 
 def current_time():
 	return int(time())
@@ -196,6 +176,32 @@ def optimize_for_search(string: str):
 		optimized_string = optimized_string[1:]
 	return optimized_string
 
+def has_music_video_declaration(string: str):
+	declarations = [
+		'(official video)',
+		'(official music video)',
+		'[official video]',
+		'[official music video]'
+	]
+	for declaration in declarations:
+		if declaration in string.lower():
+			return True
+	return False
+
+def remove_music_video_declaration(string: str):
+	optimized_string = string.lower()
+	declarations = [
+		'(official video)',
+		'(official music video)',
+		'[official video]',
+		'[official music video]'
+	]
+	for declaration in declarations:
+		if declaration in optimized_string:
+			optimized_string = optimized_string.replace(declaration, '')
+			optimized_string = optimized_string[:len(optimized_string)-1]
+	return optimized_string
+
 async def check_reaction(message: discord.Message, reaction_emoji: str):
 	if not message.reactions:
 		return False
@@ -205,5 +211,38 @@ async def check_reaction(message: discord.Message, reaction_emoji: str):
 	return False
 
 async def add_reactions(message: discord.Message, emojis: list):
-	for emoji in emojis:
-		await message.add_reaction(emoji)
+	try:
+		for emoji in emojis:
+			await message.add_reaction(emoji)
+	except:
+		pass
+
+async def log(message_type: str, message: str, parameters: str = None, anchors: str = None, premade_embed: discord.Embed = None, logs_channel: str = config['discord']['internal_logs_channel']):
+	async with aiohttp.ClientSession() as session:
+		embed = discord.Embed(
+			title = f'{message_type}',
+			colour = 0x0097f5,
+		)
+		embed.add_field(
+			name = 'Message',
+			value = f'{message}',
+			inline = False
+		)
+		if parameters != None:
+			embed.add_field(
+				name = 'Parameters',
+				value = f'{parameters}',
+				inline = False
+			)
+		if anchors != None:
+			embed.add_field(
+				name = 'Anchors',
+				value = f'{anchors}',
+				inline = False
+			)
+		
+		if premade_embed != None:
+			embed = premade_embed
+		
+		webhook = Webhook.from_url(logs_channel, session = session)
+		await webhook.send(embed = embed, username = 'Astro Logs')
