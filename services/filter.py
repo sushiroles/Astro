@@ -22,8 +22,10 @@ def filter_track(tracks_data: list, artist: str, track: str, collection: str = N
 		for artist_name in artists_reference:
 			artists_with_similarity.append([calculate_similarity(bare_bones(artist_name), artist_input), artist_name])
 		artists_with_similarity = sort_similarity_lists(artists_with_similarity)
-		if artists_with_similarity != []:
+		if artists_with_similarity != [] and artists_with_similarity[0][0] > 300:
 			track_similarity += artists_with_similarity[0][0]
+		else:
+			continue
 
 		title_input = bare_bones(track)
 		title_reference = remove_feat(data['title'])
@@ -41,8 +43,13 @@ def filter_track(tracks_data: list, artist: str, track: str, collection: str = N
 		data_with_similarity.append([track_similarity, data])
 	
 	data_with_similarity = sort_similarity_lists(data_with_similarity)
-	if percentage(max_score, data_with_similarity[0][0]) > 30:
-		return data_with_similarity[0][1]
+	if data_with_similarity != []:
+		if percentage(max_score, data_with_similarity[0][0]) > 30:
+			return data_with_similarity[0][1]
+		else:
+			return {
+				'type': 'empty_response'
+			}
 	else:
 		return {
 			'type': 'empty_response'
@@ -65,8 +72,10 @@ def filter_album(albums_data: list, artist: str, album: str, year: str = None):
 		for artist_name in artists_reference:
 			artists_with_similarity.append([calculate_similarity(bare_bones(artist_name), artist_input), artist_name])
 		artists_with_similarity = sort_similarity_lists(artists_with_similarity)
-		if artists_with_similarity != []:
+		if artists_with_similarity != [] and artists_with_similarity[0][0] > 300:
 			track_similarity += artists_with_similarity[0][0]
+		else:
+			continue
 
 		title_input = bare_bones(album)
 		title_reference = remove_feat(data['title'])
@@ -79,8 +88,13 @@ def filter_album(albums_data: list, artist: str, album: str, year: str = None):
 		data_with_similarity.append([track_similarity, data])
 	
 	data_with_similarity = sort_similarity_lists(data_with_similarity)
-	if percentage(max_score, data_with_similarity[0][0]) > 30:
-		return data_with_similarity[0][1]
+	if data_with_similarity != []:
+		if percentage(max_score, data_with_similarity[0][0]) > 30:
+			return data_with_similarity[0][1]
+		else:
+			return {
+				'type': 'empty_response'
+			}
 	else:
 		return {
 			'type': 'empty_response'
