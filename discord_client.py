@@ -108,7 +108,7 @@ async def on_ready():
 	)
 	embed.add_field(
 		name = 'Stats',
-		value = f'>>> In `{len(client.guilds)}` servers\n Accessable to `{len(client.users)}` users',
+		value = f'>>> In `{len(client.guilds)}` servers\n Accessible to `{len(client.users)}` users',
 		inline = True
 	)
 	
