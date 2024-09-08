@@ -63,7 +63,11 @@ async def get_youtube_music_track_artist(identifier: str):
 		if 'musicVideoType' in result:
 			if result['musicVideoType'] in allowed_track_types:
 				return [ytmusic.get_artist(result['channelId'])['name']]
-	except:
+	except Exception as response:
+		error = {
+			'response_status': f'YouTubeMusic-GetTrackArtist-{response}'
+		}
+		await log('ERROR - YouTube Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`')
 		return []
 
 
@@ -89,7 +93,7 @@ async def get_youtube_music_track(identifier: str):
 					'is_explicit': None,
 					'extra': {
 						'api_time_ms': current_time_ms() - start_time,
-						'response_status': 'YouTubeMusic-200'
+						'response_status': 'YouTubeMusic-GetTrack-200'
 					}
 				}
 		else:
@@ -99,7 +103,7 @@ async def get_youtube_music_track(identifier: str):
 	except Exception as response:
 		error = {
 			'type': 'error',
-			'response_status': f'YouTubeMusic-{response}'
+			'response_status': f'YouTubeMusic-GetTrack-{response}'
 		}
 		await log('ERROR - YouTube Music API', error['response_status'],f'ID: `{identifier}`')
 		return error
@@ -128,7 +132,7 @@ async def get_youtube_music_album(identifier: str):
 				'year': album_year,
 				'extra': {
 					'api_time_ms': current_time_ms() - start_time,
-					'response_status': 'YouTubeMusic-200'
+					'response_status': 'YouTubeMusic-GetAlbum-200'
 				}
 			}
 		else:
@@ -138,27 +142,33 @@ async def get_youtube_music_album(identifier: str):
 	except Exception as response:
 		error = {
 			'type': 'error',
-			'response_status': f'YouTubeMusic-{response}'
+			'response_status': f'YouTubeMusic-GetAlbum-{response}'
 		}
 		await log('ERROR - YouTube Music API', error['response_status'],f'ID: `{identifier}`')
 		return error
 
 
 
-async def search_youtube_music_track(artist: str, track: str):
+async def search_youtube_music_track(artist: str, track: str, collection: str | None, is_explicit: bool = None):
 	artist = optimize_for_search(artist)
 	track = optimize_for_search(track)
 	try:
 		tracks_data = []
 		start_time = current_time_ms()
-		search_results = ytmusic.search(f'{artist} {track}', filter = 'songs')
+		if collection != None:
+			query = f'{artist} {track} {collection}'
+		else:
+			query = f'{artist} {track}'
+		search_results = ytmusic.search(query, filter = 'songs')
 		for result in search_results:
 			if result['resultType'] == 'song':
 				track_url = f'https://music.youtube.com/watch?v={result['videoId']}'
 				track_id = result['videoId']
-				track_artists = [artist['name'] for artist in result['artists']] if result['artists'] != [] else await get_youtube_music_track_artist(result['videoId'])
 				track_title = result['title']
+				track_artists = [artist['name'] for artist in result['artists']] if result['artists'] != [] else await get_youtube_music_track_artist(result['videoId'])
 				track_cover = result['thumbnails'][len(result['thumbnails'])-1]['url']
+				track_collection = result['album']['name']
+				track_is_explicit = result['isExplicit']
 				tracks_data.append({
 					'type': 'track',
 					'url': track_url,
@@ -166,17 +176,17 @@ async def search_youtube_music_track(artist: str, track: str):
 					'title': track_title,
 					'artists': track_artists,
 					'cover': track_cover,
-					'collection_name': None,
-					'is_explicit': None,
+					'collection_name': track_collection,
+					'is_explicit': track_is_explicit,
 					'extra': {
 						'api_time_ms': current_time_ms() - start_time,
-						'response_status': 'YouTubeMusic-200'
+						'response_status': 'YouTubeMusic-SearchTrack-200'
 					}
 				})
-		return filter_track(tracks_data = tracks_data, artist = artist, track = track)
+		return filter_track(tracks_data = tracks_data, artist = artist, track = track, collection = collection, is_explicit = is_explicit)
 	except Exception as response:
 		error = {
-			'response_status': f'YouTubeMusic-{response}'
+			'response_status': f'YouTubeMusic-SearchTrack-{response}'
 		}
 		await log('ERROR - YouTube Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`')
 		return error
@@ -208,14 +218,14 @@ async def search_youtube_music_album(artist: str, album: str, year: str = None):
 					'year': album_year,
 					'extra': {
 						'api_time_ms': current_time_ms() - start_time,
-						'response_status': 'YouTubeMusic-200'
+						'response_status': 'YouTubeMusic-SearchAlbum-200'
 					}
 				})
 		return filter_album(albums_data = albums_data, artist = artist, album = album, year = year)
 	except Exception as response:
 		error = {
 			'type': 'error',
-			'response_status': f'YouTubeMusic-{response}'
+			'response_status': f'YouTubeMusic-SearchAlbum-{response}'
 		}
 		await log('ERROR - YouTube Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`')
 		return error
