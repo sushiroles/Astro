@@ -22,7 +22,7 @@ def filter_track(tracks_data: list, artist: str, track: str, collection: str = N
 		for artist_name in artists_reference:
 			artists_with_similarity.append([calculate_similarity(bare_bones(artist_name), artist_input), artist_name])
 		artists_with_similarity = sort_similarity_lists(artists_with_similarity)
-		if artists_with_similarity != [] and artists_with_similarity[0][0] > 300:
+		if artists_with_similarity != [] and artists_with_similarity[0][0] > 500:
 			track_similarity += artists_with_similarity[0][0]
 		else:
 			continue
@@ -72,7 +72,7 @@ def filter_album(albums_data: list, artist: str, album: str, year: str = None):
 		for artist_name in artists_reference:
 			artists_with_similarity.append([calculate_similarity(bare_bones(artist_name), artist_input), artist_name])
 		artists_with_similarity = sort_similarity_lists(artists_with_similarity)
-		if artists_with_similarity != [] and artists_with_similarity[0][0] > 300:
+		if artists_with_similarity != [] and artists_with_similarity[0][0] > 500:
 			track_similarity += artists_with_similarity[0][0]
 		else:
 			continue
