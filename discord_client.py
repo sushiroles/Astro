@@ -4,7 +4,6 @@ from discord import Spotify
 from discord.ext import tasks
 
 import configparser
-import asyncio
 from random import randint
 
 from app_services import *
@@ -27,17 +26,17 @@ class Client(discord.Client):
 
 
 
-version = '1.1.4'
-client = Client() 
+version = '1.2'
+client = Client()
 tree = app_commands.CommandTree(client)
 is_internal = True
 presence_statuses = open('discord_presence.txt','r').readlines()
 
 
 
-def success_embed(title: str, artists: list, cover: str, anchor: str, result_type: str, particular_user: discord.Member = None):
+def success_embed(title: str, artists: list, cover: str, anchor: str, result_type: str, is_explicit: bool = None, particular_user: discord.Member = None):
 	embed = discord.Embed(
-		title = discord.utils.escape_markdown(f'{title}'),
+		title = discord.utils.escape_markdown(f'{title}{track_is_explicit(is_explicit)}'),
 		description = discord.utils.escape_markdown(f'by {', '.join(artists)}'),
 		colour = get_average_color(cover),
 	)
@@ -109,7 +108,7 @@ async def on_ready():
 	)
 	embed.add_field(
 		name = 'Stats',
-		value = f'>>> In `{len(client.guilds)}` servers',
+		value = f'>>> In `{len(client.guilds)}` servers\n Accessable to `{len(client.users)}` users',
 		inline = True
 	)
 	
@@ -177,7 +176,7 @@ async def on_message(message):
 			if await check_reaction(message, '❗'):
 				await message.remove_reaction('❗', client.user)
 
-			embed = await message.reply(embed = success_embed(search_result['title'], search_result['artists'], search_result['cover'], search_result['anchor'], search_result['type']), mention_author = False)
+			embed = await message.reply(embed = success_embed(search_result['title'], search_result['artists'], search_result['cover'], search_result['anchor'], search_result['type'], (search_result['is_explicit'] if search_result['type'] == 'track' else None)), mention_author = False)
 			await add_reactions(embed, ['👍','👎'])
 			await log('SUCCESS - Auto Link Lookup', f'Successfully searched a link in {current_time_ms() - start_time}ms', f'URL: `{url}`', search_result['log_anchor'], logs_channel = logs_channel)
 
@@ -188,7 +187,8 @@ async def on_message(message):
 @app_commands.describe(track = 'The title of the track you want to look up (ex. "Bodysnatchers")')
 @app_commands.describe(from_album = 'The album or collection of the track you want to look up, helps with precision (ex. "In Rainbows")')
 @app_commands.describe(is_explicit = 'Whether the track you want to look up has explicit content (has the little [E] badge next to its name on streaming platforms), helps with precision')
-async def self(interaction: discord.Interaction, artist: str, track: str, from_album: str = None, is_explicit: bool = None):
+@app_commands.user_install()
+async def searchtrack(interaction: discord.Interaction, artist: str, track: str, from_album: str = None, is_explicit: bool = None):
 	logs_channel = log_channel
 	start_time = current_time_ms()
 	await interaction.response.defer()
@@ -213,8 +213,7 @@ async def self(interaction: discord.Interaction, artist: str, track: str, from_a
 			await log('ERROR - Track Search', f'{error}', f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{from_album}`\nIs explicit? `{is_explicit}`', logs_channel = logs_channel)
 			return None
 
-	
-	embed = await interaction.followup.send(embed = success_embed(search_result['title'], search_result['artists'], search_result['cover'], search_result['anchor'], search_result['type']))
+	embed = await interaction.followup.send(embed = success_embed(search_result['title'], search_result['artists'], search_result['cover'], search_result['anchor'], search_result['type'], search_result['is_explicit']))
 	await add_reactions(embed, ['👍','👎'])
 	end_time = current_time_ms()
 	await log('SUCCESS - Track Search', f'Successfully executed command in {end_time - start_time}ms', f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{from_album}`\nIs explicit? `{is_explicit}`', search_result['log_anchor'], logs_channel = logs_channel)
@@ -225,7 +224,8 @@ async def self(interaction: discord.Interaction, artist: str, track: str, from_a
 @app_commands.describe(artist = 'The artist of the album you want to look up (ex. "Kendrick Lamar")')
 @app_commands.describe(album = 'The title of the album you want to look up (ex. "To Pimp A Butterfly")')
 @app_commands.describe(year = 'The release year of the album you want to look up, helps with precision (ex. "2015")')
-async def self(interaction: discord.Interaction, artist: str, album: str, year: str = None):
+@app_commands.user_install()
+async def searchalbum(interaction: discord.Interaction, artist: str, album: str, year: str = None):
 	logs_channel = log_channel
 	start_time = current_time_ms()
 	await interaction.response.defer()
@@ -259,7 +259,8 @@ async def self(interaction: discord.Interaction, artist: str, album: str, year: 
 
 @tree.command(name = 'lookup', description = 'Look up a track or album from its link')
 @app_commands.describe(link = 'The link of the track or album you want to look up')
-async def self(interaction: discord.Interaction, link: str):
+@app_commands.user_install()
+async def lookup(interaction: discord.Interaction, link: str):
 	logs_channel = log_channel
 	start_time = current_time_ms()
 	await interaction.response.defer()
@@ -303,7 +304,7 @@ async def self(interaction: discord.Interaction, link: str):
 			await log('ERROR - Link Lookup', f'{error}', f'URL: `{link}`', logs_channel = logs_channel)
 			return None
 
-	embed = await interaction.followup.send(embed = success_embed(search_result['title'], search_result['artists'], search_result['cover'], search_result['anchor'], search_result['type']))
+	embed = await interaction.followup.send(embed = success_embed(search_result['title'], search_result['artists'], search_result['cover'], search_result['anchor'], search_result['type'], (search_result['is_explicit'] if search_result['type'] == 'track' else None)))
 	await add_reactions(embed, ['👍','👎'])
 	end_time = current_time_ms()
 	await log('SUCCESS - Link Lookup', f'Successfully executed command in {end_time - start_time}ms', f'URL: `{link}`', search_result['log_anchor'], logs_channel = logs_channel)
@@ -312,10 +313,11 @@ async def self(interaction: discord.Interaction, link: str):
 
 @tree.command(name = 'snoop', description = 'Get the track a user is listening to on Spotify')
 @app_commands.describe(user = 'The user you want to snoop on')
-async def self(interaction: discord.Interaction, user: discord.Member):
+@app_commands.describe(ephemeral = 'Whether the executed command should be ephemeral (only visible to you), false by default')
+async def snoop(interaction: discord.Interaction, user: discord.Member, ephemeral: bool = False):
 	logs_channel = log_channel
 	start_time = current_time_ms()
-	await interaction.response.defer()
+	await interaction.response.defer(ephemeral = ephemeral)
 
 	guild = client.get_guild(interaction.guild.id)
 	member = guild.get_member(user.id)
@@ -347,7 +349,7 @@ async def self(interaction: discord.Interaction, user: discord.Member):
 					await log('ERROR - Snoop', f'{error}', f'ID: `{identifier}`', logs_channel = logs_channel)
 					return None
 
-			embed = await interaction.followup.send(embed = success_embed(search_result['title'], search_result['artists'], search_result['cover'], search_result['anchor'], search_result['type'], user))
+			embed = await interaction.followup.send(embed = success_embed(search_result['title'], search_result['artists'], search_result['cover'], search_result['anchor'], search_result['type'], search_result['is_explicit'], user))
 			await add_reactions(embed, ['👍','👎'])
 			end_time = current_time_ms()
 			await log('SUCCESS - Snoop', f'Successfully executed command in {end_time - start_time}ms', f'ID: `{identifier}`', search_result['log_anchor'], logs_channel = logs_channel)
@@ -362,7 +364,8 @@ async def self(interaction: discord.Interaction, user: discord.Member):
 
 @tree.command(name = 'coverart', description = 'Get the cover art of a track or album')
 @app_commands.describe(link = 'The link of the track or album you want to retrieve the cover art from')
-async def self(interaction: discord.Interaction, link: str):
+@app_commands.user_install()
+async def coverart(interaction: discord.Interaction, link: str):
 	logs_channel = log_channel
 	start_time = current_time_ms()
 	await interaction.response.defer()
@@ -395,7 +398,7 @@ async def self(interaction: discord.Interaction, link: str):
 		return None
 
 	embed = discord.Embed(
-		title = discord.utils.escape_markdown(f'{search_result['title']}'),
+		title = discord.utils.escape_markdown(f'{search_result['title']}{track_is_explicit(search_result['is_explicit'])}'),
 		description = discord.utils.escape_markdown(f'by {', '.join(search_result['artists'])}'),
 		colour = get_average_color(search_result['cover']),
 	)
@@ -410,8 +413,9 @@ async def self(interaction: discord.Interaction, link: str):
 
 
 @tree.context_menu(name = 'Search music link(s)')
-async def self(interaction: discord.Interaction, message: discord.Message):
-	logs_channel = client.get_channel(log_channel)
+@app_commands.user_install()
+async def contextmenulookup(interaction: discord.Interaction, message: discord.Message):
+	logs_channel = log_channel
 	start_time = current_time_ms()
 	await interaction.response.defer()
 
@@ -462,7 +466,7 @@ async def self(interaction: discord.Interaction, message: discord.Message):
 					return None
 			
 			else:
-				embeds.append(success_embed(search_result['title'], search_result['artists'], search_result['cover'], search_result['anchor'], data['type']))
+				embeds.append(success_embed(search_result['title'], search_result['artists'], search_result['cover'], search_result['anchor'], data['type'], (search_result['is_explicit'] if search_result['type'] == 'track' else None)))
 				parameters.append(f'URL: `{url}`')
 		if embeds != []:
 			embed = await interaction.followup.send(embeds = embeds)
