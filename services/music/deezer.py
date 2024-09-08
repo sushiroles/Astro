@@ -64,13 +64,13 @@ async def get_deezer_track(identifier: str):
 					'is_explicit': track_is_explicit,
 					'extra': {
 						'api_time_ms': current_time_ms() - start_time,
-						'response_status': f'Deezer-{response.status}'
+						'response_status': f'Deezer-GetTrack-{response.status}'
 					}
 				}
 			else:
 				error = {
 					'type': 'error',
-					'response_status': f'Deezer-{response.status}'
+					'response_status': f'Deezer-GetTrack-{response.status}'
 				}
 				await log('ERROR - Deezer API', error['response_status'],f'ID: `{identifier}`')
 				return error
@@ -100,28 +100,29 @@ async def get_deezer_album(identifier: str):
 					'year': album_year,
 					'extra': {
 						'api_time_ms': current_time_ms() - start_time,
-						'response_status': f'Deezer-{response.status}'
+						'response_status': f'Deezer-GetAlbum-{response.status}'
 					}
 				}
 			else:
 				error = {
 					'type': 'error',
-					'response_status': f'Deezer-{response.status}'
+					'response_status': f'Deezer-GetTrack-{response.status}'
 				}
 				await log('ERROR - Deezer API', error['response_status'],f'ID: `{identifier}`')
 				return error
 
 
 
-async def search_deezer_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
+async def search_deezer_track(artist: str, track: str, collection: str | None, is_explicit: bool = None):
 	artist = optimize_for_search(artist)
 	track = optimize_for_search(track)
 	collection = optimize_for_search(collection) if collection != None else None
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
-		api_url = f'https://api.deezer.com/search/track?q=artist:"{artist}" track:"{track}"'
 		if collection != None:
 			api_url = f'https://api.deezer.com/search/track?q=artist:"{artist}" track:"{track}" album:"{collection}"'
+		else:
+			api_url = f'https://api.deezer.com/search/track?q=artist:"{artist}" track:"{track}"'
 		start_time = current_time_ms()
 		async with session.get(url = api_url) as response:
 			if response.status == 200:
@@ -149,7 +150,7 @@ async def search_deezer_track(artist: str, track: str, collection: str = None, i
 								'is_explicit': track_is_explicit,
 								'extra': {
 									'api_time_ms': current_time_ms() - start_time,
-									'response_status': f'Deezer-{response.status}'
+									'response_status': f'Deezer-SearchTrack-{response.status}'
 								}
 							})
 					return filter_track(tracks_data = tracks_data, artist = artist, track = track, collection = collection, is_explicit = is_explicit)
@@ -160,7 +161,7 @@ async def search_deezer_track(artist: str, track: str, collection: str = None, i
 			else:
 				error = {
 					'type': 'error',
-					'response_status': f'Deezer-{response.status}'
+					'response_status': f'Deezer-SearchTrack-{response.status}'
 				}
 				await log('ERROR - Deezer API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`')
 				return error
@@ -198,7 +199,7 @@ async def search_deezer_album(artist: str, album: str, year: str = None):
 								'year': album_year,
 								'extra': {
 									'api_time_ms': current_time_ms() - start_time,
-									'response_status': f'Deezer-{response.status}'
+									'response_status': f'Deezer-SearchAlbum-{response.status}'
 								}
 							})
 					return filter_album(albums_data = albums_data, artist = artist, album = album, year = year)
@@ -209,7 +210,7 @@ async def search_deezer_album(artist: str, album: str, year: str = None):
 			else:
 				error = {
 					'type': 'error',
-					'response_status': f'Deezer-{response.status}'
+					'response_status': f'Deezer-SearchAlbum-{response.status}'
 				}
 				await log('ERROR - Deezer API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`')
 				return error

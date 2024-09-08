@@ -75,6 +75,11 @@ async def get_apple_music_artist(artist_id: int):
 					await asyncio.sleep(0.1)
 					continue
 				else:
+					error = {
+						'type': 'error',
+						'response_status': f'AppleMusic-GetArtist-{response.status}'
+					}
+					await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`')
 					return []
 
 
@@ -106,7 +111,7 @@ async def get_apple_music_track(identifier: str, country_code: str):
 						'is_explicit': track_is_explicit,
 						'extra': {
 							'api_time_ms': current_time_ms() - start_time,
-							'response_status': f'AppleMusic-{response.status}'
+							'response_status': f'AppleMusic-GetTrack-{response.status}'
 						}
 					}
 				elif response.status == 503:
@@ -115,7 +120,7 @@ async def get_apple_music_track(identifier: str, country_code: str):
 				else:
 					error = {
 						'type': 'error',
-						'response_status': f'AppleMusic-{response.status}'
+						'response_status': f'AppleMusic-GetTrack-{response.status}'
 					}
 					await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`\nCountry code: `{country_code}`')
 					return error
@@ -150,7 +155,7 @@ async def get_apple_music_album(identifier: str, country_code: str):
 							'is_explicit': track_is_explicit,
 							'extra': {
 								'api_time_ms': current_time_ms() - start_time,
-								'response_status': f'AppleMusic-{response.status}'
+								'response_status': f'AppleMusic-GetAlbum-{response.status}'
 							}
 						}
 					if ' (Apple Music Edition)' in album_title:
@@ -167,7 +172,7 @@ async def get_apple_music_album(identifier: str, country_code: str):
 						'year': album_year,
 						'extra': {
 							'api_time_ms': current_time_ms() - start_time,
-							'response_status': f'AppleMusic-{response.status}'
+							'response_status': f'AppleMusic-GetAlbum-{response.status}'
 						}
 					}
 				elif response.status == 503:
@@ -176,23 +181,24 @@ async def get_apple_music_album(identifier: str, country_code: str):
 				else:
 					error = {
 					'type': 'error',
-					'response_status': f'AppleMusic-{response.status}'
+					'response_status': f'AppleMusic-GetAlbum-{response.status}'
 				}
 				await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`\nCountry code: `{country_code}`')
 				return error
 
 
 
-async def search_apple_music_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
+async def search_apple_music_track(artist: str, track: str, collection: str | None, is_explicit: bool = None):
 	track = replace_with_ascii(track)
 	artist = optimize_for_search(artist)
 	track = optimize_for_search(track)
 	collection = optimize_for_search(collection) if collection != None else None
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
-		query = f'{artist}+"{track}"'
 		if collection != None:
 			query = f'{artist}+"{track}"+{collection}'
+		else:
+			query = f'{artist}+"{track}"'
 		api_url =f'https://itunes.apple.com/search?term={query}&entity=song&limit=200&country=us'
 		start_time = current_time_ms()
 		while True:
@@ -220,7 +226,7 @@ async def search_apple_music_track(artist: str, track: str, collection: str = No
 								'is_explicit': track_is_explicit,
 								'extra': {
 									'api_time_ms': current_time_ms() - start_time,
-									'response_status': f'AppleMusic-{response.status}'
+									'response_status': f'AppleMusic-SearchTrack-{response.status}'
 								}
 							})
 						return filter_track(tracks_data = tracks_data, artist = artist, track = track, collection = collection, is_explicit = is_explicit)
@@ -234,7 +240,7 @@ async def search_apple_music_track(artist: str, track: str, collection: str = No
 				else:
 					error = {
 						'type': 'error',
-						'response_status': f'AppleMusic-{response.status}'
+						'response_status': f'AppleMusic-SearchTrack-{response.status}'
 					}
 					await log('ERROR - Apple Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`')
 					return error
@@ -273,7 +279,7 @@ async def search_apple_music_album(artist: str, album: str, year: str = None):
 								'year': album_year,
 								'extra': {
 									'api_time_ms': current_time_ms() - start_time,
-									'response_status': f'AppleMusic-{response.status}'
+									'response_status': f'AppleMusic-SearchAlbum-{response.status}'
 								}
 							})
 						return filter_album(albums_data = albums_data, artist = artist, album = album, year = year)
@@ -287,7 +293,7 @@ async def search_apple_music_album(artist: str, album: str, year: str = None):
 				else:
 					error = {
 						'type': 'error',
-						'response_status': f'AppleMusic-{response.status}'
+						'response_status': f'AppleMusic-SearchAlbum-{response.status}'
 					}
 					await log('ERROR - Apple Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`')
 					return error

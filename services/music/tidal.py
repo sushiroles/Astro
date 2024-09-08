@@ -29,6 +29,11 @@ async def get_access_token(client_id: str, client_secret: str):
 				json_response = await response.json()
 				return json_response['access_token']
 			else:
+				error = {
+					'type': 'error',
+					'response_status': f'TIDAL-GetAccessToken-{response.status}'
+				}
+				await log('ERROR - TIDAL API', error['response_status'],f'ID: `{identifier}`')
 				return ''
 
 def is_tidal_track(url: str):
@@ -90,13 +95,13 @@ async def get_tidal_track(identifier: str):
 					'is_explicit': track_is_explicit,
 					'extra': {
 						'api_time_ms': current_time_ms() - start_time,
-						'response_status': f'TIDAL-{response.status}'
+						'response_status': f'TIDAL-GetTrack-{response.status}'
 					}
 				}
 			else:
 				error = {
 					'type': 'error',
-					'response_status': f'TIDAL-{response.status}'
+					'response_status': f'TIDAL-GetTrack-{response.status}'
 				}
 				await log('ERROR - TIDAL API', error['response_status'],f'ID: `{identifier}`')
 				return error
@@ -131,13 +136,13 @@ async def get_tidal_album(identifier: str):
 					'year': album_year,
 					'extra': {
 						'api_time_ms': current_time_ms() - start_time,
-						'response_status': f'TIDAL-{response.status}'
+						'response_status': f'TIDAL-GetAlbum-{response.status}'
 					}
 				}
 			else:
 				error = {
 					'type': 'error',
-					'response_status': f'TIDAL-{response.status}'
+					'response_status': f'TIDAL-GetAlbum-{response.status}'
 				}
 				await log('ERROR - TIDAL API', error['response_status'],f'ID: `{identifier}`')
 				return error
@@ -174,20 +179,20 @@ async def get_tidal_video(identifier: str):
 					'is_explicit': video_is_explicit,
 					'extra': {
 						'api_time_ms': current_time_ms() - start_time,
-						'response_status': f'TIDAL-{response.status}'
+						'response_status': f'TIDAL-GetVideo-{response.status}'
 					}
 				}
 			else:
 				error = {
 					'type': 'error',
-					'response_status': f'TIDAL-{response.status}'
+					'response_status': f'TIDAL-GetVideo-{response.status}'
 				}
 				await log('ERROR - TIDAL API', error['response_status'],f'ID: `{identifier}`')
 				return error
 
 
 
-async def search_tidal_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
+async def search_tidal_track(artist: str, track: str, collection: str | None, is_explicit: bool = None):
 	artist = optimize_for_search(artist)
 	track = optimize_for_search(track)
 	collection = optimize_for_search(collection) if collection != None else None
@@ -224,7 +229,7 @@ async def search_tidal_track(artist: str, track: str, collection: str = None, is
 							'is_explicit': track_is_explicit,
 							'extra': {
 								'api_time_ms': current_time_ms() - start_time,
-								'response_status': f'TIDAL-{response.status}'
+								'response_status': f'TIDAL-SearchTrack-{response.status}'
 							}
 						})
 					return filter_track(tracks_data = tracks_data, artist = artist, track = track, collection = collection, is_explicit = is_explicit)
@@ -235,7 +240,7 @@ async def search_tidal_track(artist: str, track: str, collection: str = None, is
 			else:
 				error = {
 					'type': 'error',
-					'response_status': f'TIDAL-{response.status}'
+					'response_status': f'TIDAL-SearchTrack-{response.status}'
 				}
 				await log('ERROR - TIDAL API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`')
 				return error
@@ -276,7 +281,7 @@ async def search_tidal_album(artist: str, album: str, year: str = None):
 							'year': album_year,
 							'extra': {
 								'api_time_ms': current_time_ms() - start_time,
-								'response_status': f'TIDAL-{response.status}'
+								'response_status': f'TIDAL-SearchAlbum-{response.status}'
 							}
 						})
 					return filter_album(albums_data = albums_data, artist = artist, album = album, year = year)
@@ -287,7 +292,7 @@ async def search_tidal_album(artist: str, album: str, year: str = None):
 			else:
 				error = {
 					'type': 'error',
-					'response_status': f'TIDAL-{response.status}'
+					'response_status': f'TIDAL-SearchAlbum-{response.status}'
 				}
 				await log('ERROR - TIDAL API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`')
 				return error

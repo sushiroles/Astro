@@ -26,6 +26,11 @@ async def get_access_token(client_id: str, client_secret: str):
 				json_response = await response.json()
 				return json_response['access_token']
 			else:
+				error = {
+					'type': 'error',
+					'response_status': f'Spotify-GetAccessToken-{response.status}'
+				}
+				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`')
 				return ''
 
 def is_spotify_track(url: str):
@@ -65,13 +70,13 @@ async def get_spotify_track(identifier: str):
 					'is_explicit': track_is_explicit,
 					'extra': {
 						'time_ms': current_time_ms() - start_time,
-						'response_status': f'Spotify-{response.status}'
+						'response_status': f'Spotify-GetTrack-{response.status}'
 					}
 				}
 			else:
 				error = {
 					'type': 'error',
-					'response_status': f'Spotify-{response.status}'
+					'response_status': f'Spotify-GetTrack-{response.status}'
 				}
 				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`')
 				return error
@@ -102,20 +107,20 @@ async def get_spotify_album(identifier: str):
 					'year': album_year,
 					'extra': {
 						'api_time_ms': current_time_ms() - start_time,
-						'response_status': f'Spotify-{response.status}'
+						'response_status': f'Spotify-GetAlbum-{response.status}'
 					}
 				}
 			else:
 				error = {
 					'type': 'error',
-					'response_status': f'Spotify-{response.status}'
+					'response_status': f'Spotify-GetAlbum-{response.status}'
 				}
 				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`')
 				return error
 
 
 
-async def search_spotify_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
+async def search_spotify_track(artist: str, track: str, collection: str | None, is_explicit: bool = None):
 	artist = artist.replace("'",'').replace(",",'')
 	track = track.replace("'",'').replace(",",'')
 	collection = collection.replace("'",'').replace(",",'') if collection != None else None
@@ -124,9 +129,10 @@ async def search_spotify_track(artist: str, track: str, collection: str = None, 
 	collection = optimize_for_search(collection) if collection != None else None
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
-		query = f'artist:{artist} track:{track}'
 		if collection != None:
 			query = f'artist:{artist} track:{track} album:{collection}'
+		else:
+			query = f'artist:{artist} track:{track}'
 		api_url = f'https://api.spotify.com/v1/search?q={query}&type=track&limit=50'
 		api_headers = {'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}'}
 		start_time = current_time_ms()
@@ -153,7 +159,7 @@ async def search_spotify_track(artist: str, track: str, collection: str = None, 
 							'is_explicit': track_is_explicit,
 							'extra': {
 								'api_time_ms': current_time_ms() - start_time,
-								'response_status': f'Spotify-{response.status}'
+								'response_status': f'Spotify-SearchTrack-{response.status}'
 							}
 						})
 					return filter_track(tracks_data = tracks_data, artist = artist, track = track, collection = collection, is_explicit = is_explicit)
@@ -164,7 +170,7 @@ async def search_spotify_track(artist: str, track: str, collection: str = None, 
 			else:
 				error = {
 					'type': 'error',
-					'response_status': f'Spotify-{response.status}'
+					'response_status': f'Spotify-SearchTrack-{response.status}'
 				}
 				await log('ERROR - Spotify API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`')
 				return error
@@ -203,7 +209,7 @@ async def search_spotify_album(artist: str, album: str, year: str = None):
 							'year': album_year,
 							'extra': {
 								'api_time_ms': current_time_ms() - start_time,
-								'response_status': f'Spotify-{response.status}'
+								'response_status': f'Spotify-SearchAlbum-{response.status}'
 							}
 						})
 					return filter_album(albums_data = albums_data, artist = artist, album = album, year = year)
@@ -214,7 +220,7 @@ async def search_spotify_album(artist: str, album: str, year: str = None):
 			else:
 				error = {
 					'type': 'error',
-					'response_status': f'Spotify-{response.status}'
+					'response_status': f'Spotify-SearchAlbum-{response.status}'
 				}
 				await log('ERROR - Spotify API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`')
 				return error
