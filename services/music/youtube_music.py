@@ -65,6 +65,7 @@ async def get_youtube_music_track_artist(identifier: str):
 				return [ytmusic.get_artist(result['channelId'])['name']]
 	except Exception as response:
 		error = {
+			'type': 'error',
 			'response_status': f'YouTubeMusic-GetTrackArtist-{response}'
 		}
 		await log('ERROR - YouTube Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`')
@@ -186,6 +187,7 @@ async def search_youtube_music_track(artist: str, track: str, collection: str | 
 		return filter_track(tracks_data = tracks_data, artist = artist, track = track, collection = collection, is_explicit = is_explicit)
 	except Exception as response:
 		error = {
+			'type': 'error',
 			'response_status': f'YouTubeMusic-SearchTrack-{response}'
 		}
 		await log('ERROR - YouTube Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`')

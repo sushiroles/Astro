@@ -180,11 +180,11 @@ async def get_apple_music_album(identifier: str, country_code: str):
 					continue
 				else:
 					error = {
-					'type': 'error',
-					'response_status': f'AppleMusic-GetAlbum-{response.status}'
-				}
-				await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`\nCountry code: `{country_code}`')
-				return error
+						'type': 'error',
+						'response_status': f'AppleMusic-GetAlbum-{response.status}'
+					}
+					await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`\nCountry code: `{country_code}`')
+					return error
 
 
 
