@@ -202,6 +202,15 @@ def remove_music_video_declaration(string: str):
 			optimized_string = optimized_string[:len(optimized_string)-1]
 	return optimized_string
 
+def track_is_explicit(is_explicit: bool | None):
+	if is_explicit != None:
+		if is_explicit:
+			return '  <:explicit:1282046436598480907>'
+		else:
+			return ''
+	else:
+		return ''
+
 async def check_reaction(message: discord.Message, reaction_emoji: str):
 	if not message.reactions:
 		return False
@@ -244,5 +253,5 @@ async def log(message_type: str, message: str, parameters: str = None, anchors: 
 		if premade_embed != None:
 			embed = premade_embed
 		
-		webhook = Webhook.from_url(logs_channel, session = session)
-		await webhook.send(embed = embed, username = 'Astro Logs')
+		webhook = Webhook.from_url(url = logs_channel, session = session)
+		await webhook.send(embed = embed, username = 'Astro Logs', avatar_url = config['discord']['webhooks_avatar'])
