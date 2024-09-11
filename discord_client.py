@@ -187,6 +187,7 @@ async def on_message(message):
 @app_commands.describe(track = 'The title of the track you want to look up (ex. "Bodysnatchers")')
 @app_commands.describe(from_album = 'The album or collection of the track you want to look up, helps with precision (ex. "In Rainbows")')
 @app_commands.describe(is_explicit = 'Whether the track you want to look up has explicit content (has the little [E] badge next to its name on streaming platforms), helps with precision')
+@app_commands.guild_install()
 @app_commands.user_install()
 async def searchtrack(interaction: discord.Interaction, artist: str, track: str, from_album: str = None, is_explicit: bool = None):
 	logs_channel = log_channel
@@ -224,6 +225,7 @@ async def searchtrack(interaction: discord.Interaction, artist: str, track: str,
 @app_commands.describe(artist = 'The artist of the album you want to look up (ex. "Kendrick Lamar")')
 @app_commands.describe(album = 'The title of the album you want to look up (ex. "To Pimp A Butterfly")')
 @app_commands.describe(year = 'The release year of the album you want to look up, helps with precision (ex. "2015")')
+@app_commands.guild_install()
 @app_commands.user_install()
 async def searchalbum(interaction: discord.Interaction, artist: str, album: str, year: str = None):
 	logs_channel = log_channel
@@ -259,6 +261,7 @@ async def searchalbum(interaction: discord.Interaction, artist: str, album: str,
 
 @tree.command(name = 'lookup', description = 'Look up a track or album from its link')
 @app_commands.describe(link = 'The link of the track or album you want to look up')
+@app_commands.guild_install()
 @app_commands.user_install()
 async def lookup(interaction: discord.Interaction, link: str):
 	logs_channel = log_channel
@@ -314,6 +317,7 @@ async def lookup(interaction: discord.Interaction, link: str):
 @tree.command(name = 'snoop', description = 'Get the track a user is listening to on Spotify')
 @app_commands.describe(user = 'The user you want to snoop on')
 @app_commands.describe(ephemeral = 'Whether the executed command should be ephemeral (only visible to you), false by default')
+@app_commands.guild_install()
 async def snoop(interaction: discord.Interaction, user: discord.Member, ephemeral: bool = False):
 	logs_channel = log_channel
 	start_time = current_time_ms()
@@ -413,6 +417,7 @@ async def coverart(interaction: discord.Interaction, link: str):
 
 
 @tree.context_menu(name = 'Search music link(s)')
+@app_commands.guild_install()
 @app_commands.user_install()
 async def contextmenulookup(interaction: discord.Interaction, message: discord.Message):
 	logs_channel = log_channel
