@@ -13,14 +13,32 @@ import re
 import discord as discord
 import requests
 import aiohttp
+import asyncio
 import configparser
 
 
 
-config = configparser.ConfigParser()
-config.read('tokens.ini')
+tokens = configparser.ConfigParser()
+tokens.read('tokens.ini')
 
 
+
+def setup(is_internal: bool):
+	tokens.set('discord', 'is_internal', str(is_internal))
+	with open('tokens.ini', 'w') as token_file:
+		tokens.write(token_file)
+
+def get_logs_channel(is_internal: bool):
+	if is_internal:
+		return tokens['discord']['internal_logs_channel']
+	else:
+		return tokens['discord']['logs_channel']
+	
+def get_app_token(is_internal: bool):
+	if is_internal:
+		return tokens['discord']['internal_token']
+	else:
+		return tokens['discord']['token']
 
 def current_time():
 	return int(time())
@@ -211,6 +229,17 @@ def track_is_explicit(is_explicit: bool | None):
 	else:
 		return ''
 
+def clean_up_collection_title(string: str):
+	if ' - Single' in string:
+		return string.replace(' - Single','')
+	elif ' - EP' in string:
+		return string.replace(' - EP','')
+	else:
+		return string
+
+def remove_duplicates(items: list):
+	return list(dict.fromkeys(items))
+
 async def check_reaction(message: discord.Message, reaction_emoji: str):
 	if not message.reactions:
 		return False
@@ -222,11 +251,12 @@ async def check_reaction(message: discord.Message, reaction_emoji: str):
 async def add_reactions(message: discord.Message, emojis: list):
 	try:
 		for emoji in emojis:
+			await asyncio.sleep(0.5)
 			await message.add_reaction(emoji)
 	except:
 		pass
 
-async def log(message_type: str, message: str, parameters: str = None, anchors: str = None, premade_embed: discord.Embed = None, logs_channel: str = config['discord']['internal_logs_channel']):
+async def log(message_type: str, message: str, parameters: str = None, anchors: str = None, premade_embed: discord.Embed = None, logs_channel: str = tokens['discord']['logs_channel']):
 	async with aiohttp.ClientSession() as session:
 		embed = discord.Embed(
 			title = f'{message_type}',
@@ -254,4 +284,4 @@ async def log(message_type: str, message: str, parameters: str = None, anchors: 
 			embed = premade_embed
 		
 		webhook = Webhook.from_url(url = logs_channel, session = session)
-		await webhook.send(embed = embed, username = 'Astro Logs', avatar_url = config['discord']['webhooks_avatar'])
+		await webhook.send(embed = embed, username = 'Astro Logs', avatar_url = tokens['discord']['webhooks_avatar'])
