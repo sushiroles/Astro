@@ -1,4 +1,3 @@
-import configparser
 import base64
 import aiohttp
 try:
@@ -10,10 +9,8 @@ except:
 
 
 
-config = configparser.ConfigParser()
-config.read('tokens.ini')
-client_id = config['tidal']['id']
-client_secret = f'{config['tidal']['secret']}='
+client_id = tokens['tidal']['id']
+client_secret = f'{tokens['tidal']['secret']}='
 
 
 
@@ -33,7 +30,7 @@ async def get_access_token(client_id: str, client_secret: str):
 					'type': 'error',
 					'response_status': f'TIDAL-GetAccessToken-{response.status}'
 				}
-				await log('ERROR - TIDAL API', error['response_status'],f'ID: `{identifier}`')
+				await log('ERROR - TIDAL API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 				return ''
 
 def is_tidal_track(url: str):
@@ -73,8 +70,9 @@ async def get_tidal_track(identifier: str):
 			'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}',
 			'Content-Type': 'application/vnd.tidal.v1+json'
 		}
+		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url, headers = api_headers) as response:
+		async with session.get(url = api_url, headers = api_headers, timeout = timeout) as response:
 			if response.status == 200:
 				json_response = await response.json()
 				track_url = json_response['resource']['tidalUrl']
@@ -103,7 +101,7 @@ async def get_tidal_track(identifier: str):
 					'type': 'error',
 					'response_status': f'TIDAL-GetTrack-{response.status}'
 				}
-				await log('ERROR - TIDAL API', error['response_status'],f'ID: `{identifier}`')
+				await log('ERROR - TIDAL API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 				return error
 
 
@@ -116,8 +114,9 @@ async def get_tidal_album(identifier: str):
 			'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}',
 			'Content-Type': 'application/vnd.tidal.v1+json'
 		}
+		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url, headers = api_headers) as response:
+		async with session.get(url = api_url, headers = api_headers, timeout = timeout) as response:
 			if response.status == 200:
 				json_response = await response.json()
 				album_url = json_response['resource']['tidalUrl']
@@ -144,7 +143,7 @@ async def get_tidal_album(identifier: str):
 					'type': 'error',
 					'response_status': f'TIDAL-GetAlbum-{response.status}'
 				}
-				await log('ERROR - TIDAL API', error['response_status'],f'ID: `{identifier}`')
+				await log('ERROR - TIDAL API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 				return error
 
 
@@ -157,8 +156,9 @@ async def get_tidal_video(identifier: str):
 			'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}',
 			'Content-Type': 'application/vnd.tidal.v1+json'
 		}
+		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url, headers = api_headers) as response:
+		async with session.get(url = api_url, headers = api_headers, timeout = timeout) as response:
 			if response.status == 200:
 				json_response = await response.json()
 				video_url = json_response['resource']['tidalUrl']
@@ -187,15 +187,15 @@ async def get_tidal_video(identifier: str):
 					'type': 'error',
 					'response_status': f'TIDAL-GetVideo-{response.status}'
 				}
-				await log('ERROR - TIDAL API', error['response_status'],f'ID: `{identifier}`')
+				await log('ERROR - TIDAL API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 				return error
 
 
 
-async def search_tidal_track(artist: str, track: str, collection: str | None, is_explicit: bool = None):
+async def search_tidal_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
 	artist = optimize_for_search(artist)
 	track = optimize_for_search(track)
-	collection = optimize_for_search(collection) if collection != None else None
+	collection = clean_up_collection_title(optimize_for_search(collection)) if collection != None else None
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
 		query = f'{track} {artist}'
@@ -205,8 +205,9 @@ async def search_tidal_track(artist: str, track: str, collection: str | None, is
 			'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}',
 			'Content-Type': 'application/vnd.tidal.v1+json'
 		}
+		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url, headers = api_headers) as response:
+		async with session.get(url = api_url, headers = api_headers, timeout = timeout) as response:
 			if response.status == 207:
 				json_response = await response.json()
 				if json_response['tracks'] != []:
@@ -242,7 +243,7 @@ async def search_tidal_track(artist: str, track: str, collection: str | None, is
 					'type': 'error',
 					'response_status': f'TIDAL-SearchTrack-{response.status}'
 				}
-				await log('ERROR - TIDAL API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`')
+				await log('ERROR - TIDAL API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 				return error
 
 
@@ -259,8 +260,9 @@ async def search_tidal_album(artist: str, album: str, year: str = None):
 			'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}',
 			'Content-Type': 'application/vnd.tidal.v1+json'
 		}
+		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url, headers = api_headers) as response:
+		async with session.get(url = api_url, headers = api_headers, timeout = timeout) as response:
 			if response.status == 207:
 				json_response = await response.json()
 				if json_response['albums'] != []:
@@ -294,5 +296,5 @@ async def search_tidal_album(artist: str, album: str, year: str = None):
 					'type': 'error',
 					'response_status': f'TIDAL-SearchAlbum-{response.status}'
 				}
-				await log('ERROR - TIDAL API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`')
+				await log('ERROR - TIDAL API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 				return error

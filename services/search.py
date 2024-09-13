@@ -4,6 +4,7 @@ from services.etc import *
 import asyncio
 
 
+
 def is_music(url):
 	return (
 		is_spotify_track(url)
@@ -21,43 +22,51 @@ def is_music(url):
 	)
 
 async def get_music_data(url):
-	if is_spotify_track(url):
-		identifier = get_spotify_id(url)
-		data = await get_spotify_track(identifier)
-	elif is_spotify_album(url):
-		identifier = get_spotify_id(url)
-		data = await get_spotify_album(identifier)
-	elif is_apple_music_track(url):
-		id_data = get_apple_music_track_id(url)
-		data = await get_apple_music_track(id_data['id'], id_data['country_code'])
-	elif is_apple_music_album(url):
-		id_data = get_apple_music_album_video_id(url)
-		data = await get_apple_music_album(id_data['id'], id_data['country_code'])
-	elif is_apple_music_video(url):
-		id_data = get_apple_music_album_video_id(url)
-		data = await get_apple_music_track(id_data['id'], id_data['country_code'])
-	elif is_youtube_music_track(url):
-		identifier = get_youtube_music_track_id(url)
-		data = await get_youtube_music_track(identifier)
-	elif is_youtube_music_album(url):
-		identifier = get_youtube_music_album_id(url)
-		data = await get_youtube_music_album(identifier)
-	elif is_deezer_track(url):
-		identifier = get_deezer_track_id(url)
-		data = await get_deezer_track(identifier)
-	elif is_deezer_album(url):
-		identifier = get_deezer_album_id(url)
-		data = await get_deezer_album(identifier)
-	elif is_tidal_track(url):
-		identifier = get_tidal_track_id(url)
-		data = await get_tidal_track(identifier)
-	elif is_tidal_album(url):
-		identifier = get_tidal_album_id(url)
-		data = await get_tidal_album(identifier)
-	elif is_tidal_video(url):
-		identifier = get_tidal_video_id(url)
-		data = await get_tidal_video(identifier)
-	return data
+	try:
+		if is_spotify_track(url):
+			identifier = get_spotify_id(url)
+			data = await get_spotify_track(identifier)
+		elif is_spotify_album(url):
+			identifier = get_spotify_id(url)
+			data = await get_spotify_album(identifier)
+		elif is_apple_music_track(url):
+			id_data = get_apple_music_track_id(url)
+			data = await get_apple_music_track(id_data['id'], id_data['country_code'])
+		elif is_apple_music_album(url):
+			id_data = get_apple_music_album_video_id(url)
+			data = await get_apple_music_album(id_data['id'], id_data['country_code'])
+		elif is_apple_music_video(url):
+			id_data = get_apple_music_album_video_id(url)
+			data = await get_apple_music_track(id_data['id'], id_data['country_code'])
+		elif is_youtube_music_track(url):
+			identifier = get_youtube_music_track_id(url)
+			data = await get_youtube_music_track(identifier)
+		elif is_youtube_music_album(url):
+			identifier = get_youtube_music_album_id(url)
+			data = await get_youtube_music_album(identifier)
+		elif is_deezer_track(url):
+			identifier = get_deezer_track_id(url)
+			data = await get_deezer_track(identifier)
+		elif is_deezer_album(url):
+			identifier = get_deezer_album_id(url)
+			data = await get_deezer_album(identifier)
+		elif is_tidal_track(url):
+			identifier = get_tidal_track_id(url)
+			data = await get_tidal_track(identifier)
+		elif is_tidal_album(url):
+			identifier = get_tidal_album_id(url)
+			data = await get_tidal_album(identifier)
+		elif is_tidal_video(url):
+			identifier = get_tidal_video_id(url)
+			data = await get_tidal_video(identifier)
+		return data
+	except Exception as response:
+		error = {
+			'type': 'error',
+			'response_status': f'Search-GetMusicData-{response}'
+		}
+		await log('ERROR - Astro Search Component', error['response_status'],f'URL: `{url}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+		return ''
 
 
 

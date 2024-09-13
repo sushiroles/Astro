@@ -42,8 +42,9 @@ def get_deezer_album_id(url: str):
 async def get_deezer_track(identifier: str):
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://api.deezer.com/track/{identifier}'
+		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url) as response:
+		async with session.get(url = api_url, timeout = timeout) as response:
 			if response.status == 200:
 				json_response = await response.json()
 				track_url = json_response['link']
@@ -72,7 +73,7 @@ async def get_deezer_track(identifier: str):
 					'type': 'error',
 					'response_status': f'Deezer-GetTrack-{response.status}'
 				}
-				await log('ERROR - Deezer API', error['response_status'],f'ID: `{identifier}`')
+				await log('ERROR - Deezer API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 				return error
 
 
@@ -80,8 +81,9 @@ async def get_deezer_track(identifier: str):
 async def get_deezer_album(identifier: str):
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://api.deezer.com/album/{identifier}'
+		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url) as response:
+		async with session.get(url = api_url, timeout = timeout) as response:
 			if response.status == 200:
 				json_response = await response.json()
 				album_url = json_response['link']
@@ -108,23 +110,23 @@ async def get_deezer_album(identifier: str):
 					'type': 'error',
 					'response_status': f'Deezer-GetTrack-{response.status}'
 				}
-				await log('ERROR - Deezer API', error['response_status'],f'ID: `{identifier}`')
+				await log('ERROR - Deezer API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 				return error
 
 
 
-async def search_deezer_track(artist: str, track: str, collection: str | None, is_explicit: bool = None):
+async def search_deezer_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
 	artist = optimize_for_search(artist)
 	track = optimize_for_search(track)
-	collection = optimize_for_search(collection) if collection != None else None
+	collection = clean_up_collection_title(optimize_for_search(collection)) if collection != None else None
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
+		api_url = f'https://api.deezer.com/search/track?q=artist:"{artist}" track:"{track}"'
 		if collection != None:
 			api_url = f'https://api.deezer.com/search/track?q=artist:"{artist}" track:"{track}" album:"{collection}"'
-		else:
-			api_url = f'https://api.deezer.com/search/track?q=artist:"{artist}" track:"{track}"'
+		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url) as response:
+		async with session.get(url = api_url, timeout = timeout) as response:
 			if response.status == 200:
 				json_response = await response.json()
 				search_results = json_response['data']
@@ -163,7 +165,7 @@ async def search_deezer_track(artist: str, track: str, collection: str | None, i
 					'type': 'error',
 					'response_status': f'Deezer-SearchTrack-{response.status}'
 				}
-				await log('ERROR - Deezer API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`')
+				await log('ERROR - Deezer API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 				return error
 
 
@@ -174,8 +176,9 @@ async def search_deezer_album(artist: str, album: str, year: str = None):
 	albums_data = []
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://api.deezer.com/search/album?q=artist:"{artist}" album:"{album}"'
+		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url) as response:
+		async with session.get(url = api_url, timeout = timeout) as response:
 			if response.status == 200:
 				json_response = await response.json()
 				search_results = json_response['data']
@@ -212,5 +215,5 @@ async def search_deezer_album(artist: str, album: str, year: str = None):
 					'type': 'error',
 					'response_status': f'Deezer-SearchAlbum-{response.status}'
 				}
-				await log('ERROR - Deezer API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`')
+				await log('ERROR - Deezer API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 				return error

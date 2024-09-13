@@ -1,6 +1,4 @@
-import configparser
 import aiohttp
-import asyncio
 try:
 	from services.etc import *
 	from services.filter import *
@@ -10,10 +8,8 @@ except:
 
 
 
-config = configparser.ConfigParser()
-config.read('tokens.ini')
-client_id = config['spotify']['id']
-client_secret = config['spotify']['secret']
+client_id = tokens['spotify']['id']
+client_secret = tokens['spotify']['secret']
 
 
 async def get_access_token(client_id: str, client_secret: str):
@@ -30,7 +26,7 @@ async def get_access_token(client_id: str, client_secret: str):
 					'type': 'error',
 					'response_status': f'Spotify-GetAccessToken-{response.status}'
 				}
-				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`')
+				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 				return ''
 
 def is_spotify_track(url: str):
@@ -49,7 +45,8 @@ async def get_spotify_track(identifier: str):
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://api.spotify.com/v1/tracks/{identifier}'
 		api_headers = {'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}'}
-		async with session.get(url = api_url, headers = api_headers) as response:
+		timeout = aiohttp.ClientTimeout(total = 30)
+		async with session.get(url = api_url, headers = api_headers, timeout = timeout) as response:
 			if response.status == 200:
 				json_response = await response.json()
 				track_url = json_response['external_urls']['spotify']
@@ -78,7 +75,7 @@ async def get_spotify_track(identifier: str):
 					'type': 'error',
 					'response_status': f'Spotify-GetTrack-{response.status}'
 				}
-				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`')
+				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 				return error
 
 
@@ -87,8 +84,9 @@ async def get_spotify_album(identifier: str):
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://api.spotify.com/v1/albums/{identifier}'
 		api_headers = {'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}'}
+		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url, headers = api_headers) as response:
+		async with session.get(url = api_url, headers = api_headers, timeout = timeout) as response:
 			if response.status == 200:
 				json_response = await response.json()
 				album_url = json_response['external_urls']['spotify']
@@ -115,28 +113,28 @@ async def get_spotify_album(identifier: str):
 					'type': 'error',
 					'response_status': f'Spotify-GetAlbum-{response.status}'
 				}
-				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`')
+				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 				return error
 
 
 
-async def search_spotify_track(artist: str, track: str, collection: str | None, is_explicit: bool = None):
+async def search_spotify_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
 	artist = artist.replace("'",'').replace(",",'')
 	track = track.replace("'",'').replace(",",'')
 	collection = collection.replace("'",'').replace(",",'') if collection != None else None
 	artist = optimize_for_search(artist)
 	track = optimize_for_search(track)
-	collection = optimize_for_search(collection) if collection != None else None
+	collection = clean_up_collection_title(optimize_for_search(collection)) if collection != None else None
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
+		query = f'artist:{artist} track:{track}'
 		if collection != None:
 			query = f'artist:{artist} track:{track} album:{collection}'
-		else:
-			query = f'artist:{artist} track:{track}'
 		api_url = f'https://api.spotify.com/v1/search?q={query}&type=track&limit=50'
 		api_headers = {'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}'}
+		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url, headers = api_headers) as response:
+		async with session.get(url = api_url, headers = api_headers, timeout = timeout) as response:
 			if response.status == 200:
 				json_response = await response.json()
 				if json_response['tracks']['items']:
@@ -172,7 +170,7 @@ async def search_spotify_track(artist: str, track: str, collection: str | None, 
 					'type': 'error',
 					'response_status': f'Spotify-SearchTrack-{response.status}'
 				}
-				await log('ERROR - Spotify API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`')
+				await log('ERROR - Spotify API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 				return error
 
 
@@ -187,8 +185,9 @@ async def search_spotify_album(artist: str, album: str, year: str = None):
 		query = f'artist:{artist} album:{album}'
 		api_url = f'https://api.spotify.com/v1/search?q={query}&type=album&limit=50'
 		api_headers = {'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}'}
+		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url, headers = api_headers) as response:
+		async with session.get(url = api_url, headers = api_headers, timeout = timeout) as response:
 			if response.status == 200:
 				json_response = await response.json()
 				if json_response['albums']['items']:
@@ -222,5 +221,5 @@ async def search_spotify_album(artist: str, album: str, year: str = None):
 					'type': 'error',
 					'response_status': f'Spotify-SearchAlbum-{response.status}'
 				}
-				await log('ERROR - Spotify API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`')
+				await log('ERROR - Spotify API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 				return error
