@@ -1,5 +1,4 @@
 from ytmusicapi import YTMusic
-import configparser
 try:
 	from services.etc import *
 	from services.filter import *
@@ -9,8 +8,6 @@ except:
 
 
 
-config = configparser.ConfigParser()
-config.read('tokens.ini')
 allowed_track_types = [
 	'MUSIC_VIDEO_TYPE_ATV',
 	'MUSIC_VIDEO_TYPE_OMV',
@@ -20,12 +17,12 @@ allowed_track_types = [
 
 
 ytmusic = YTMusic(auth = {
-	"scope": str(config['youtube_music']['scope']),
-	"token_type": str(config['youtube_music']['token_type']),
-	"access_token": str(config['youtube_music']['access_token']),
-	"refresh_token": str(config['youtube_music']['refresh_token']),
-	"expires_at": int(config['youtube_music']['expires_at']),
-	"expires_in": int(config['youtube_music']['expires_in']),
+	"scope": str(tokens['youtube_music']['scope']),
+	"token_type": str(tokens['youtube_music']['token_type']),
+	"access_token": str(tokens['youtube_music']['access_token']),
+	"refresh_token": str(tokens['youtube_music']['refresh_token']),
+	"expires_at": int(tokens['youtube_music']['expires_at']),
+	"expires_in": int(tokens['youtube_music']['expires_in']),
 })
 
 
@@ -68,8 +65,9 @@ async def get_youtube_music_track_artist(identifier: str):
 			'type': 'error',
 			'response_status': f'YouTubeMusic-GetTrackArtist-{response}'
 		}
-		await log('ERROR - YouTube Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`')
+		await log('ERROR - YouTube Music API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 		return []
+
 
 
 async def get_youtube_music_track(identifier: str):
@@ -98,6 +96,7 @@ async def get_youtube_music_track(identifier: str):
 					}
 				}
 		else:
+			await log('NOTICE - YouTube Music API', f'Empty response (could be a broken music video?)', f'URL: `{url}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 			return {
 				'type': 'empty_response',
 			}
@@ -106,7 +105,7 @@ async def get_youtube_music_track(identifier: str):
 			'type': 'error',
 			'response_status': f'YouTubeMusic-GetTrack-{response}'
 		}
-		await log('ERROR - YouTube Music API', error['response_status'],f'ID: `{identifier}`')
+		await log('ERROR - YouTube Music API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 		return error
 
 
@@ -145,21 +144,21 @@ async def get_youtube_music_album(identifier: str):
 			'type': 'error',
 			'response_status': f'YouTubeMusic-GetAlbum-{response}'
 		}
-		await log('ERROR - YouTube Music API', error['response_status'],f'ID: `{identifier}`')
+		await log('ERROR - YouTube Music API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 		return error
 
 
 
-async def search_youtube_music_track(artist: str, track: str, collection: str | None, is_explicit: bool = None):
+async def search_youtube_music_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
 	artist = optimize_for_search(artist)
 	track = optimize_for_search(track)
+	collection = clean_up_collection_title(optimize_for_search(collection)) if collection != None else None
 	try:
 		tracks_data = []
 		start_time = current_time_ms()
+		query = f'{artist} {track}'
 		if collection != None:
 			query = f'{artist} {track} {collection}'
-		else:
-			query = f'{artist} {track}'
 		search_results = ytmusic.search(query, filter = 'songs')
 		for result in search_results:
 			if result['resultType'] == 'song':
@@ -190,7 +189,7 @@ async def search_youtube_music_track(artist: str, track: str, collection: str | 
 			'type': 'error',
 			'response_status': f'YouTubeMusic-SearchTrack-{response}'
 		}
-		await log('ERROR - YouTube Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`')
+		await log('ERROR - YouTube Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 		return error
 
 
@@ -229,5 +228,5 @@ async def search_youtube_music_album(artist: str, album: str, year: str = None):
 			'type': 'error',
 			'response_status': f'YouTubeMusic-SearchAlbum-{response}'
 		}
-		await log('ERROR - YouTube Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`')
+		await log('ERROR - YouTube Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 		return error
