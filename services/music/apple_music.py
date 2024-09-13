@@ -54,19 +54,12 @@ def get_apple_music_album_video_id(url: str):
 			'country_code': url[24:26],
 		}
 
-def clean_up_collection_title(string: str):
-	if ' - Single' in string:
-		return string.replace(' - Single','')
-	elif ' - EP' in string:
-		return string.replace(' - EP','')
-	else:
-		return string
-
-async def get_apple_music_artist(artist_id: int):
+async def get_apple_music_artist(artist_id: int, country_code: str):
 	async with aiohttp.ClientSession() as session:
-		api_url = f"https://itunes.apple.com/lookup?id={artist_id}"
+		api_url = f"https://itunes.apple.com/lookup?id={artist_id}&country={country_code}"
+		timeout = aiohttp.ClientTimeout(total = 30)
 		while True:
-			async with session.get(url = api_url) as response:
+			async with session.get(url = api_url, timeout = timeout) as response:
 				if response.status == 200:
 					json_response = await response.json(content_type = None)
 					result = json_response['results'][0]
@@ -79,7 +72,7 @@ async def get_apple_music_artist(artist_id: int):
 						'type': 'error',
 						'response_status': f'AppleMusic-GetArtist-{response.status}'
 					}
-					await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`')
+					await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 					return []
 
 
@@ -87,18 +80,19 @@ async def get_apple_music_artist(artist_id: int):
 async def get_apple_music_track(identifier: str, country_code: str):
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://itunes.apple.com/lookup?id={identifier}&country={country_code}'
+		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
 		while True:
-			async with session.get(url = api_url) as response:
+			async with session.get(url = api_url, timeout = timeout) as response:
 				if response.status == 200:
 					json_response = await response.json(content_type = None)
 					result = json_response['results'][0]
 					track_url = result['trackViewUrl']
 					track_id = str(result['trackId'])
 					track_title = result['trackName']
-					track_artists = await get_apple_music_artist(result['artistId'])
+					track_artists = await get_apple_music_artist(result['artistId'], country_code = country_code)
 					track_cover = result['artworkUrl100']
-					track_collection = remove_feat(clean_up_collection_title(result['collectionName'])) if 'song' in result['kind'] else None
+					track_collection = remove_feat(result['collectionName']) if 'song' in result['kind'] else None
 					track_is_explicit = not 'not' in result['trackExplicitness']
 					return {
 						'type': 'track',
@@ -122,7 +116,7 @@ async def get_apple_music_track(identifier: str, country_code: str):
 						'type': 'error',
 						'response_status': f'AppleMusic-GetTrack-{response.status}'
 					}
-					await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`\nCountry code: `{country_code}`')
+					await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`\nCountry code: `{country_code}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 					return error
 
 
@@ -130,16 +124,17 @@ async def get_apple_music_track(identifier: str, country_code: str):
 async def get_apple_music_album(identifier: str, country_code: str):
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://itunes.apple.com/lookup?id={identifier}&country={country_code}'
+		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
 		while True:
-			async with session.get(url = api_url) as response:
+			async with session.get(url = api_url, timeout = timeout) as response:
 				if response.status == 200:
 					json_response = await response.json(content_type = None)
 					result = json_response['results'][0]
 					album_url = result['collectionViewUrl']
 					album_id = str(result['collectionId'])
 					album_title = result['collectionName']
-					album_artists = await get_apple_music_artist(result['artistId'])
+					album_artists = await get_apple_music_artist(result['artistId'], country_code = country_code)
 					album_cover = result['artworkUrl100']
 					album_year = result['releaseDate'][:4]
 					if ' - Single' in album_title:
@@ -151,7 +146,7 @@ async def get_apple_music_album(identifier: str, country_code: str):
 							'title': album_title.replace(' - Single',''),
 							'artists': album_artists,
 							'cover': album_cover,
-							'collection_name': remove_feat(album_title).replace(' - Single',''),
+							'collection_name': remove_feat(album_title),
 							'is_explicit': track_is_explicit,
 							'extra': {
 								'api_time_ms': current_time_ms() - start_time,
@@ -183,26 +178,26 @@ async def get_apple_music_album(identifier: str, country_code: str):
 						'type': 'error',
 						'response_status': f'AppleMusic-GetAlbum-{response.status}'
 					}
-					await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`\nCountry code: `{country_code}`')
+					await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`\nCountry code: `{country_code}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 					return error
 
 
 
-async def search_apple_music_track(artist: str, track: str, collection: str | None, is_explicit: bool = None):
-	track = replace_with_ascii(track)
-	artist = optimize_for_search(artist)
-	track = optimize_for_search(track)
-	collection = optimize_for_search(collection) if collection != None else None
+async def search_apple_music_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
+	track = replace_with_ascii(track).lower()
+	artist = optimize_for_search(artist).lower()
+	track = optimize_for_search(track).lower()
+	collection = optimize_for_search(collection).lower() if collection != None else None
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
+		query = f'{artist}+"{track}"'
 		if collection != None:
 			query = f'{artist}+"{track}"+{collection}'
-		else:
-			query = f'{artist}+"{track}"'
 		api_url =f'https://itunes.apple.com/search?term={query}&entity=song&limit=200&country=us'
+		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
 		while True:
-			async with session.get(url = api_url) as response:
+			async with session.get(url = api_url, timeout = timeout) as response:
 				if response.status == 200:
 					json_response = await response.json(content_type = None)
 					search_results = json_response['results']
@@ -242,7 +237,7 @@ async def search_apple_music_track(artist: str, track: str, collection: str | No
 						'type': 'error',
 						'response_status': f'AppleMusic-SearchTrack-{response.status}'
 					}
-					await log('ERROR - Apple Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`')
+					await log('ERROR - Apple Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 					return error
 
 
@@ -255,9 +250,10 @@ async def search_apple_music_album(artist: str, album: str, year: str = None):
 	async with aiohttp.ClientSession() as session:
 		query = f'{artist}+"{album}"'
 		api_url =f'https://itunes.apple.com/search?term={query}&entity=album&limit=200&country=us'
+		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
 		while True:
-			async with session.get(url = api_url) as response:
+			async with session.get(url = api_url, timeout = timeout) as response:
 				if response.status == 200:
 					json_response = await response.json(content_type = None)
 					search_results = json_response['results']
@@ -295,5 +291,5 @@ async def search_apple_music_album(artist: str, album: str, year: str = None):
 						'type': 'error',
 						'response_status': f'AppleMusic-SearchAlbum-{response.status}'
 					}
-					await log('ERROR - Apple Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`')
+					await log('ERROR - Apple Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 					return error
