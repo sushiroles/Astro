@@ -168,7 +168,7 @@ async def on_message(message):
 					result = await search_track(result['artists'][0], result['title'], result['collection_name'], result['is_explicit'])
 				elif result['type'] == 'album':
 					result = await search_album(result['artists'][0], result['title'], result['year'])
-				second_pass_results.append(result)
+			second_pass_results.append(result)
 		
 		for result in second_pass_results:
 			if result['type'] == 'track' or result['type'] == 'album':
@@ -493,7 +493,7 @@ async def contextmenulookup(interaction: discord.Interaction, message: discord.M
 					result = await search_track(result['artists'][0], result['title'], result['collection_name'], result['is_explicit'])
 				elif result['type'] == 'album':
 					result = await search_album(result['artists'][0], result['title'], result['year'])
-				second_pass_results.append(result)
+			second_pass_results.append(result)
 		
 		for result in second_pass_results:
 			if result['type'] == 'track' or result['type'] == 'album':
