@@ -21,7 +21,7 @@ class Client(discord.Client):
 
 
 
-version = '1.3'
+version = '1.3.1'
 client = Client()
 tree = app_commands.CommandTree(client)
 is_internal = True
@@ -133,14 +133,19 @@ async def on_message(message):
 			tasks.append(get_music_data(url))
 		results = await asyncio.gather(*tasks)
 		for result in results:
-			if result['type'] == 'error':
-				await log('ERROR - Auto Link Lookup', f'{result['response_status']}', logs_channel = log_channel)
+			try:
+				if result['type'] == 'error':
+					await log('ERROR - Auto Link Lookup', f'{result['response_status']}', logs_channel = log_channel)
+					continue
+				if result['type'] == 'empty_response':
+					continue
+				if result['type'] == 'track' and result not in tracks:
+					tracks.append(result)
+				if result['type'] == 'album' and result not in albums:
+					albums.append(result)
+				functional_urls.append(f'URL: [{', '.join(result['artists'])} - {result['title']}]({result['url']})')
+			except:
 				continue
-			elif result['type'] == 'track' and result not in tracks:
-				tracks.append(result)
-			elif result['type'] == 'album' and result not in albums:
-				albums.append(result)
-			functional_urls.append(f'URL: [{', '.join(result['artists'])} - {result['title']}]({result['url']})')
 
 		tasks = []
 
@@ -156,6 +161,9 @@ async def on_message(message):
 					tasks.append(search_album(album['artists'][0], album['title'], album['year']))
 				except:
 					continue
+
+		if tasks == []:
+			return None
 
 		await message.add_reaction('❗')
 
@@ -464,14 +472,19 @@ async def contextmenulookup(interaction: discord.Interaction, message: discord.M
 			tasks.append(get_music_data(url))
 		results = await asyncio.gather(*tasks)
 		for result in results:
-			if result['type'] == 'error':
-				await log('ERROR - Auto Link Lookup', f'{result['response_status']}', logs_channel = log_channel)
+			try:
+				if result['type'] == 'error':
+					await log('ERROR - Auto Link Lookup', f'{result['response_status']}', logs_channel = log_channel)
+					continue
+				if result['type'] == 'emptu_response':
+					continue
+				if result['type'] == 'track' and result not in tracks:
+					tracks.append(result)
+				if result['type'] == 'album' and result not in albums:
+					albums.append(result)
+				functional_urls.append(f'URL: [{', '.join(result['artists'])} - {result['title']}]({result['url']})')
+			except:
 				continue
-			elif result['type'] == 'track' and result not in tracks:
-				tracks.append(result)
-			elif result['type'] == 'album' and result not in albums:
-				albums.append(result)
-			functional_urls.append(f'URL: [{', '.join(result['artists'])} - {result['title']}]({result['url']})')
 
 		tasks = []
 
@@ -487,6 +500,10 @@ async def contextmenulookup(interaction: discord.Interaction, message: discord.M
 					tasks.append(search_album(album['artists'][0], album['title'], album['year']))
 				except:
 					continue
+
+		if tasks == []:
+			await interaction.followup.send(embed = fail_embed("Something went wrong when looking these links up. Please try again!"))
+			return None
 
 		await asyncio.sleep(0.5)
 		results = await asyncio.gather(*tasks)
