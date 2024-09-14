@@ -244,8 +244,8 @@ async def search_apple_music_track(artist: str, track: str, collection: str = No
 
 async def search_apple_music_album(artist: str, album: str, year: str = None):
 	album = replace_with_ascii(album)
-	artist = artist[1:] if artist[0] == '&' else artist
-	album = album[1:] if album[0] == '&' else album
+	artist = optimize_for_search(artist)
+	album = optimize_for_search(album)
 	albums_data = []
 	async with aiohttp.ClientSession() as session:
 		query = f'{artist}+"{album}"'
