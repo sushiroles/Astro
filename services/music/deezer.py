@@ -73,7 +73,7 @@ async def get_deezer_track(identifier: str):
 					'type': 'error',
 					'response_status': f'Deezer-GetTrack-{response.status}'
 				}
-				await log('ERROR - Deezer API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+				await log('ERROR - Deezer API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 				return error
 
 
@@ -110,7 +110,7 @@ async def get_deezer_album(identifier: str):
 					'type': 'error',
 					'response_status': f'Deezer-GetTrack-{response.status}'
 				}
-				await log('ERROR - Deezer API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+				await log('ERROR - Deezer API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 				return error
 
 
@@ -165,7 +165,7 @@ async def search_deezer_track(artist: str, track: str, collection: str = None, i
 					'type': 'error',
 					'response_status': f'Deezer-SearchTrack-{response.status}'
 				}
-				await log('ERROR - Deezer API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+				await log('ERROR - Deezer API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 				return error
 
 
@@ -215,5 +215,5 @@ async def search_deezer_album(artist: str, album: str, year: str = None):
 					'type': 'error',
 					'response_status': f'Deezer-SearchAlbum-{response.status}'
 				}
-				await log('ERROR - Deezer API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+				await log('ERROR - Deezer API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 				return error

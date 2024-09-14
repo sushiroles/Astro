@@ -26,7 +26,7 @@ async def get_access_token(client_id: str, client_secret: str):
 					'type': 'error',
 					'response_status': f'Spotify-GetAccessToken-{response.status}'
 				}
-				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 				return ''
 
 def is_spotify_track(url: str):
@@ -75,7 +75,7 @@ async def get_spotify_track(identifier: str):
 					'type': 'error',
 					'response_status': f'Spotify-GetTrack-{response.status}'
 				}
-				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 				return error
 
 
@@ -113,7 +113,7 @@ async def get_spotify_album(identifier: str):
 					'type': 'error',
 					'response_status': f'Spotify-GetAlbum-{response.status}'
 				}
-				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+				await log('ERROR - Spotify API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 				return error
 
 
@@ -170,7 +170,7 @@ async def search_spotify_track(artist: str, track: str, collection: str = None, 
 					'type': 'error',
 					'response_status': f'Spotify-SearchTrack-{response.status}'
 				}
-				await log('ERROR - Spotify API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+				await log('ERROR - Spotify API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 				return error
 
 
@@ -221,5 +221,5 @@ async def search_spotify_album(artist: str, album: str, year: str = None):
 					'type': 'error',
 					'response_status': f'Spotify-SearchAlbum-{response.status}'
 				}
-				await log('ERROR - Spotify API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+				await log('ERROR - Spotify API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 				return error

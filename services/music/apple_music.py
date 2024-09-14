@@ -72,7 +72,7 @@ async def get_apple_music_artist(artist_id: int, country_code: str):
 						'type': 'error',
 						'response_status': f'AppleMusic-GetArtist-{response.status}'
 					}
-					await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+					await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 					return []
 
 
@@ -116,7 +116,7 @@ async def get_apple_music_track(identifier: str, country_code: str):
 						'type': 'error',
 						'response_status': f'AppleMusic-GetTrack-{response.status}'
 					}
-					await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`\nCountry code: `{country_code}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+					await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`\nCountry code: `{country_code}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 					return error
 
 
@@ -178,7 +178,7 @@ async def get_apple_music_album(identifier: str, country_code: str):
 						'type': 'error',
 						'response_status': f'AppleMusic-GetAlbum-{response.status}'
 					}
-					await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`\nCountry code: `{country_code}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+					await log('ERROR - Apple Music API', error['response_status'],f'ID: `{identifier}`\nCountry code: `{country_code}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 					return error
 
 
@@ -237,7 +237,7 @@ async def search_apple_music_track(artist: str, track: str, collection: str = No
 						'type': 'error',
 						'response_status': f'AppleMusic-SearchTrack-{response.status}'
 					}
-					await log('ERROR - Apple Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+					await log('ERROR - Apple Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 					return error
 
 
@@ -291,5 +291,5 @@ async def search_apple_music_album(artist: str, album: str, year: str = None):
 						'type': 'error',
 						'response_status': f'AppleMusic-SearchAlbum-{response.status}'
 					}
-					await log('ERROR - Apple Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+					await log('ERROR - Apple Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 					return error

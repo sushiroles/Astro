@@ -68,7 +68,7 @@ async def get_youtube_music_track_artist(identifier: str):
 			'type': 'error',
 			'response_status': f'YouTubeMusic-GetTrackArtist-{response}'
 		}
-		await log('ERROR - YouTube Music API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+		await log('ERROR - YouTube Music API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 		return []
 
 
@@ -99,7 +99,7 @@ async def get_youtube_music_track(identifier: str):
 					}
 				}
 		else:
-			await log('NOTICE - YouTube Music API', f'Empty response (could be a broken music video?)', f'URL: `{url}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+			await log('NOTICE - YouTube Music API', f'Empty response (could be a broken music video?)', f'URL: `{url}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 			return {
 				'type': 'empty_response',
 			}
@@ -108,7 +108,7 @@ async def get_youtube_music_track(identifier: str):
 			'type': 'error',
 			'response_status': f'YouTubeMusic-GetTrack-{response}'
 		}
-		await log('ERROR - YouTube Music API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+		await log('ERROR - YouTube Music API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 		return error
 
 
@@ -147,7 +147,7 @@ async def get_youtube_music_album(identifier: str):
 			'type': 'error',
 			'response_status': f'YouTubeMusic-GetAlbum-{response}'
 		}
-		await log('ERROR - YouTube Music API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+		await log('ERROR - YouTube Music API', error['response_status'],f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 		return error
 
 
@@ -192,7 +192,7 @@ async def search_youtube_music_track(artist: str, track: str, collection: str = 
 			'type': 'error',
 			'response_status': f'YouTubeMusic-SearchTrack-{response}'
 		}
-		await log('ERROR - YouTube Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+		await log('ERROR - YouTube Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`\nCollection: `{collection}`\nIs explicit? `{is_explicit}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 		return error
 
 
@@ -231,5 +231,5 @@ async def search_youtube_music_album(artist: str, album: str, year: str = None):
 			'type': 'error',
 			'response_status': f'YouTubeMusic-SearchAlbum-{response}'
 		}
-		await log('ERROR - YouTube Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
+		await log('ERROR - YouTube Music API', error['response_status'],f'Artist: `{artist}`\nTrack: `{track}`Year: `{year}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 		return error
