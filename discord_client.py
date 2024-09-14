@@ -116,6 +116,7 @@ async def on_message(message):
 	urls = find_urls(message.content)
 	music_urls = []
 	embeds = []
+	log_embeds = []
 
 	if urls != []:
 		for url in urls:
@@ -140,7 +141,7 @@ async def on_message(message):
 			elif result['type'] == 'album' and result not in albums:
 				albums.append(result)
 			functional_urls.append(f'URL: [{', '.join(result['artists'])} - {result['title']}]({result['url']})')
-		
+
 		tasks = []
 
 		if tracks != []:
@@ -155,7 +156,7 @@ async def on_message(message):
 					tasks.append(search_album(album['artists'][0], album['title'], album['year']))
 				except:
 					continue
-		
+
 		await message.add_reaction('❗')
 
 		await asyncio.sleep(0.5)
@@ -169,12 +170,13 @@ async def on_message(message):
 				elif result['type'] == 'album':
 					result = await search_album(result['artists'][0], result['title'], result['year'])
 			second_pass_results.append(result)
-		
+
 		for result in second_pass_results:
 			if result['type'] == 'track' or result['type'] == 'album':
 				if not result['anchor'].count('\n') <= 1:
 					embeds.append(success_embed(result['title'], result['artists'], result['cover'], result['anchor'], result['type'], (result['is_explicit'] if result['type'] == 'track' else None)))
-		
+					log_embeds.append(success_embed(result['title'], result['artists'], result['cover'], result['log_anchor'], result['type'], (result['is_explicit'] if result['type'] == 'track' else None)))
+
 		end_time = current_time_ms()
 
 		if embeds != []:
@@ -183,6 +185,8 @@ async def on_message(message):
 			message_embed = await message.reply(embeds = embeds, mention_author = False)
 			await add_reactions(message_embed, ['👍','👎'])
 			await log('SUCCESS - Auto Link Lookup', f'Successfully searched URL-s in {end_time - start_time}ms', f'{'\n'.join(functional_urls)}', logs_channel = log_channel)
+			for embed in log_embeds:
+				await log('woof','bark','grrr',':3', premade_embed = embed, logs_channel = log_channel)
 		else: 
 			await message.add_reaction('🤷')
 			await log('RETREAT - Auto Link Lookup', f'Insufficient results', f'{'\n'.join(functional_urls)}', logs_channel = log_channel)
@@ -331,7 +335,7 @@ async def lookup(interaction: discord.Interaction, link: str):
 async def snoop(interaction: discord.Interaction, user: discord.Member = None, ephemeral: bool = False):
 	start_time = current_time_ms()
 	await interaction.response.defer(ephemeral = ephemeral)
-	
+
 	if user == None:
 		user = interaction.user
 
@@ -343,7 +347,7 @@ async def snoop(interaction: discord.Interaction, user: discord.Member = None, e
 		if isinstance(activity, Spotify):
 			identifier = str(activity.track_id)
 			data = await get_spotify_track(identifier)
-			
+
 			try:
 				if data['type'] == 'error':
 					await interaction.followup.send(embed = fail_embed('An error occured while running your command. Please try again!'))
@@ -370,7 +374,7 @@ async def snoop(interaction: discord.Interaction, user: discord.Member = None, e
 			end_time = current_time_ms()
 			await log('SUCCESS - Snoop', f'Successfully executed command in {end_time - start_time}ms', f'ID: `{identifier}`', search_result['log_anchor'], logs_channel = log_channel)
 			replied = True
-		
+
 	if replied == False:
 		await interaction.followup.send(embed = fail_embed("That user doesn't appear to be listening to any Spotify track."))
 		await log('FAILURE - Snoop', f'No Spotify playback detected', logs_channel = log_channel)
@@ -419,7 +423,7 @@ async def coverart(interaction: discord.Interaction, link: str):
 		description = discord.utils.escape_markdown(f'by {', '.join(search_result['artists'])}'),
 		colour = get_average_color(search_result['cover']),
 	)
-	
+
 	embed.set_image(url = search_result['cover'])
 	embed.set_footer(text = 'Thank you for using Astro!')
 
@@ -439,6 +443,7 @@ async def contextmenulookup(interaction: discord.Interaction, message: discord.M
 	urls = find_urls(message.content)
 	music_urls = []
 	embeds = []
+	log_embeds = []
 
 	if urls != []:
 		for url in urls:
@@ -467,7 +472,7 @@ async def contextmenulookup(interaction: discord.Interaction, message: discord.M
 			elif result['type'] == 'album' and result not in albums:
 				albums.append(result)
 			functional_urls.append(f'URL: [{', '.join(result['artists'])} - {result['title']}]({result['url']})')
-		
+
 		tasks = []
 
 		if tracks != []:
@@ -482,7 +487,7 @@ async def contextmenulookup(interaction: discord.Interaction, message: discord.M
 					tasks.append(search_album(album['artists'][0], album['title'], album['year']))
 				except:
 					continue
-		
+
 		await asyncio.sleep(0.5)
 		results = await asyncio.gather(*tasks)
 
@@ -494,22 +499,25 @@ async def contextmenulookup(interaction: discord.Interaction, message: discord.M
 				elif result['type'] == 'album':
 					result = await search_album(result['artists'][0], result['title'], result['year'])
 			second_pass_results.append(result)
-		
+
 		for result in second_pass_results:
 			if result['type'] == 'track' or result['type'] == 'album':
 				if result['anchor'].count('\n') >= 1:
 					embeds.append(success_embed(result['title'], result['artists'], result['cover'], result['anchor'], result['type'], (result['is_explicit'] if result['type'] == 'track' else None)))
-		
+					log_embeds.append(success_embed(result['title'], result['artists'], result['cover'], result['log_anchor'], result['type'], (result['is_explicit'] if result['type'] == 'track' else None)))
+
 		end_time = current_time_ms()
 
 		if embeds != []:
 			message_embed = await interaction.followup.send(embeds = embeds)
 			await add_reactions(message_embed, ['👍','👎'])
 			await log('SUCCESS - Context Menu Link Lookup', f'Successfully searched URL-s in {end_time - start_time}ms', f'{'\n'.join(functional_urls)}', logs_channel = log_channel)
+			for embed in log_embeds:
+				await log('woof','bark','grrr',':3', premade_embed = embed, logs_channel = log_channel)
 		else: 
-			embeds.append(fail_embed("I wasn't able to find anything regarding these links."))
+			await interaction.followup.send(embed = fail_embed("I wasn't able to find anything regarding these links."))
 			await log('RETREAT - Context Menu Link Lookup', f'Insufficient results', f'{'\n'.join(functional_urls)}', logs_channel = log_channel)
-	
+
 	else:
 		await interaction.followup.send(embed = fail_embed("I wasn't able to find any music links in this message."))
 		await log('FAILURE - Context Menu Link Lookup', f'No music service URL-s found in message', logs_channel = log_channel)
