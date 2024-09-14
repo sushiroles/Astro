@@ -127,7 +127,6 @@ async def on_message(message):
 	functional_urls = []
 	music_urls = remove_duplicates(music_urls)
 	if music_urls != []:
-		await message.add_reaction('❗')
 		tasks = []
 		for url in music_urls:
 			tasks.append(get_music_data(url))
@@ -146,19 +145,30 @@ async def on_message(message):
 
 		if tracks != []:
 			for track in tracks:
-				tasks.append(search_track(track['artists'][0], remove_feat(track['title']), track['collection_name'], track['is_explicit']))
+				try:
+					tasks.append(search_track(track['artists'][0], remove_feat(track['title']), track['collection_name'], track['is_explicit']))
+				except:
+					continue
 		if albums != []:
 			for album in albums:
-				tasks.append(search_album(album['artists'][0], album['title'], album['year']))
+				try:
+					tasks.append(search_album(album['artists'][0], album['title'], album['year']))
+				except:
+					continue
 		
+		await message.add_reaction('❗')
+
 		await asyncio.sleep(0.5)
 		results = await asyncio.gather(*tasks)
 
 		second_pass_results = []
 		for result in results:
 			if result['anchor'].count('\n') <= 2:
-				result = await search_track(result['artists'][0], result['title'], result['collection_name'], result['is_explicit'])
-			second_pass_results.append(result)
+				if result['type'] == 'track':
+					result = await search_track(result['artists'][0], result['title'], result['collection_name'], result['is_explicit'])
+				elif result['type'] == 'album':
+					result = await search_album(result['artists'][0], result['title'], result['year'])
+				second_pass_results.append(result)
 		
 		for result in second_pass_results:
 			if result['type'] == 'track' or result['type'] == 'album':
@@ -463,10 +473,16 @@ async def contextmenulookup(interaction: discord.Interaction, message: discord.M
 
 		if tracks != []:
 			for track in tracks:
-				tasks.append(search_track(track['artists'][0], remove_feat(track['title']), track['collection_name'], track['is_explicit']))
+				try:
+					tasks.append(search_track(track['artists'][0], remove_feat(track['title']), track['collection_name'], track['is_explicit']))
+				except:
+					continue
 		if albums != []:
 			for album in albums:
-				tasks.append(search_album(album['artists'][0], album['title'], album['year']))
+				try:
+					tasks.append(search_album(album['artists'][0], album['title'], album['year']))
+				except:
+					continue
 		
 		await asyncio.sleep(0.5)
 		results = await asyncio.gather(*tasks)
@@ -474,8 +490,11 @@ async def contextmenulookup(interaction: discord.Interaction, message: discord.M
 		second_pass_results = []
 		for result in results:
 			if result['anchor'].count('\n') <= 2:
-				result = await search_track(result['artists'][0], result['title'], result['collection_name'], result['is_explicit'])
-			second_pass_results.append(result)
+				if result['type'] == 'track':
+					result = await search_track(result['artists'][0], result['title'], result['collection_name'], result['is_explicit'])
+				elif result['type'] == 'album':
+					result = await search_album(result['artists'][0], result['title'], result['year'])
+				second_pass_results.append(result)
 		
 		for result in second_pass_results:
 			if result['type'] == 'track' or result['type'] == 'album':
