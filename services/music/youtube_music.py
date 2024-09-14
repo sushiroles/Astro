@@ -59,7 +59,10 @@ async def get_youtube_music_track_artist(identifier: str):
 		result = ytmusic.get_song(identifier)['videoDetails']
 		if 'musicVideoType' in result:
 			if result['musicVideoType'] in allowed_track_types:
-				return [ytmusic.get_artist(result['channelId'])['name']]
+				try:
+					return [ytmusic.get_artist(result['channelId'])['name']]
+				except:
+					return [result['author']]
 	except Exception as response:
 		error = {
 			'type': 'error',
@@ -116,7 +119,7 @@ async def get_youtube_music_album(identifier: str):
 		browse_id = ytmusic.get_album_browse_id(identifier)
 		result = ytmusic.get_album(browse_id)
 		if 'OLAK5' in identifier[:5]:
-			album_url = result['audioPlaylistId']
+			album_url = f'https://music.youtube.com/playlist?list={result['audioPlaylistId']}'
 			album_id = result['audioPlaylistId']
 			album_title = result['title']
 			album_artists = [artist['name'] for artist in result['artists']]
@@ -195,8 +198,8 @@ async def search_youtube_music_track(artist: str, track: str, collection: str = 
 
 
 async def search_youtube_music_album(artist: str, album: str, year: str = None):
-	artist = artist[1:] if artist[0] == '&' else artist
-	album = album[1:] if album[0] == '&' else album
+	artist = optimize_for_search(artist)
+	album = optimize_for_search(album)
 	try:
 		albums_data = []
 		start_time = current_time_ms()
