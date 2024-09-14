@@ -177,10 +177,9 @@ async def on_message(message):
 		
 		end_time = current_time_ms()
 
-		if await check_reaction(message, '❗'):
-			await message.remove_reaction('❗', client.user)
-
 		if embeds != []:
+			if await check_reaction(message, '❗'):
+				await message.remove_reaction('❗', client.user)
 			message_embed = await message.reply(embeds = embeds, mention_author = False)
 			await add_reactions(message_embed, ['👍','👎'])
 			await log('SUCCESS - Auto Link Lookup', f'Successfully searched URL-s in {end_time - start_time}ms', f'{'\n'.join(functional_urls)}', logs_channel = log_channel)
