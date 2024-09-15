@@ -99,7 +99,7 @@ async def get_youtube_music_track(identifier: str):
 					}
 				}
 		else:
-			await log('NOTICE - YouTube Music API', f'Empty response (could be a broken music video?)', f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
+			await log('NOTICE - YouTube Music API', f'Empty response (either broken MV or non-MV video)', f'ID: `{identifier}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
 			return {
 				'type': 'empty_response',
 			}
