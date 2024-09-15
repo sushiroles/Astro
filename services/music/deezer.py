@@ -122,8 +122,6 @@ async def search_deezer_track(artist: str, track: str, collection: str = None, i
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
 		api_url = f'https://api.deezer.com/search/track?q=artist:"{artist}" track:"{track}"'
-		if collection != None:
-			api_url = f'https://api.deezer.com/search/track?q=artist:"{artist}" track:"{track}" album:"{collection}"'
 		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
 		async with session.get(url = api_url, timeout = timeout) as response:
