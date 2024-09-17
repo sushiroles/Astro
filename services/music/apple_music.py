@@ -56,15 +56,19 @@ def get_apple_music_album_video_id(url: str):
 
 async def get_apple_music_artist(artist_id: int, country_code: str):
 	async with aiohttp.ClientSession() as session:
-		api_url = f"https://itunes.apple.com/lookup?id={artist_id}&country={country_code}"
+		api_url = f"https://itunes.apple.com/lookup"
+		api_params = {
+			'id': artist_id,
+			'country': country_code
+		}
 		timeout = aiohttp.ClientTimeout(total = 30)
 		while True:
-			async with session.get(url = api_url, timeout = timeout) as response:
+			async with session.get(url = api_url, timeout = timeout, params = api_params) as response:
 				if response.status == 200:
-					json_response = await response.json(content_type = None)
+					json_response = await response.json(content_type = 'text/javascript')
 					result = json_response['results'][0]
 					return [result['artistName']]
-				if response.status == 503:
+				elif response.status == 503:
 					await asyncio.sleep(0.1)
 					continue
 				else:
@@ -79,13 +83,17 @@ async def get_apple_music_artist(artist_id: int, country_code: str):
 
 async def get_apple_music_track(identifier: str, country_code: str):
 	async with aiohttp.ClientSession() as session:
-		api_url = f'https://itunes.apple.com/lookup?id={identifier}&country={country_code}'
+		api_url = f'https://itunes.apple.com/lookup'
+		api_params = {
+			'id': identifier,
+			'country': country_code
+		}
 		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
 		while True:
-			async with session.get(url = api_url, timeout = timeout) as response:
+			async with session.get(url = api_url, timeout = timeout, params = api_params) as response:
 				if response.status == 200:
-					json_response = await response.json(content_type = None)
+					json_response = await response.json(content_type = 'text/javascript')
 					result = json_response['results'][0]
 					track_url = result['trackViewUrl']
 					track_id = str(result['trackId'])
@@ -123,13 +131,17 @@ async def get_apple_music_track(identifier: str, country_code: str):
 
 async def get_apple_music_album(identifier: str, country_code: str):
 	async with aiohttp.ClientSession() as session:
-		api_url = f'https://itunes.apple.com/lookup?id={identifier}&country={country_code}'
+		api_url = f'https://itunes.apple.com/lookup'
+		api_params = {
+			'id': identifier,
+			'country': country_code
+		}
 		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
 		while True:
-			async with session.get(url = api_url, timeout = timeout) as response:
+			async with session.get(url = api_url, timeout = timeout, params = api_params) as response:
 				if response.status == 200:
-					json_response = await response.json(content_type = None)
+					json_response = await response.json(content_type = 'text/javascript')
 					result = json_response['results'][0]
 					album_url = result['collectionViewUrl']
 					album_id = str(result['collectionId'])
@@ -190,16 +202,19 @@ async def search_apple_music_track(artist: str, track: str, collection: str = No
 	collection = optimize_for_search(collection).lower() if collection != None else None
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
-		query = f'{artist}+"{track}"'
-		if collection != None:
-			query = f'{artist}+"{track}"+{collection}'
-		api_url =f'https://itunes.apple.com/search?term={query}&entity=song&limit=200&country=us'
+		api_url = f'https://itunes.apple.com/search'
+		api_params = {
+			'term': (f'{artist} "{track}"' if collection == None else f'{artist} "{track}" {collection}'),
+			'entity': 'song',
+			'limit': '200',
+			'country': 'us'
+		}
 		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
 		while True:
-			async with session.get(url = api_url, timeout = timeout) as response:
+			async with session.get(url = api_url, timeout = timeout, params = api_params) as response:
 				if response.status == 200:
-					json_response = await response.json(content_type = None)
+					json_response = await response.json(content_type = 'text/javascript')
 					search_results = json_response['results']
 					if search_results != []:
 						for item in search_results:
@@ -248,14 +263,20 @@ async def search_apple_music_album(artist: str, album: str, year: str = None):
 	album = optimize_for_search(album)
 	albums_data = []
 	async with aiohttp.ClientSession() as session:
-		query = f'{artist}+"{album}"'
-		api_url =f'https://itunes.apple.com/search?term={query}&entity=album&limit=200&country=us'
+		query = f'{artist} "{album}"'
+		api_url =f'https://itunes.apple.com/search'
+		api_params = {
+			'term': query,
+			'entity': 'album',
+			'limit': '200',
+			'country': 'us'
+		}
 		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
 		while True:
-			async with session.get(url = api_url, timeout = timeout) as response:
+			async with session.get(url = api_url, timeout = timeout, params = api_params) as response:
 				if response.status == 200:
-					json_response = await response.json(content_type = None)
+					json_response = await response.json(content_type = 'text/javascript')
 					search_results = json_response['results']
 					if search_results != []:
 						for item in search_results:

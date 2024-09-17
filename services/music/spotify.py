@@ -119,20 +119,21 @@ async def get_spotify_album(identifier: str):
 
 
 async def search_spotify_track(artist: str, track: str, collection: str = None, is_explicit: bool = None):
-	artist = artist.replace("'",'').replace(",",'')
-	track = track.replace("'",'').replace(",",'')
-	collection = collection.replace("'",'').replace(",",'') if collection != None else None
 	artist = optimize_for_search(artist)
 	track = optimize_for_search(track)
 	collection = clean_up_collection_title(optimize_for_search(collection)) if collection != None else None
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
-		query = f'artist:{artist} track:{track}'
-		api_url = f'https://api.spotify.com/v1/search?q={query}&type=track&limit=50'
+		api_url = f'https://api.spotify.com/v1/search'
+		api_params = {
+			'q': (f'artist:{artist} track:{track}' if collection == None else f'artist:{artist} track:{track} album:{collection}'),
+			'type': 'track',
+			'limit': '50'
+		}
 		api_headers = {'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}'}
 		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url, headers = api_headers, timeout = timeout) as response:
+		async with session.get(url = api_url, headers = api_headers, timeout = timeout, params = api_params) as response:
 			if response.status == 200:
 				json_response = await response.json()
 				if json_response['tracks']['items']:
@@ -174,18 +175,20 @@ async def search_spotify_track(artist: str, track: str, collection: str = None, 
 
 
 async def search_spotify_album(artist: str, album: str, year: str = None):
-	artist = artist.replace("'",'').replace(",",'')
-	album = album.replace("'",'').replace(",",'')
 	artist = optimize_for_search(artist)
 	album = optimize_for_search(album)
 	albums_data = []
 	async with aiohttp.ClientSession() as session:
-		query = f'artist:{artist} album:{album}'
-		api_url = f'https://api.spotify.com/v1/search?q={query}&type=album&limit=50'
+		api_url = f'https://api.spotify.com/v1/search'
+		api_params = {
+			'q': f'artist:{artist} album:{album}',
+			'type': 'album',
+			'limit': '50'
+		}
 		api_headers = {'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}'}
 		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url, headers = api_headers, timeout = timeout) as response:
+		async with session.get(url = api_url, headers = api_headers, timeout = timeout, params = api_params) as response:
 			if response.status == 200:
 				json_response = await response.json()
 				if json_response['albums']['items']:

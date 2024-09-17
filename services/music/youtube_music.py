@@ -159,10 +159,7 @@ async def search_youtube_music_track(artist: str, track: str, collection: str = 
 	try:
 		tracks_data = []
 		start_time = current_time_ms()
-		query = f'{artist} {track}'
-		if collection != None:
-			query = f'{artist} {track} {collection}'
-		search_results = ytmusic.search(query, filter = 'songs')
+		search_results = ytmusic.search(artist + ' ' + track, filter = 'songs')
 		for result in search_results:
 			if result['resultType'] == 'song':
 				track_url = f'https://music.youtube.com/watch?v={result['videoId']}'
@@ -203,7 +200,7 @@ async def search_youtube_music_album(artist: str, album: str, year: str = None):
 	try:
 		albums_data = []
 		start_time = current_time_ms()
-		search_results = ytmusic.search(f'{artist} {album}', filter = 'albums')
+		search_results = ytmusic.search(artist + ' ' + album, filter = 'albums')
 		for result in search_results:
 			if result['resultType'] == 'album':
 				album_url = f'https://music.youtube.com/playlist?list={result['playlistId']}'

@@ -199,7 +199,15 @@ async def search_tidal_track(artist: str, track: str, collection: str = None, is
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
 		query = f'{track} {artist}'
-		api_url = f"https://openapi.tidal.com/search?query={query}&type=TRACKS&offset=0&limit=100&countryCode=US&popularity=WORLDWIDE"
+		api_url = f"https://openapi.tidal.com/search"
+		api_params = {
+			'query': query,
+			'type': 'TRACKS',
+			'offset': '0',
+			'limit': '100',
+			'countryCode': 'US',
+			'popularity': 'WORLDWIDE'
+		}
 		api_headers = {
 			'accept': 'application/vnd.api+json',
 			'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}',
@@ -207,7 +215,7 @@ async def search_tidal_track(artist: str, track: str, collection: str = None, is
 		}
 		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url, headers = api_headers, timeout = timeout) as response:
+		async with session.get(url = api_url, headers = api_headers, timeout = timeout, params = api_params) as response:
 			if response.status == 207:
 				json_response = await response.json()
 				if json_response['tracks'] != []:
@@ -254,7 +262,15 @@ async def search_tidal_album(artist: str, album: str, year: str = None):
 	albums_data = []
 	async with aiohttp.ClientSession() as session:
 		query = f'{artist} {album}'
-		api_url = f"https://openapi.tidal.com/search?query={query}&type=ALBUMS&offset=0&limit=100&countryCode=US&popularity=WORLDWIDE"
+		api_url = f"https://openapi.tidal.com/search"
+		api_params = {
+			'query': query,
+			'type': 'ALBUMS',
+			'offset': '0',
+			'limit': '100',
+			'countryCode': 'US',
+			'popularity': 'WORLDWIDE'
+		}
 		api_headers = {
 			'accept': 'application/vnd.api+json',
 			'Authorization': f'Bearer {await get_access_token(client_id = client_id, client_secret = client_secret)}',
@@ -262,7 +278,7 @@ async def search_tidal_album(artist: str, album: str, year: str = None):
 		}
 		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url, headers = api_headers, timeout = timeout) as response:
+		async with session.get(url = api_url, headers = api_headers, timeout = timeout, params = api_params) as response:
 			if response.status == 207:
 				json_response = await response.json()
 				if json_response['albums'] != []:

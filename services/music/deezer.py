@@ -121,10 +121,13 @@ async def search_deezer_track(artist: str, track: str, collection: str = None, i
 	collection = clean_up_collection_title(optimize_for_search(collection)) if collection != None else None
 	tracks_data = []
 	async with aiohttp.ClientSession() as session:
-		api_url = f'https://api.deezer.com/search/track?q=artist:"{artist}" track:"{track}"'
+		api_url = f'https://api.deezer.com/search/track'
+		api_params = {
+			'q': (f'artist:"{artist}" track:"{track}"' if collection == None else f'artist:"{artist}" track:"{track}" album:"{collection}"'),
+		}
 		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url, timeout = timeout) as response:
+		async with session.get(url = api_url, timeout = timeout, params = api_params) as response:
 			if response.status == 200:
 				json_response = await response.json()
 				search_results = json_response['data']
@@ -173,10 +176,13 @@ async def search_deezer_album(artist: str, album: str, year: str = None):
 	album = optimize_for_search(album)
 	albums_data = []
 	async with aiohttp.ClientSession() as session:
-		api_url = f'https://api.deezer.com/search/album?q=artist:"{artist}" album:"{album}"'
+		api_url = f'https://api.deezer.com/search/album'
+		api_params = {
+			'q': f'artist:"{artist}" album:"{album}"',
+		}
 		timeout = aiohttp.ClientTimeout(total = 30)
 		start_time = current_time_ms()
-		async with session.get(url = api_url, timeout = timeout) as response:
+		async with session.get(url = api_url, timeout = timeout, params = api_params) as response:
 			if response.status == 200:
 				json_response = await response.json()
 				search_results = json_response['data']
