@@ -21,7 +21,7 @@ class Client(discord.Client):
 
 
 
-version = '1.3.1'
+version = '1.3.2'
 client = Client()
 tree = app_commands.CommandTree(client)
 is_internal = True
@@ -165,9 +165,8 @@ async def on_message(message):
 		if tasks == []:
 			return None
 
-		await message.add_reaction('❗')
+		await add_reactions(message, ['❗'])
 
-		await asyncio.sleep(0.5)
 		results = await asyncio.gather(*tasks)
 
 		second_pass_results = []
@@ -196,7 +195,7 @@ async def on_message(message):
 			for embed in log_embeds:
 				await log('woof','bark','grrr',':3', premade_embed = embed, logs_channel = log_channel)
 		else: 
-			await message.add_reaction('🤷')
+			await add_reactions(message, ['🤷'])
 			await log('RETREAT - Auto Link Lookup', f'Insufficient results', f'{'\n'.join(functional_urls)}', logs_channel = log_channel)
 			if await check_reaction(message, '❗'):
 				await message.remove_reaction('❗', client.user)
