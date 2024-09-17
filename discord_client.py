@@ -476,7 +476,7 @@ async def contextmenulookup(interaction: discord.Interaction, message: discord.M
 				if result['type'] == 'error':
 					await log('ERROR - Auto Link Lookup', f'{result['response_status']}', logs_channel = log_channel)
 					continue
-				if result['type'] == 'emptu_response':
+				if result['type'] == 'empty_response':
 					continue
 				if result['type'] == 'track' and result not in tracks:
 					tracks.append(result)
