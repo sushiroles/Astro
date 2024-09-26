@@ -65,7 +65,7 @@ async def get_music_data(url):
 			'type': 'error',
 			'response_status': f'Search-GetMusicData-{response}'
 		}
-		await log('ERROR - Astro Search Component', error['response_status'],f'URL: `{url}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal'] == 'True') else tokens['discord']['logs_channel']))
+		await log('ERROR - Astro Search Component', error['response_status'],f'URL: `{url}`', logs_channel = (tokens['discord']['internal_logs_channel'] if bool(tokens['discord']['is_internal']) else tokens['discord']['logs_channel']))
 		return ''
 
 
