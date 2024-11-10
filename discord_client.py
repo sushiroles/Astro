@@ -21,7 +21,7 @@ class Client(discord.Client):
 
 
 
-version = '1.4'
+version = '1.3.1.1'
 client = Client()
 tree = app_commands.CommandTree(client)
 is_internal = True

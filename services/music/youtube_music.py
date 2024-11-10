@@ -41,7 +41,7 @@ def get_youtube_music_track_id(url: str):
 		else:
 			return str(url[0:])
 	else:
-		index = url.index('watch?v=') + 8
+		index = url.index('v=') + 2
 	if url.find('&') >= 0:
 		return str(url[index:url.index('&')])
 	else:
